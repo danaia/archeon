@@ -178,196 +178,96 @@ my-app/
 
 ## IDE AI Integration
 
-For Archeon to work effectively, your IDE's AI assistant must **always reference the knowledge graph**. 
+**This is where Archeon really shines.** With a single command, your IDE's AI assistant becomes architecture-aware. It won't just read your knowledge graph — it can **write glyph chains directly**.
 
-### Quick Setup
+### Why This Changes Everything
+
+```
+Without Archeon:  "AI, build me a login"  → Random files, random patterns, hallucinations
+
+With Archeon:     "AI, build me a login"  
+                  → AI writes: @v1 NED:login => CMP:LoginForm => STO:Auth => API:POST/auth => OUT:dashboard
+                  → AI implements each component following that chain
+                  → Perfect architectural consistency, every time
+```
+
+**Your AI assistant becomes a disciplined architect**, not a random code generator.
+
+### One Command Setup
 
 ```bash
-# Generate all IDE configs (default)
 arc ai-setup
+```
 
-# Generate specific IDE configs only
+That's it. This generates configuration files for every major AI-powered IDE:
+
+| IDE | Config File | What It Does |
+|-----|------------|--------------|
+| Cursor | `.cursorrules` | AI reads + writes to ARCHEON.arcon |
+| GitHub Copilot | `.github/copilot-instructions.md` | Copilot Chat understands glyphs |
+| Windsurf | `.windsurfrules` | Cascade AI follows the graph |
+| Cline/Claude Dev | `.clinerules` | Claude writes chains first |
+| Aider | `.aider.conf.yml` | Auto-loads graph context |
+| VS Code | `.vscode/settings.json` | Syntax highlighting for .arcon |
+
+### Selective Setup
+
+```bash
 arc ai-setup --cursor              # Only Cursor
-arc ai-setup --vscode --copilot    # Only VS Code and Copilot
-arc ai-setup --no-cline            # All except Cline
-arc ai-setup --aider               # Include Aider (off by default)
+arc ai-setup --vscode --copilot    # VS Code + Copilot only
+arc ai-setup --no-aider            # All except Aider
 ```
 
-This generates configuration files with README guides:
+### What Happens When You Ask for a Feature
 
-| IDE | Config File | README |
-|-----|------------|--------|
-| Cursor | `.cursorrules` | `.cursor/README.md` |
-| GitHub Copilot | `.github/copilot-instructions.md` | `.github/COPILOT_README.md` |
-| Windsurf | `.windsurfrules` | `.windsurf/README.md` |
-| Cline/Claude Dev | `.clinerules` | `.cline/README.md` |
-| Aider | `.aider.conf.yml` | `.aider/README.md` |
-| VS Code | `.vscode/settings.json` | `.vscode/ARCHEON_README.md` |
+When you tell your IDE's AI: *"Create a user registration feature"*
 
-### What the Configs Do
+The AI will:
+1. **Read** `archeon/ARCHEON.arcon` to understand existing architecture
+2. **Write** a new chain: `@v1 NED:register => CMP:RegisterForm => STO:Auth => API:POST/auth/register => MDL:user => OUT:success`
+3. **Implement** each component following that chain exactly
 
-Each config file tells the AI assistant to:
+No hallucinations. No random patterns. Just clean, consistent architecture.
 
-### What the Configs Do
+### Example Prompts That Work
 
-Each config file tells the AI assistant to:
+```
+"Create a shopping cart feature"
+→ AI adds chain to ARCHEON.arcon, then implements
 
-1. **Read `archeon/ARCHEON.arcon` first** - Before any code generation
-2. **Understand glyph notation** - Know what NED, CMP, STO, API, etc. mean
-3. **Respect constraints** - Never create architecture outside the graph
-4. **Propose via Archeon** - Suggest `arc intent` for new features
+"Add a password reset flow to the architecture"  
+→ AI writes the chain first, asks for approval, then codes
 
-### Manual Configuration
+"What chains are defined in this project?"
+→ AI reads and summarizes ARCHEON.arcon
 
-If you prefer to set up manually, here are the configs:
-
-### Cursor
-
-Create `.cursorrules` in your project root:
-
-```markdown
-# Archeon Project Rules
-
-Always read `archeon/ARCHEON.arcon` before generating or modifying code.
-
-## Architecture Constraint
-This project uses Archeon glyph notation. All features are defined as chains:
-- `NED:` = User need/motivation
-- `CMP:` = UI Component  
-- `STO:` = State store
-- `API:` = HTTP endpoint
-- `MDL:` = Database model
-- `OUT:` = Success outcome
-- `ERR:` = Error path
-
-## Rules
-1. Never create components, stores, APIs, or models not defined in ARCHEON.arcon
-2. Follow the chain flow: NED → CMP → STO → API → MDL → OUT
-3. Check existing chains before proposing new architecture
-4. Use `arc intent "description"` to propose new features
-5. Reference .archeonrc for frontend/backend framework choices
-
-## Before Any Code Generation
-1. Read archeon/ARCHEON.arcon
-2. Check if the requested feature exists as a chain
-3. If not, suggest running `arc intent "feature description"` first
+"Implement CMP:LoginForm following the knowledge graph"
+→ AI finds the chain, generates the component
 ```
 
-### GitHub Copilot
+### The Magic
 
-Create `.github/copilot-instructions.md`:
+**Your AI assistant is now constrained by your architecture**, not its imagination. It can only compose within the glyph taxonomy. This means:
 
-```markdown
-# Archeon Project Context
+- ✅ Consistent patterns across your entire codebase
+- ✅ No architectural drift between sessions  
+- ✅ Switch AI models mid-project — the graph remains
+- ✅ Human stays in control — AI proposes, you approve
 
-This project uses Archeon, a glyph-based architecture notation system.
+### Manual Configuration (Optional)
 
-## Critical Files to Reference
-- `archeon/ARCHEON.arcon` - The knowledge graph (READ THIS FIRST)
-- `.archeonrc` - Project configuration
+If you prefer manual setup, `arc ai-setup` creates README files in each config directory (`.cursor/README.md`, `.github/COPILOT_README.md`, etc.) with detailed instructions.
 
-## Glyph Notation
-Chains define feature architecture:
-```
-NED:login => CMP:LoginForm => STO:Auth => API:POST/auth => OUT:dashboard
-```
+### Cline Extra Setup
 
-## Constraints
-- Only generate code for glyphs defined in ARCHEON.arcon
-- Follow layer boundaries: CMP cannot directly access MDL
-- All features must end with OUT: or ERR:
-- Propose new features via `arc intent` command, not direct code generation
-```
+For Cline (Claude Dev), you can also add the graph to always-included context:
 
-### Windsurf
-
-Create `.windsurfrules` in your project root:
-
-```markdown
-# Archeon Architecture Rules
-
-## Required Context
-Always read these files before generating code:
-1. archeon/ARCHEON.arcon - Knowledge graph with all feature chains
-2. .archeonrc - Frontend/backend framework configuration
-
-## Glyph System
-Features are defined as chains using these glyphs:
-- NED: User need → TSK: Task → CMP: Component → STO: Store → API: Endpoint → MDL: Model → OUT: Output
-
-## Hard Rules
-1. Do not create architecture not defined in ARCHEON.arcon
-2. Check for existing chains before suggesting new patterns
-3. Respect layer boundaries (frontend cannot directly call database)
-4. Use `arc intent` for new features, `arc gen` for code generation
-```
-
-### Cline / Claude Dev
-
-Create `.clinerules`:
-
-```markdown
-# Archeon Project
-
-This uses Archeon glyph notation for architecture.
-
-ALWAYS read archeon/ARCHEON.arcon before any code task.
-
-Chain format: NED:need => CMP:Component => STO:Store => API:endpoint => OUT:result
-
-Do not generate code for features not in the knowledge graph.
-Suggest `arc intent "description"` for new features.
-```
-
-### Aider
-
-Create `.aider.conf.yml`:
-
-```yaml
-read:
-  - archeon/ARCHEON.arcon
-  - .archeonrc
-
-auto-commits: false
-
-message-template: |
-  This project uses Archeon glyph notation.
-  Check archeon/ARCHEON.arcon for defined feature chains.
-  Do not create architecture outside the knowledge graph.
-```
-
-### VS Code Settings (All AI Extensions)
-
-Add to `.vscode/settings.json`:
-
-```json
-{
-  "files.associations": {
-    "*.arcon": "markdown"
-  },
-  "search.include": {
-    "archeon/**": true
-  },
-  "github.copilot.chat.codeGeneration.instructions": [
-    {
-      "text": "Always reference archeon/ARCHEON.arcon for architecture. Use Archeon glyph notation."
-    }
-  ]
-}
-```
-
-### The Key Principle
-
-**The AI should never invent architecture.** 
-
-The `.arcon` file is the single source of truth. Any AI assistant in your IDE should:
-
-1. **Read first** - Check ARCHEON.arcon before generating code
-2. **Propose via Archeon** - Use `arc intent` for new features
-3. **Generate from graph** - Use `arc gen` for code, not freeform generation
-4. **Respect constraints** - Never violate layer boundaries or glyph rules
-
-This ensures architectural consistency regardless of which AI model or tool you use.
+1. Open Cline panel → Settings ⚙️
+2. In **"Custom Instructions"**, add:
+   ```
+   Always reference archeon/ARCHEON.arcon. Write new chains before implementing features.
+   ```
+3. Optionally add `archeon/ARCHEON.arcon` to always-included files
 
 ## Development
 

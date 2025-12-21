@@ -124,12 +124,43 @@ Archeon uses a glyph notation to define architectural components:
 | `CMP` | UI Component | React/Vue component |
 | `STO` | State Store | Zustand/Pinia store |
 | `API` | API Endpoint | Route handler |
-| `MDL` | Data Model | Schema/Model class |
+| `MDL` | Data Model | API schemas + MongoDB entity |
 | `EVT` | Event | Pub/Sub event |
 | `FNC` | Function | Utility function |
 | `V`   | View/Page | Page component |
 | `OUT` | Output/Result | Terminal node |
 | `ERR` | Error state | Error handler |
+
+## MDL: (Model) - Unified Data Layer
+
+The `MDL:` glyph handles both **API schemas** and **database models** in one file:
+
+```python
+# server/src/models/user.py
+from pydantic import BaseModel
+
+# API Schemas (request/response)
+class UserCreate(BaseModel):
+    email: str
+    password: str
+
+class UserResponse(BaseModel):
+    id: str
+    email: str
+    created_at: datetime
+
+# Database Model + Repository
+class User:
+    collection_name = "users"
+    # ... database operations
+```
+
+### Chain Example
+```
+NED:register => CMP:RegisterForm => API:POST/auth/register => MDL:user => OUT:success
+```
+
+The flow: Form → API processes → Model validates & saves to DB
 
 ## Edge Types
 
@@ -164,12 +195,295 @@ Templates use `{PLACEHOLDER}` syntax for code generation.
 ## Knowledge Graph
 
 The `ARCHEON.arcon` file is the source of truth for all architecture.
-AI assistants should:
 
+### Reading the Graph
+AI assistants should read `ARCHEON.arcon` FIRST to understand:
+- What features exist
+- What components/stores/APIs are defined
+- The data flow between layers
+
+### Writing to the Graph
+AI assistants CAN and SHOULD write new chains to `ARCHEON.arcon`:
+
+**Where to add chains:**
+```
+# === AGENT CHAINS ===
+# Add new chains below this line
+```
+
+**Chain format:**
+```
+# Feature description comment
+@v1 NED:feature => CMP:Component => STO:Store => API:METHOD/path => MDL:model => OUT:result
+```
+
+**Versioning:**
+- First version: `@v1 NED:login => ...`
+- Updated version: `@v2 NED:login => ...` (keep @v1 for history)
+
+**Naming conventions:**
+- `CMP:PascalCase` - Components
+- `STO:PascalCase` - Stores  
+- `API:METHOD/path` - Endpoints (e.g., `API:POST/auth/login`)
+- `MDL:lowercase` - Models
+- `NED:lowercase` - Needs/features
+- `OUT:lowercase` - Outcomes
+
+### Workflow
 1. Read `ARCHEON.arcon` to understand existing architecture
-2. Use templates from `templates/` for code generation patterns
-3. Follow glyph chains to maintain architectural consistency
-4. Never invent architecture outside the knowledge graph
+2. If feature doesn't exist, ADD a new chain first
+3. Use templates from `templates/` for code generation patterns
+4. Implement code following the chain structure
+5. Never add code that isn't represented in the graph
+
+## Backend Route Registration (CRITICAL)
+
+When creating API endpoints, you MUST register them in `server/src/main.py`.
+
+### FastAPI Route Registration
+
+After creating a route file (e.g., `server/src/api/routes/auth_login.py`):
+
+```python
+# In server/src/main.py
+
+from fastapi import FastAPI
+from server.src.api.routes import auth_login, auth_register, users  # Import route modules
+
+app = FastAPI(title="API Server", version="0.1.0")
+
+# Register all routes
+app.include_router(auth_login.router)
+app.include_router(auth_register.router)
+app.include_router(users.router)
+```
+
+### File Naming Convention
+
+API glyphs map to route files:
+- `API:POST/auth/login` → `server/src/api/routes/auth_login.py`
+- `API:GET/users/{id}` → `server/src/api/routes/users.py`
+- `API:DELETE/posts/{id}` → `server/src/api/routes/posts.py`
+
+### Route Module Structure
+
+Each route file exports a `router`:
+
+```python
+# server/src/api/routes/auth_login.py
+from fastapi import APIRouter
+
+router = APIRouter(prefix="/auth", tags=["auth"])
+
+@router.post("/login")
+async def login(request: LoginRequest):
+    ...
+```
+
+### IMPORTANT: Always Update main.py
+
+Every time you create a new API route file:
+1. Create the route file in `server/src/api/routes/`
+2. Import the router in `server/src/main.py`
+3. Call `app.include_router(module.router)`
+
+This ensures the endpoint is actually accessible.
+''')
+
+
+def _create_ai_readme(archeon_dir: Path):
+    """Create the AI provisioning guide README."""
+    ai_readme = archeon_dir / "AI_README.md"
+    if ai_readme.exists():
+        return
+    
+    ai_readme.write_text('''# Archeon AI Provisioning Guide
+
+This file tells AI assistants how to scaffold and provision Archeon projects.
+
+## Creating a New Project
+
+When a user asks to create a new application (React, Vue, FastAPI, etc.), use these commands:
+
+### React + FastAPI (Default)
+```bash
+mkdir project-name && cd project-name
+arc init
+arc ai-setup
+```
+
+### Vue 3 + FastAPI
+```bash
+mkdir project-name && cd project-name
+arc init --frontend vue3
+arc ai-setup
+```
+
+### Vue 2 + FastAPI
+```bash
+mkdir project-name && cd project-name
+arc init --frontend vue
+arc ai-setup
+```
+
+### Single Directory (No Monorepo)
+```bash
+mkdir project-name && cd project-name
+arc init --single
+arc ai-setup
+```
+
+## After Project Creation
+
+Once the project is created, the AI should:
+
+1. **Read** `archeon/ARCHEON.arcon` to understand the empty knowledge graph
+2. **Ask** the user what features they want to build
+3. **Write** glyph chains to `ARCHEON.arcon` for each feature
+4. **Implement** code following those chains
+
+## Adding Features
+
+When the user describes a feature:
+
+```bash
+# Option 1: Let the AI write chains directly to ARCHEON.arcon
+# (Preferred - AI adds chain, then implements)
+
+# Option 2: Use the CLI
+arc intent "user logs in with email and password"
+arc parse "NED:login => CMP:LoginForm => STO:Auth => API:POST/auth => OUT:dashboard"
+```
+
+## Code Generation
+
+After chains are defined:
+
+```bash
+# Generate all code from the knowledge graph
+arc gen
+
+# Or AI implements manually following the chains
+```
+
+## Project Structure After Init
+
+```
+project-name/
+├── .archeonrc              # Config (frontend: react/vue3, backend: fastapi)
+├── client/                 # Frontend (components, stores)
+│   └── src/
+│       ├── components/     # CMP: glyphs go here
+│       └── stores/         # STO: glyphs go here
+├── server/                 # Backend (API, models, events)
+│   └── src/
+│       ├── api/routes/     # API: glyphs go here
+│       ├── models/         # MDL: glyphs go here
+│       └── events/         # EVT: glyphs go here
+└── archeon/
+    ├── ARCHEON.arcon       # Knowledge graph (chains go here)
+    ├── AI_README.md        # This file (AI provisioning guide)
+    ├── orchestrator/       # Reference docs
+    │   └── README.md       # Glyph system documentation
+    └── templates/          # Code generation templates
+        ├── CMP/            # Component templates
+        ├── STO/            # Store templates
+        ├── API/            # API route templates
+        ├── MDL/            # Model templates
+        └── EVT/            # Event templates
+```
+
+## Framework Options
+
+| Flag | Frontend | Store | Notes |
+|------|----------|-------|-------|
+| (default) | React | Zustand | Vite + TypeScript |
+| `--frontend vue3` | Vue 3 | Pinia | Vite + JavaScript (no TS) |
+| `--frontend vue` | Vue 2 | Pinia | Options API (no TS) |
+
+| Flag | Backend | Notes |
+|------|---------|-------|
+| (default) | FastAPI | Python 3.10+, async |
+| `--backend express` | Express | (coming soon) |
+
+## Common Workflows
+
+### "Create a Vue 3 app with user authentication"
+```bash
+mkdir my-app && cd my-app
+arc init --frontend vue3
+arc ai-setup
+```
+Then write to ARCHEON.arcon:
+```
+# User authentication
+@v1 NED:login => CMP:LoginForm => STO:Auth => API:POST/auth/login => MDL:user => OUT:dashboard
+@v1 NED:register => CMP:RegisterForm => STO:Auth => API:POST/auth/register => MDL:user => OUT:welcome
+@v1 NED:logout => TSK:clickLogout => STO:Auth => API:POST/auth/logout => OUT:home
+```
+
+### "Create a React app with a todo list"
+```bash
+mkdir todo-app && cd todo-app
+arc init
+arc ai-setup
+```
+Then write to ARCHEON.arcon:
+```
+# Todo list feature
+@v1 NED:viewTodos => CMP:TodoList => STO:Todos => API:GET/todos => MDL:todo => OUT:display
+@v1 NED:addTodo => CMP:TodoForm => STO:Todos => API:POST/todos => MDL:todo => OUT:refresh
+@v1 NED:deleteTodo => TSK:clickDelete => STO:Todos => API:DELETE/todos/{id} => OUT:refresh
+```
+
+## Validation
+
+After adding chains:
+```bash
+arc validate    # Check for errors
+arc status      # Show graph statistics
+```
+
+## Backend Route Registration (CRITICAL)
+
+When creating API endpoints, you MUST register them in `server/src/main.py`:
+
+### Step 1: Create the route file
+```python
+# server/src/api/routes/auth_login.py
+from fastapi import APIRouter
+
+router = APIRouter(prefix="/auth", tags=["auth"])
+
+@router.post("/login")
+async def login(request: LoginRequest):
+    # Implementation
+    pass
+```
+
+### Step 2: Register in main.py
+```python
+# server/src/main.py
+from fastapi import FastAPI
+from server.src.api.routes import auth_login  # Add import
+
+app = FastAPI(title="API Server")
+
+app.include_router(auth_login.router)  # Register the router
+```
+
+### File Naming Convention
+- `API:POST/auth/login` → `server/src/api/routes/auth_login.py`
+- `API:GET/users/{id}` → `server/src/api/routes/users.py`
+- `API:DELETE/posts/{id}` → `server/src/api/routes/posts.py`
+
+**IMPORTANT:** Every new API route file MUST be imported and registered in `main.py` or the endpoint won't be accessible.
+
+## Key Principle
+
+**Always define architecture in ARCHEON.arcon before writing code.**
+
+The knowledge graph is the single source of truth. Every component, store, API, and model should be represented as a glyph in a chain before implementation.
 ''')
 
 
@@ -215,6 +529,9 @@ def init(
     
     # Create orchestrator README for AI reference
     _create_orchestrator_readme(archeon_dir)
+    
+    # Create AI provisioning guide
+    _create_ai_readme(archeon_dir)
     
     if monorepo:
         # Create client directory structure (frontend)
@@ -273,16 +590,13 @@ def init(
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.0.0",
     "@vue/test-utils": "^2.4.0",
-    "@vue/tsconfig": "^0.5.0",
-    "typescript": "^5.3.0",
     "vite": "^5.0.0",
-    "vitest": "^1.0.0",
-    "vue-tsc": "^1.8.0"
+    "vitest": "^1.0.0"
   }
 }
 ''')
                 # Create Vue 3 specific files
-                (target / "client" / "src" / "App.vue").write_text('''<script setup lang="ts">
+                (target / "client" / "src" / "App.vue").write_text('''<script setup>
 // App root component - Generated by Archeon
 </script>
 
@@ -300,7 +614,7 @@ def init(
 }
 </style>
 ''')
-                (target / "client" / "src" / "main.ts").write_text('''// Main entry - Generated by Archeon
+                (target / "client" / "src" / "main.js").write_text('''// Main entry - Generated by Archeon
 import { createApp } from 'vue';
 import { createPinia } from 'pinia';
 import App from './App.vue';
@@ -311,7 +625,7 @@ const pinia = createPinia();
 app.use(pinia);
 app.mount('#app');
 ''')
-                (target / "client" / "vite.config.ts").write_text('''import { defineConfig } from 'vite';
+                (target / "client" / "vite.config.js").write_text('''import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
 import { fileURLToPath, URL } from 'node:url';
 
@@ -462,7 +776,8 @@ async def health():
     rprint(f"  Created {DEFAULT_ARCON}")
     rprint(f"  Created .archeonrc")
     rprint(f"  Copied {frontend}/{backend} templates to archeon/templates/")
-    rprint(f"  Created orchestrator/README.md (AI reference)")
+    rprint(f"  Created orchestrator/README.md (glyph reference)")
+    rprint(f"  Created AI_README.md (provisioning guide)")
     
     if monorepo:
         rprint(f"\n  [bold]Project Structure:[/bold]")
@@ -536,7 +851,16 @@ This project uses Archeon, a glyph-based architecture notation system.
 
 ### Critical Files - READ FIRST
 - `archeon/ARCHEON.arcon` - The knowledge graph defining all features
+- `archeon/AI_README.md` - **Provisioning guide** (how to create new projects)
 - `.archeonrc` - Project configuration (frontend, backend, paths)
+
+### Creating New Projects
+If the user asks to create a new application (React, Vue, etc.), read `archeon/AI_README.md` for shell commands:
+```bash
+mkdir project-name && cd project-name
+arc init --frontend vue3  # or react (default)
+arc ai-setup
+```
 
 ### Glyph Notation
 Features are defined as chains:
@@ -551,7 +875,7 @@ NED:login => CMP:LoginForm => STO:Auth => API:POST/auth => MDL:user => OUT:dashb
 | `CMP:` | UI Component |
 | `STO:` | State store |
 | `API:` | HTTP endpoint |
-| `MDL:` | Database model |
+| `MDL:` | Data model (API schemas + database) |
 | `FNC:` | Utility function |
 | `EVT:` | Event handler |
 | `OUT:` | Success outcome |
@@ -563,13 +887,51 @@ NED:login => CMP:LoginForm => STO:Auth => API:POST/auth => MDL:user => OUT:dashb
 - `->` Control/branching
 - `::` Containment
 
+### Writing Glyph Chains
+You CAN and SHOULD write glyph chains directly to `archeon/ARCHEON.arcon`.
+
+**Chain Format:**
+```
+@v1 NED:feature => CMP:Component => STO:Store => API:METHOD/path => MDL:model => OUT:result
+```
+
+**Writing Rules:**
+1. Add new chains under `# === AGENT CHAINS ===` section
+2. Use incremental version tags: if `@v1 NED:login` exists, next version is `@v2 NED:login`
+3. Chains must start with `NED:` or `TSK:` and end with `OUT:` or `ERR:`
+4. Use PascalCase for components/stores: `CMP:LoginForm`, `STO:AuthStore`
+5. Use METHOD/path for APIs: `API:POST/auth/login`, `API:GET/users/{id}`
+6. Add comments above chains to describe the feature
+
+**Example - Adding a new feature:**
+```
+# User registration with email verification
+@v1 NED:register => CMP:RegisterForm => STO:Auth => API:POST/auth/register => MDL:user => EVT:sendVerificationEmail => OUT:checkEmail
+```
+
 ### Hard Rules
 1. **Always read ARCHEON.arcon first** before generating any code
-2. **Never invent architecture** - only implement what's in the knowledge graph
-3. **Respect layer boundaries** - CMP cannot directly access MDL
-4. **All features must have outcomes** - chains end with OUT: or ERR:
-5. **Propose via Archeon** - use `arc intent "description"` for new features
-6. **Generate via Archeon** - use `arc gen` for code generation
+2. **You can add chains** - write new chains following the format above
+3. **Never invent architecture outside the graph** - add the chain first, then implement
+4. **Respect layer boundaries** - CMP cannot directly access MDL
+5. **All features must have outcomes** - chains end with OUT: or ERR:
+6. **Increment versions** - when modifying a feature, create `@v2`, `@v3`, etc.
+
+### Backend Route Registration (CRITICAL)
+When creating API endpoints, you MUST also update `server/src/main.py`:
+
+```python
+# Import the new route module
+from server.src.api.routes import auth_login
+
+# Register the router
+app.include_router(auth_login.router)
+```
+
+**Every API glyph requires:**
+1. Create route file: `server/src/api/routes/{name}.py`
+2. Import in `server/src/main.py`
+3. Call `app.include_router(module.router)`
 
 ### Commands
 - `arc intent "description"` - Propose new feature from natural language
@@ -593,9 +955,9 @@ NED:login => CMP:LoginForm => STO:Auth => API:POST/auth => MDL:user => OUT:dashb
 When asked to implement a feature:
 1. First, read `archeon/ARCHEON.arcon`
 2. Check if the feature exists as a chain
-3. If not, tell the user to run: `arc intent "feature description"`
-4. If yes, implement following the chain's structure exactly
-5. Do not add components, stores, or APIs not in the graph
+3. If NOT, write a new chain to `archeon/ARCHEON.arcon` under `# === AGENT CHAINS ===`
+4. Then implement the code following the chain structure exactly
+5. Do not add components, stores, or APIs not represented in the graph
 ''')
         
         # Create README in .cursor directory
@@ -605,29 +967,27 @@ When asked to implement a feature:
 
 The `.cursorrules` file in your project root tells Cursor to:
 1. Always read `archeon/ARCHEON.arcon` before generating code
-2. Respect the glyph-based architecture
-3. Suggest `arc intent` for new features
+2. Write new chains to the knowledge graph for new features
+3. Respect the glyph-based architecture
 
 ## How It Works
 
 When you ask Cursor to implement something, it will:
 - Check the knowledge graph first
-- Only implement what's defined in chains
+- If the feature doesn't exist, ADD A NEW CHAIN first
+- Then implement code following that chain
 - Maintain architectural consistency
 
-## Manual Override
-
-If Cursor ignores the rules, you can:
-1. Open Cursor Settings → Rules
-2. Add the project path to "Project Rules"
-3. Or paste the `.cursorrules` content directly
-
-## Useful Prompts
+## Example Prompts
 
 ```
+"Create a user registration feature"
+→ Cursor adds: @v1 NED:register => CMP:RegisterForm => STO:Auth => API:POST/auth/register => MDL:user => OUT:success
+→ Then implements the code
+
 "Read archeon/ARCHEON.arcon and implement the login feature"
-"Check the knowledge graph for CMP:LoginForm and generate it"
 "What chains are defined in this project?"
+"Add a password reset flow to the knowledge graph"
 ```
 
 ## More Info
@@ -647,8 +1007,10 @@ If Cursor ignores the rules, you can:
 {archeon_context}
 
 ### For Copilot Chat
-When implementing features, always reference the knowledge graph first.
-Suggest `arc intent` for new features rather than generating architecture directly.
+When implementing features:
+1. Always read `archeon/ARCHEON.arcon` first
+2. If the feature doesn't exist, write a new chain to `ARCHEON.arcon`
+3. Then implement the code following that chain
 ''')
         
         # Create README for GitHub Copilot setup
@@ -658,16 +1020,16 @@ Suggest `arc intent` for new features rather than generating architecture direct
 
 The `copilot-instructions.md` file tells GitHub Copilot to:
 1. Reference `archeon/ARCHEON.arcon` for architecture context
-2. Understand glyph notation (NED, CMP, STO, API, etc.)
-3. Not invent architecture outside the knowledge graph
+2. Write new chains to the knowledge graph when needed
+3. Understand glyph notation (NED, CMP, STO, API, etc.)
 
 ## How It Works
 
 GitHub Copilot Chat reads `copilot-instructions.md` as project context.
-When you ask Copilot to generate code, it should:
+When you ask Copilot to generate code, it will:
 - Check the knowledge graph first  
-- Follow defined chains
-- Suggest `arc intent` for new features
+- If feature doesn't exist, ADD A NEW CHAIN first
+- Then implement code following the chain
 
 ## VS Code Setup
 
@@ -675,20 +1037,15 @@ When you ask Copilot to generate code, it should:
 2. The instructions file is auto-detected from `.github/`
 3. In Copilot Chat, the context is applied automatically
 
-## Useful Chat Prompts
+## Example Prompts
 
 ```
-@workspace Read the ARCHEON.arcon and tell me what features are defined
-@workspace Implement CMP:LoginForm following the chain
-@workspace What's the architecture for the login feature?
-```
+@workspace Create a user profile feature
+→ Copilot adds chain to ARCHEON.arcon, then implements
 
-## If Copilot Ignores Instructions
-
-Try being explicit in your prompts:
-```
-"Following the chains in archeon/ARCHEON.arcon, implement..."
-"Reference the knowledge graph and generate..."
+@workspace Read ARCHEON.arcon and implement the login feature
+@workspace What chains are defined in this project?
+@workspace Add a password reset flow to the architecture
 ```
 
 ## More Info
@@ -712,8 +1069,8 @@ Try being explicit in your prompts:
 ### Windsurf-Specific
 Before any code generation task:
 1. Read archeon/ARCHEON.arcon
-2. Understand the existing chains
-3. Only implement what's defined in the graph
+2. If the feature doesn't exist, write a new chain first
+3. Then implement code following the chain structure
 ''')
         
         # Create README
@@ -723,30 +1080,25 @@ Before any code generation task:
 
 The `.windsurfrules` file tells Windsurf (Codeium) to:
 1. Read `archeon/ARCHEON.arcon` before generating code
-2. Follow the glyph-based architecture
-3. Respect layer boundaries
+2. Write new chains when features don't exist
+3. Follow the glyph-based architecture
 
 ## How It Works
 
 Windsurf's Cascade AI reads the rules file for project context.
 When generating code, it will:
 - Check existing chains in the knowledge graph
-- Implement features following defined patterns
-- Suggest `arc intent` for new architecture
+- If feature doesn't exist, ADD A NEW CHAIN first
+- Then implement following the chain
 
-## Manual Setup (if needed)
-
-1. Open Windsurf Settings
-2. Navigate to AI Rules
-3. Ensure project rules are enabled
-4. The `.windsurfrules` file should be auto-detected
-
-## Useful Prompts
+## Example Prompts
 
 ```
+"Create a user settings feature"
+→ Windsurf adds chain to ARCHEON.arcon, then implements
+
 "Check ARCHEON.arcon and implement the defined chains"
-"Follow the knowledge graph to generate CMP:LoginForm"
-"What architecture is defined for authentication?"
+"Add a notifications system to the architecture"
 ```
 
 ## More Info
@@ -767,7 +1119,7 @@ When generating code, it will:
 {archeon_context}
 
 IMPORTANT: Always read archeon/ARCHEON.arcon before any task.
-Do not create features not defined in the knowledge graph.
+If a feature doesn't exist, write a new chain to ARCHEON.arcon first, then implement.
 ''')
         
         # Create README
@@ -777,39 +1129,26 @@ Do not create features not defined in the knowledge graph.
 
 The `.clinerules` file tells Cline (Claude Dev) to:
 1. Read `archeon/ARCHEON.arcon` as first action
-2. Follow glyph-based architecture constraints
-3. Not generate code outside the knowledge graph
+2. Write new chains when features don't exist
+3. Follow glyph-based architecture constraints
 
 ## How It Works
 
 Cline reads `.clinerules` for project-specific instructions.
 Before any code task, it will:
 - Check the knowledge graph for existing chains
-- Implement only what's defined
-- Maintain architectural consistency
+- If feature doesn't exist, ADD A NEW CHAIN first
+- Then implement following the chain
 
-## VS Code Extension Setup
-
-1. Install Cline (Claude Dev) extension
-2. The `.clinerules` file is auto-detected
-3. Rules apply to all conversations in this project
-
-## Manual Setup (if needed)
-
-In Cline settings, you can also add custom instructions:
-1. Open Cline panel → Settings
-2. Add to "Custom Instructions":
-   ```
-   Always read archeon/ARCHEON.arcon before coding.
-   This project uses Archeon glyph notation.
-   ```
-
-## Useful Prompts
+## Example Prompts
 
 ```
+"Create a shopping cart feature"
+→ Cline adds chain to ARCHEON.arcon, then implements
+
 "Read ARCHEON.arcon and summarize the architecture"
-"Implement CMP:LoginForm as defined in the knowledge graph"
-"What chains include the Auth store?"
+"Add a checkout flow to the knowledge graph"
+"Implement CMP:LoginForm as defined in the graph"
 ```
 
 ## More Info
@@ -841,8 +1180,8 @@ model-settings-yaml: |
     system: |
       This project uses Archeon glyph notation.
       Always read archeon/ARCHEON.arcon before generating code.
-      Do not create architecture not defined in the knowledge graph.
-      Use `arc intent` for new features.
+      If a feature doesn't exist, write a new chain to ARCHEON.arcon first.
+      Then implement code following that chain.
 ''')
         
         # Create README
@@ -859,7 +1198,8 @@ The `.aider.conf.yml` configures Aider to:
 
 When you run `aider`, it will:
 - Automatically load the knowledge graph
-- Include system instructions about Archeon
+- If feature doesn't exist, ADD A NEW CHAIN first
+- Then implement code following the chain
 - Wait for your approval before committing
 
 ## Usage
@@ -876,19 +1216,12 @@ aider
 ## Example Session
 
 ```
-> Implement the login feature from ARCHEON.arcon
+> Create a user settings feature
 
-Aider: I see the chain:
-  NED:login => CMP:LoginForm => STO:Auth => API:POST/auth => OUT:dashboard
+Aider: I'll add this chain to ARCHEON.arcon:
+  @v1 NED:settings => CMP:SettingsForm => STO:UserSettings => API:PUT/user/settings => MDL:user => OUT:saved
   
-Let me implement each component...
-```
-
-## Manual Override
-
-You can also explicitly add files:
-```bash
-aider --read archeon/ARCHEON.arcon src/components/LoginForm.vue
+Now implementing each component...
 ```
 
 ## More Info
@@ -971,6 +1304,12 @@ For the best Archeon experience, install:
 ''')
         created.append(".vscode/settings.json")
         created.append(".vscode/ARCHEON_README.md")
+    
+    # Always create/update the AI provisioning guide
+    archeon_dir = target / "archeon"
+    if archeon_dir.exists():
+        _create_ai_readme(archeon_dir)
+        created.append("archeon/AI_README.md")
     
     if created:
         rprint(f"[green]✓[/green] Created AI assistant configurations:")

@@ -28,12 +28,14 @@ class STOAgent(BaseAgent):
     }
 
     def resolve_path(self, glyph: GlyphNode, framework: str) -> str:
-        """Return stores/{name}Store.ts"""
+        """Return stores/{name}Store.{ext} - .ts for React, .js for Vue"""
         name = glyph.name
         # Remove 'Store' suffix if present to avoid duplication
         if name.lower().endswith('store'):
             name = name[:-5]
-        return f"stores/{name}Store.ts"
+        # React uses TypeScript, Vue uses plain JavaScript
+        ext = "js" if framework in ("vue", "vue3", "pinia") else "ts"
+        return f"stores/{name}Store.{ext}"
 
     def get_template(self, framework: str) -> str:
         """Load store template for framework."""
@@ -164,17 +166,15 @@ class STOAgent(BaseAgent):
         
         return actions
     
-    # Pinia-specific builders
+    # Pinia-specific builders (plain JavaScript, no TypeScript)
     def _build_pinia_state_interface(self, fields: list[dict]) -> str:
-        lines = []
-        for f in fields:
-            lines.append(f"  {f['name']}: {f['type']};")
-        return "\n".join(lines) if lines else "  // State properties"
+        # No interface needed for plain JS
+        return ""
     
     def _build_pinia_state_refs(self, fields: list[dict]) -> str:
         lines = []
         for f in fields:
-            lines.append(f"  const {f['name']} = ref<{f['type']}>({f['default']});")
+            lines.append(f"  const {f['name']} = ref({f['default']});")
         return "\n".join(lines) if lines else "  // State refs"
     
     def _build_pinia_getters(self, store_name: str, fields: list[dict]) -> str:

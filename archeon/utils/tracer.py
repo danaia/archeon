@@ -82,13 +82,14 @@ PATH_MAPPINGS = {
     'CMP': {
         'react': 'components/{name}.tsx',
         'vue': 'components/{name}.vue',
+        'vue3': 'components/{name}.vue',
         'angular': 'components/{name}/{name}.component.ts',
         'svelte': 'components/{name}.svelte',
     },
     'STO': {
         'zustand': 'stores/{name}Store.ts',
         'redux': 'stores/{name}Slice.ts',
-        'pinia': 'stores/{name}Store.ts',
+        'pinia': 'stores/{name}Store.js',  # Vue uses JS, not TS
         'ngrx': 'stores/{name}.store.ts',
     },
     'API': {
@@ -104,10 +105,12 @@ PATH_MAPPINGS = {
     'FNC': {
         'python': 'lib/{namespace}.py',
         'typescript': 'lib/{namespace}.ts',
+        'javascript': 'lib/{namespace}.js',  # Vue uses JS
     },
     'EVT': {
         'python': 'events/{name}.py',
         'typescript': 'events/{name}.ts',
+        'javascript': 'events/{name}.js',  # Vue uses JS
     },
 }
 

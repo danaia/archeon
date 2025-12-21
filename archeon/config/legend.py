@@ -100,7 +100,7 @@ GLYPH_LEGEND = {
     },
     'MDL': {
         'name': 'Model',
-        'description': 'Database query/schema',
+        'description': 'Data model with API schemas and database operations',
         'agent': 'MDL_agent',
         'color': '#795548',
         'layer': 'backend',
