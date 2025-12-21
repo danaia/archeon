@@ -305,6 +305,8 @@ def create_client_structure(client_dir: Path, frontend: str):
     "@vitejs/plugin-vue": "^5.0.0",
     "@vue/test-utils": "^2.4.0",
     "@pinia/testing": "^0.1.3",
+    "tailwindcss": "^4.0.0",
+    "@tailwindcss/vite": "^4.0.0",
     "vite": "^5.0.0",
     "vitest": "^1.0.0",
     "jsdom": "^24.0.0"
@@ -334,6 +336,8 @@ def create_client_structure(client_dir: Path, frontend: str):
     "@vitejs/plugin-react": "^4.0.0",
     "@testing-library/react": "^14.0.0",
     "@testing-library/jest-dom": "^6.0.0",
+    "tailwindcss": "^4.0.0",
+    "@tailwindcss/vite": "^4.0.0",
     "vite": "^5.0.0",
     "vitest": "^1.0.0",
     "jsdom": "^24.0.0"
@@ -347,9 +351,10 @@ def create_client_structure(client_dir: Path, frontend: str):
         if frontend in ("vue", "vue3"):
             vite_config.write_text('''import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
+import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
-  plugins: [vue()],
+  plugins: [vue(), tailwindcss()],
   server: {
     proxy: {
       '/api': {
@@ -367,9 +372,10 @@ export default defineConfig({
         else:
             vite_config.write_text('''import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), tailwindcss()],
   server: {
     proxy: {
       '/api': {
@@ -385,12 +391,51 @@ export default defineConfig({
 })
 ''')
     
+    # Create index.html
+    index_html = client_dir / "index.html"
+    if not index_html.exists():
+        if frontend in ("vue", "vue3"):
+            index_html.write_text('''<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="/vite.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Archeon Vue App</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
+''')
+        else:
+            index_html.write_text('''<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="/vite.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Archeon React App</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+''')
+    
     # Create client files
     if frontend in ("vue", "vue3"):
+        # Vue style.css with Tailwind
+        (client_dir / "src" / "style.css").write_text('''@import "tailwindcss";
+''')
+        
         # Vue main.js
         (client_dir / "src" / "main.js").write_text('''import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import App from './App.vue'
+import './style.css'
 
 const app = createApp(App)
 const pinia = createPinia()
@@ -401,26 +446,23 @@ app.mount('#app')
         
         # Vue App.vue
         (client_dir / "src" / "App.vue").write_text('''<template>
-  <div id="app">
-    <h1>Archeon Vue 3 App</h1>
-    <p>Add components to /src/components/</p>
+  <div id="app" class="min-h-screen bg-gray-50 flex items-center justify-center">
+    <div class="text-center">
+      <h1 class="text-4xl font-bold text-gray-900 mb-4">Archeon Vue 3 App</h1>
+      <p class="text-gray-600">Add components to /src/components/</p>
+    </div>
   </div>
 </template>
 
 <script setup>
 // Add imports here
 </script>
-
-<style scoped>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
-}
-</style>
 ''')
     else:
+        # React index.css with Tailwind
+        (client_dir / "src" / "index.css").write_text('''@import "tailwindcss";
+''')
+        
         # React main.tsx
         (client_dir / "src" / "main.tsx").write_text('''import React from 'react'
 import ReactDOM from 'react-dom/client'
@@ -439,9 +481,11 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 
 function App() {
   return (
-    <div className="App">
-      <h1>Archeon React App</h1>
-      <p>Add components to /src/components/</p>
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="text-center">
+        <h1 className="text-4xl font-bold text-gray-900 mb-4">Archeon React App</h1>
+        <p className="text-gray-600">Add components to /src/components/</p>
+      </div>
     </div>
   )
 }
@@ -494,14 +538,19 @@ def create_server_files(server_dir: Path, backend: str):
 FastAPI Backend Server
 """
 
+import sys
+import os
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from src.db.database import close_connection
 
+# Ensure we can import from server directory
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
 # Import routes here as you create them
 # Example:
-# from src.api.routes import auth_login
+# from src.api.routes.auth import router
 
 
 @asynccontextmanager
@@ -536,7 +585,7 @@ async def health_check():
 
 # Register route modules here
 # Example:
-# app.include_router(auth_login.router)
+# app.include_router(router)
 '''
         )
         

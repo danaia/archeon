@@ -148,6 +148,10 @@ def init(
         rprint(f"  [cyan]client/[/cyan]  → {frontend.capitalize()} frontend")
         rprint(f"  [cyan]server/[/cyan]  → {backend.capitalize()} backend (API, models, events)")
         rprint(f"  [cyan]archeon/[/cyan] → Knowledge graph and orchestration")
+        
+        rprint(f"\n  [bold]Install Dependencies:[/bold]")
+        rprint(f"  [cyan]cd client && npm install[/cyan]")
+        rprint(f"  [cyan]cd server && pip install -r requirements.txt[/cyan]")
     
     rprint(f"\n  [bold]Next:[/bold] Describe a feature in natural language:")
     rprint(f"  [cyan]arc intent \"user logs in with email and password\"[/cyan]")
