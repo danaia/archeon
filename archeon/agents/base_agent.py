@@ -78,7 +78,7 @@ class BaseAgent(ABC):
         template_dir = self.templates_dir / self.prefix
         
         # Try framework-specific template
-        for ext in ['.py', '.tsx', '.ts', '.vue', '.svelte']:
+        for ext in ['.py', '.tsx', '.ts', '.js', '.vue', '.svelte']:
             template_path = template_dir / f"{framework}{ext}"
             if template_path.exists():
                 return template_path.read_text()

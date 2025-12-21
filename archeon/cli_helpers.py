@@ -25,8 +25,8 @@ def copy_templates(archeon_dir: Path, frontend: str, backend: str):
     # Map frontend/backend to template files
     frontend_map = {
         "react": {"CMP": "react.tsx", "STO": "zustand.ts"},
-        "vue": {"CMP": "vue.vue", "STO": "pinia.ts"},
-        "vue3": {"CMP": "vue3.vue", "STO": "pinia.ts"},
+        "vue": {"CMP": "vue.vue", "STO": "pinia.js"},
+        "vue3": {"CMP": "vue3.vue", "STO": "pinia.js"},
     }
     
     backend_map = {
