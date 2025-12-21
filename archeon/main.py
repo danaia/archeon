@@ -301,6 +301,29 @@ def _create_ai_readme(archeon_dir: Path):
 
 This file tells AI assistants how to scaffold and provision Archeon projects.
 
+## ⚠️ CRITICAL: The Glyph-Code-Test Workflow
+
+**Every feature MUST follow this exact workflow:**
+
+1. **ADD GLYPH** → Write the chain to `ARCHEON.arcon`
+2. **WRITE CODE** → Implement the code for each glyph in the chain
+3. **RUN VALIDATE** → Execute `arc validate` to verify architecture
+
+```bash
+# After adding glyphs and writing code, ALWAYS run:
+arc validate
+```
+
+This ensures:
+- All glyphs in the knowledge graph have corresponding code
+- No code exists outside the architecture
+- Layer boundaries are respected (CMP cannot access MDL directly)
+- All API endpoints have error paths defined
+
+**Never skip the validation step.** If `arc validate` fails, fix the issues before continuing.
+
+---
+
 ## Creating a New Project
 
 When a user asks to create a new application (React, Vue, FastAPI, etc.), use these commands:
@@ -341,18 +364,46 @@ Once the project is created, the AI should:
 2. **Ask** the user what features they want to build
 3. **Write** glyph chains to `ARCHEON.arcon` for each feature
 4. **Implement** code following those chains
+5. **Run `arc validate`** to verify the implementation matches the architecture
 
-## Adding Features
+## Adding Features - The Complete Workflow
 
-When the user describes a feature:
+When the user describes a feature, follow these steps IN ORDER:
 
+### Step 1: Add the Glyph Chain
 ```bash
-# Option 1: Let the AI write chains directly to ARCHEON.arcon
-# (Preferred - AI adds chain, then implements)
+# Write the chain to ARCHEON.arcon (either manually or via CLI)
+arc parse "NED:login => CMP:LoginForm => STO:Auth => API:POST/auth/login => MDL:user => OUT:dashboard"
+```
 
-# Option 2: Use the CLI
-arc intent "user logs in with email and password"
-arc parse "NED:login => CMP:LoginForm => STO:Auth => API:POST/auth => OUT:dashboard"
+### Step 2: Implement the Code
+Write the code for each glyph in the chain:
+- `CMP:LoginForm` → `client/src/components/LoginForm.tsx`
+- `STO:Auth` → `client/src/stores/Auth.ts`
+- `API:POST/auth/login` → `server/src/api/routes/auth_login.py`
+- `MDL:user` → `server/src/models/user.py`
+
+### Step 3: Validate the Architecture
+```bash
+arc validate
+```
+
+Expected output on success:
+```
+✓ All chains valid
+✓ No boundary violations
+✓ All glyphs resolved
+```
+
+If validation fails, fix the issues before proceeding.
+
+### Step 4: Run Tests
+```bash
+# Frontend tests
+cd client && npm test
+
+# Backend tests  
+cd server && python -m pytest tests/ -v
 ```
 
 ## Code Generation
@@ -363,7 +414,10 @@ After chains are defined:
 # Generate all code from the knowledge graph
 arc gen
 
-# Or AI implements manually following the chains
+# Then validate
+arc validate
+
+# Or AI implements manually following the chains, then validates
 ```
 
 ## Project Structure After Init
@@ -414,12 +468,20 @@ mkdir my-app && cd my-app
 arc init --frontend vue3
 arc ai-setup
 ```
-Then write to ARCHEON.arcon:
+
+**Step 1: Add glyphs** to ARCHEON.arcon:
 ```
 # User authentication
 @v1 NED:login => CMP:LoginForm => STO:Auth => API:POST/auth/login => MDL:user => OUT:dashboard
 @v1 NED:register => CMP:RegisterForm => STO:Auth => API:POST/auth/register => MDL:user => OUT:welcome
 @v1 NED:logout => TSK:clickLogout => STO:Auth => API:POST/auth/logout => OUT:home
+```
+
+**Step 2: Implement code** for each glyph.
+
+**Step 3: Validate:**
+```bash
+arc validate
 ```
 
 ### "Create a React app with a todo list"
@@ -428,7 +490,8 @@ mkdir todo-app && cd todo-app
 arc init
 arc ai-setup
 ```
-Then write to ARCHEON.arcon:
+
+**Step 1: Add glyphs** to ARCHEON.arcon:
 ```
 # Todo list feature
 @v1 NED:viewTodos => CMP:TodoList => STO:Todos => API:GET/todos => MDL:todo => OUT:display
@@ -436,13 +499,31 @@ Then write to ARCHEON.arcon:
 @v1 NED:deleteTodo => TSK:clickDelete => STO:Todos => API:DELETE/todos/{id} => OUT:refresh
 ```
 
-## Validation
+**Step 2: Implement code** for each glyph.
 
-After adding chains:
+**Step 3: Validate:**
 ```bash
-arc validate    # Check for errors
-arc status      # Show graph statistics
+arc validate
 ```
+
+## Validation Commands
+
+```bash
+arc validate    # Check architecture integrity (REQUIRED after every change)
+arc status      # Show graph statistics and unresolved glyphs
+arc check       # Quick syntax check on ARCHEON.arcon
+```
+
+### What `arc validate` Checks
+
+| Check | Description |
+|-------|-------------|
+| Chain syntax | All chains parse correctly |
+| Glyph resolution | Code exists for each glyph |
+| Boundary rules | No illegal layer crossings (e.g., CMP→MDL) |
+| Cycle detection | No cycles in structural edges |
+| Error paths | API glyphs have ERR: handlers |
+| Version integrity | Chain versions are consistent |
 
 ## Backend Route Registration (CRITICAL)
 
@@ -472,6 +553,11 @@ app = FastAPI(title="API Server")
 app.include_router(auth_login.router)  # Register the router
 ```
 
+### Step 3: Validate
+```bash
+arc validate
+```
+
 ### File Naming Convention
 - `API:POST/auth/login` → `server/src/api/routes/auth_login.py`
 - `API:GET/users/{id}` → `server/src/api/routes/users.py`
@@ -479,9 +565,12 @@ app.include_router(auth_login.router)  # Register the router
 
 **IMPORTANT:** Every new API route file MUST be imported and registered in `main.py` or the endpoint won't be accessible.
 
-## Key Principle
+## Key Principles
 
-**Always define architecture in ARCHEON.arcon before writing code.**
+1. **Glyph First**: Always define architecture in ARCHEON.arcon BEFORE writing code
+2. **Validate Always**: Run `arc validate` after EVERY code change
+3. **No Orphan Code**: Every file must correspond to a glyph in the knowledge graph
+4. **Test Continuously**: Run tests after validation passes
 
 The knowledge graph is the single source of truth. Every component, store, API, and model should be represented as a glyph in a chain before implementation.
 ''')
@@ -579,6 +668,7 @@ def init(
     "build": "vue-tsc && vite build",
     "preview": "vite preview",
     "test": "vitest",
+    "test:run": "vitest --run",
     "test:ui": "vitest --ui",
     "lint": "eslint . --ext .vue,.ts,.tsx"
   },
@@ -590,8 +680,12 @@ def init(
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.0.0",
     "@vue/test-utils": "^2.4.0",
+    "@pinia/testing": "^0.1.3",
     "vite": "^5.0.0",
-    "vitest": "^1.0.0"
+    "vitest": "^1.0.0",
+    "jsdom": "^24.0.0",
+    "vue-tsc": "^2.0.0",
+    "typescript": "^5.0.0"
   }
 }
 ''')
@@ -643,6 +737,10 @@ export default defineConfig({
         changeOrigin: true
       }
     }
+  },
+  test: {
+    globals: true,
+    environment: 'jsdom'
   }
 });
 ''')
@@ -655,11 +753,13 @@ export default defineConfig({
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "test": "vitest"
+    "test": "vitest",
+    "test:run": "vitest --run"
   },
   "dependencies": {
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "zustand": "^4.5.0"
   },
   "devDependencies": {
     "@types/react": "^18.2.0",
@@ -668,9 +768,36 @@ export default defineConfig({
     "vite": "^5.0.0",
     "@vitejs/plugin-react": "^4.0.0",
     "vitest": "^1.0.0",
-    "@testing-library/react": "^14.0.0"
+    "jsdom": "^24.0.0",
+    "@testing-library/react": "^14.0.0",
+    "@testing-library/jest-dom": "^6.0.0"
   }
 }
+''')
+                # Create vite.config.ts for React
+                (target / "client" / "vite.config.ts").write_text('''import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+
+export default defineConfig({
+  plugins: [react()],
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8000',
+        changeOrigin: true
+      }
+    }
+  },
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: ['./tests/setup.ts']
+  }
+});
+''')
+                # Create test setup file for React
+                (target / "client" / "tests").mkdir(parents=True, exist_ok=True)
+                (target / "client" / "tests" / "setup.ts").write_text('''import '@testing-library/jest-dom';
 ''')
         
         # Create server pyproject.toml stub
@@ -693,6 +820,12 @@ dev = [
     "pytest-asyncio>=0.21.0",
     "httpx>=0.24.0",
 ]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
 ''')
         
         # Create server main.py
@@ -849,6 +982,21 @@ def ai_setup(
 
 This project uses Archeon, a glyph-based architecture notation system.
 
+### ⚠️ MANDATORY: Glyph-Code-Test Workflow
+
+**Every feature MUST follow this exact workflow:**
+
+1. **ADD GLYPH** → Write the chain to `archeon/ARCHEON.arcon`
+2. **WRITE CODE** → Implement the code for each glyph
+3. **RUN VALIDATE** → Execute `arc validate` to test architecture
+
+```bash
+# ALWAYS run after adding glyphs and writing code:
+arc validate
+```
+
+**Never skip validation.** If it fails, fix issues before continuing.
+
 ### Critical Files - READ FIRST
 - `archeon/ARCHEON.arcon` - The knowledge graph defining all features
 - `archeon/AI_README.md` - **Provisioning guide** (how to create new projects)
@@ -887,6 +1035,33 @@ NED:login => CMP:LoginForm => STO:Auth => API:POST/auth => MDL:user => OUT:dashb
 - `->` Control/branching
 - `::` Containment
 
+### The Complete Workflow (REQUIRED)
+
+**Step 1: Add Glyph Chain**
+```bash
+arc parse "NED:feature => CMP:Component => STO:Store => API:POST/path => MDL:model => OUT:result"
+```
+Or write directly to `archeon/ARCHEON.arcon`.
+
+**Step 2: Implement Code**
+Write code for each glyph in the chain.
+
+**Step 3: Validate Architecture**
+```bash
+arc validate
+```
+This checks:
+- All glyphs have corresponding code
+- No boundary violations (CMP cannot access MDL)
+- No cycles in structural edges
+- API endpoints have error handlers
+
+**Step 4: Run Tests**
+```bash
+cd client && npm test      # Frontend
+cd server && pytest        # Backend
+```
+
 ### Writing Glyph Chains
 You CAN and SHOULD write glyph chains directly to `archeon/ARCHEON.arcon`.
 
@@ -916,6 +1091,7 @@ You CAN and SHOULD write glyph chains directly to `archeon/ARCHEON.arcon`.
 4. **Respect layer boundaries** - CMP cannot directly access MDL
 5. **All features must have outcomes** - chains end with OUT: or ERR:
 6. **Increment versions** - when modifying a feature, create `@v2`, `@v3`, etc.
+7. **Always validate** - run `arc validate` after every code change
 
 ### Backend Route Registration (CRITICAL)
 When creating API endpoints, you MUST also update `server/src/main.py`:
@@ -932,13 +1108,14 @@ app.include_router(auth_login.router)
 1. Create route file: `server/src/api/routes/{name}.py`
 2. Import in `server/src/main.py`
 3. Call `app.include_router(module.router)`
+4. Run `arc validate`
 
 ### Commands
 - `arc intent "description"` - Propose new feature from natural language
 - `arc parse "chain"` - Add glyph chain directly  
 - `arc gen` - Generate code from knowledge graph
 - `arc status` - Show graph statistics
-- `arc validate` - Check architecture integrity
+- `arc validate` - **Check architecture integrity (REQUIRED after every change)**
 '''
     
     if flags['cursor']:
@@ -956,8 +1133,10 @@ When asked to implement a feature:
 1. First, read `archeon/ARCHEON.arcon`
 2. Check if the feature exists as a chain
 3. If NOT, write a new chain to `archeon/ARCHEON.arcon` under `# === AGENT CHAINS ===`
-4. Then implement the code following the chain structure exactly
-5. Do not add components, stores, or APIs not represented in the graph
+4. Implement the code following the chain structure exactly
+5. **Run `arc validate`** to verify the implementation
+6. Fix any validation errors before considering the task complete
+7. Do not add components, stores, or APIs not represented in the graph
 ''')
         
         # Create README in .cursor directory
@@ -969,21 +1148,36 @@ The `.cursorrules` file in your project root tells Cursor to:
 1. Always read `archeon/ARCHEON.arcon` before generating code
 2. Write new chains to the knowledge graph for new features
 3. Respect the glyph-based architecture
+4. **Run `arc validate` after every code change**
+
+## The Glyph-Code-Test Workflow
+
+Every feature follows this mandatory workflow:
+
+```
+1. ADD GLYPH    → Write chain to ARCHEON.arcon
+2. WRITE CODE   → Implement each glyph
+3. RUN VALIDATE → arc validate (REQUIRED)
+4. RUN TESTS    → npm test / pytest
+```
 
 ## How It Works
 
 When you ask Cursor to implement something, it will:
 - Check the knowledge graph first
 - If the feature doesn't exist, ADD A NEW CHAIN first
-- Then implement code following that chain
-- Maintain architectural consistency
+- Implement code following that chain
+- Run `arc validate` to verify architecture
+- Fix any validation errors
 
 ## Example Prompts
 
 ```
 "Create a user registration feature"
 → Cursor adds: @v1 NED:register => CMP:RegisterForm => STO:Auth => API:POST/auth/register => MDL:user => OUT:success
-→ Then implements the code
+→ Implements the code
+→ Runs arc validate
+→ Fixes any issues
 
 "Read archeon/ARCHEON.arcon and implement the login feature"
 "What chains are defined in this project?"
