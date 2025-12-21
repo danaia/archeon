@@ -279,6 +279,115 @@ def create_client_structure(client_dir: Path, frontend: str):
     for d in dirs_to_create:
         d.mkdir(parents=True, exist_ok=True)
     
+    # Create package.json based on frontend framework
+    package_json = client_dir / "package.json"
+    if not package_json.exists():
+        if frontend in ("vue", "vue3"):
+            # Vue 3 package.json (JavaScript only - NO TypeScript)
+            package_json.write_text('''{
+  "name": "client",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest",
+    "test:run": "vitest run"
+  },
+  "dependencies": {
+    "vue": "^3.4.0",
+    "pinia": "^2.1.7",
+    "vue-router": "^4.2.5"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.0.0",
+    "@vue/test-utils": "^2.4.0",
+    "@pinia/testing": "^0.1.3",
+    "vite": "^5.0.0",
+    "vitest": "^1.0.0",
+    "jsdom": "^24.0.0"
+  }
+}
+''')
+        else:
+            # React package.json (TypeScript)
+            package_json.write_text('''{
+  "name": "client",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "test": "vitest",
+    "test:run": "vitest run"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "zustand": "^4.5.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "@vitejs/plugin-react": "^4.0.0",
+    "@testing-library/react": "^14.0.0",
+    "@testing-library/jest-dom": "^6.0.0",
+    "typescript": "^5.0.0",
+    "vite": "^5.0.0",
+    "vitest": "^1.0.0",
+    "jsdom": "^24.0.0"
+  }
+}
+''')
+    
+    # Create vite.config for the appropriate framework
+    vite_config = client_dir / ("vite.config.js" if frontend in ("vue", "vue3") else "vite.config.ts")
+    if not vite_config.exists():
+        if frontend in ("vue", "vue3"):
+            vite_config.write_text('''import { defineConfig } from 'vite'
+import vue from '@vitejs/plugin-vue'
+
+export default defineConfig({
+  plugins: [vue()],
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8000',
+        changeOrigin: true
+      }
+    }
+  },
+  test: {
+    globals: true,
+    environment: 'jsdom'
+  }
+})
+''')
+        else:
+            vite_config.write_text('''import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+
+export default defineConfig({
+  plugins: [react()],
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8000',
+        changeOrigin: true
+      }
+    }
+  },
+  test: {
+    globals: true,
+    environment: 'jsdom'
+  }
+})
+''')
+    
     # Create client files
     if frontend in ("vue", "vue3"):
         # Vue main.js
