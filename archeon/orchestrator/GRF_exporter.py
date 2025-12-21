@@ -408,7 +408,9 @@ def export_mermaid(graph: KnowledgeGraph, output_path: Optional[str] = None) -> 
         for node in stored.ast.nodes:
             nodes[node.qualified_name] = node
         for edge in stored.ast.edges:
-            edges.append((edge.source, edge.target, edge.operator))
+            source_name = stored.ast.nodes[edge.source_idx].qualified_name
+            target_name = stored.ast.nodes[edge.target_idx].qualified_name
+            edges.append((source_name, target_name, edge.operator))
     
     # Generate node definitions with styling
     for qualified_name, node in sorted(nodes.items()):

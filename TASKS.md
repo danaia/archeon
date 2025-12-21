@@ -192,14 +192,14 @@
 
 ---
 
-## Phase 8: Test Generation (`orchestrator/TST_runner.py`)
+## Phase 8: Test Generation (`orchestrator/TST_runner.py`) ✅
 
 ### 8.1 Test Generator
-- [ ] `generate_happy_path_test(chain)`:
+- [x] `generate_happy_path_test(chain)`:
   - Walk chain from `NED:` to `OUT:`
   - Generate test steps for each glyph
   - Assert on final `OUT:` feedback
-- [ ] `generate_error_path_test(chain, error_branch)`:
+- [x] `generate_error_path_test(chain, error_branch)`:
   - Find `->` edge to `ERR:` glyph
   - Generate test that triggers error condition
   - Assert error `OUT:` response
@@ -207,97 +207,87 @@
 ### 8.2 Test File Structure
 - [x] Output to `tests/generated/test_{glyph_name}.py` (per-glyph tests)
 - [x] Include `@archeon` marker comments for traceability
-- [ ] Pytest format with fixtures for chain-level tests
+- [x] Pytest format with fixtures for chain-level tests
 
 ### 8.3 Test Runner
-- [ ] `run_tests()` — Execute all generated tests via pytest
-- [ ] `run_tests(chain)` — Execute tests for specific chain
-- [ ] Return results: passed, failed, errors
+- [x] `run_tests()` — Execute all generated tests via pytest
+- [x] `run_tests(chain)` — Execute tests for specific chain
+- [x] Return results: passed, failed, errors
 
-**Test:** Generate tests from sample chains, run them (expect stubs to fail initially).
+**Test:** ✅ Test generation and runner implemented
 
 ---
 
-## Phase 9: CLI Interface (`main.py`) ✅ (core commands)
+## Phase 9: CLI Interface (`main.py`) ✅
 
 ### 9.1 Core Commands
-- [x] `archeon init` — Scaffold new project
+- [x] `archeon init` — Scaffold new project + .archeonrc
 - [x] `archeon parse "<chain>"` — Parse and add chain
-  - Parse chain string
-  - Validate
-  - Add to graph if valid
-  - Print errors/warnings
-- [x] `archeon gen` — Generate code
-  - Options: `--frontend`, `--backend`, `--db`, `--output`, `--force`
-  - Spawn agents for all unresolved glyphs
-  - Report generated files with table
+- [x] `archeon gen` — Generate code with framework options
 - [x] `archeon validate` — Validate graph
-  - Options: `--boundaries`, `--cycles`
-  - Print validation results
-- [ ] `archeon test` — Run tests (stub)
+- [x] `archeon test` — Run tests with --generate, --errors-only options
 
 ### 9.2 Graph Commands
 - [x] `archeon status` — Show graph state
-  - Total chains, glyphs, unresolved count
-  - Per-glyph breakdown table
-- [ ] `archeon graph` — Export visualization
-  - Options: `--format dot|png|json`
-- [ ] `archeon audit` — Check for drift
+- [x] `archeon graph` — Export visualization (dot, json, png, svg, mermaid)
+- [x] `archeon audit` — Check for drift
 
 ### 9.3 Version Commands
 - [x] `archeon versions <glyph>` — Show version history
-- [ ] `archeon diff @v1 @v2 <glyph>` — Diff two versions
+- [x] `archeon diff @v1 @v2 <glyph>` — Diff two versions
 - [x] `archeon deprecate @v1 <glyph>` — Mark deprecated
 
 ### 9.4 Utility Commands
 - [x] `archeon legend` — Show glyph legend table
+- [x] `archeon intent` — Natural language to chain proposals
+- [x] `archeon import` — Import from markdown files
 
-**Test:** ✅ CLI commands verified working
+**Test:** ✅ All CLI commands verified working
 
 ---
 
-## Phase 10: File Tracer (`utils/tracer.py`)
+## Phase 10: File Tracer (`utils/tracer.py`) ✅
 
 ### 10.1 Mapping
-- [ ] `glyph_to_path(glyph, framework)` — Return expected file path
-- [ ] `path_to_glyph(path)` — Parse `@archeon` comment, return glyph
+- [x] `glyph_to_path(glyph, framework)` — Return expected file path
+- [x] `path_to_glyph(path)` — Parse `@archeon` comment, return glyph
 
 ### 10.2 Drift Detection
-- [ ] `find_drift()`:
+- [x] `find_drift()`:
   - Scan generated files for `@archeon` markers
   - Compare to graph
-  - Return: files without glyphs, glyphs without files, modified files
+  - Return: orphan files, missing files, version mismatches
 
 ### 10.3 Sync
-- [ ] `sync_markers()` — Update `@archeon` comments in files to match graph
+- [x] `sync_markers()` — Update `@archeon` comments in files to match graph
 
-**Test:** Modify a generated file, run drift detection, verify detected.
+**Test:** ✅ Drift detection verified via `archeon audit`
 
 ---
 
-## Phase 11: Intent Parsing (`orchestrator/INT_intent.py`)
+## Phase 11: Intent Parsing (`orchestrator/INT_intent.py`) ✅
 
 ### 11.1 Natural Language Parser
-- [ ] `parse_intent(text)` → proposed chain string
-- [ ] Basic heuristics:
+- [x] `parse_intent(text)` → proposed chain string
+- [x] Basic heuristics:
   - "user wants to login" → `NED:login`
   - "submit form" → `TSK:submit`
   - "show error" → `OUT:error`
-- [ ] Return **proposal only** — never auto-add
+- [x] Return **proposal only** — never auto-add
 
 ### 11.2 Error Path Suggester
-- [ ] `suggest_errors(chain)`:
-  - Find `API:` glyphs without `ERR:` branches
+- [x] `suggest_errors(chain)`:
+  - Context-aware error suggestions (auth, validation, payment, etc.)
   - Suggest common errors: `auth.invalidCreds`, `validation.malformed`, `system.rateLimit`
-- [ ] Return suggestions, don't auto-add
+- [x] Return suggestions, don't auto-add
 
 ### 11.3 Document Import
-- [ ] `import_markdown(path)`:
+- [x] `import_markdown(path)`:
   - Scan for code blocks with chain syntax
-  - Extract and propose chains
+  - Extract user stories and requirements
+  - Propose chains with confidence levels
 - [ ] `import_url(url)`:
-  - Stub for Linear/JIRA/GitHub integration
-  - Parse issue description for requirements
+  - Stub for Linear/JIRA/GitHub integration (not yet implemented)
 
 ### 11.4 Approval Workflow
 - [ ] CLI: `archeon intent "<text>"`
@@ -342,30 +332,33 @@
 
 ---
 
-## Phase 13: Graph Visualization
+## Phase 13: Graph Visualization ✅
 
 ### 13.1 DOT Export
-- [ ] `export_dot(graph)` — Generate Graphviz DOT format
-- [ ] Node shapes by glyph type (from legend colors)
-- [ ] Edge styles by operator type
+- [x] `export_dot(graph)` — Generate Graphviz DOT format
+- [x] Node shapes by glyph type (from legend colors)
+- [x] Edge styles by operator type
 
 ### 13.2 JSON Export
-- [ ] `export_json(graph)` — Full graph as JSON
-- [ ] For web visualization consumption
+- [x] `export_json(graph)` — Full graph as JSON
+- [x] For web visualization consumption
 
-### 13.3 PNG Export
-- [ ] Shell out to `dot` command
-- [ ] `archeon graph --format png --output graph.png`
+### 13.3 PNG/SVG Export
+- [x] Shell out to `dot` command
+- [x] `archeon graph --format png|svg --output graph.png`
 
-**Test:** Export sample graph, verify DOT syntax valid.
+### 13.4 Mermaid Export
+- [x] `export_mermaid(graph)` — Generate Mermaid diagram
+
+**Test:** ✅ All export formats verified working
 
 ---
 
-## Phase 14: Polish & Edge Cases
+## Phase 14: Polish & Edge Cases ✅ (mostly)
 
 ### 14.1 Error Handling
-- [ ] Graceful handling of malformed chains
-- [ ] Clear error messages with line numbers
+- [x] Graceful handling of malformed chains
+- [x] Clear error messages with line numbers
 - [ ] Suggestions for common mistakes
 
 ### 14.2 Performance
@@ -373,7 +366,7 @@
 - [ ] Incremental validation (only changed chains)
 
 ### 14.3 Configuration
-- [ ] `.archeonrc` file for project defaults:
+- [x] `.archeonrc` file for project defaults:
   ```yaml
   frontend: react
   backend: fastapi
@@ -382,8 +375,8 @@
   ```
 
 ### 14.4 Documentation
-- [ ] `archeon --help` comprehensive help
-- [ ] `archeon <command> --help` for each command
+- [x] `archeon --help` comprehensive help
+- [x] `archeon <command> --help` for each command
 - [ ] README with quick start
 
 ---
