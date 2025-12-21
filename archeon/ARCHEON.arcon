@@ -1,0 +1,10 @@
+# Archeon Knowledge Graph
+# Version: 2.0
+# Project: Archeon
+
+# === ORCHESTRATOR LAYER (Deterministic) ===
+ORC:main :: PRS:glyph :: PRS:intent :: VAL:chain :: VAL:boundary :: VAL:version :: SPW:agent :: TST:e2e :: TST:error
+GRF:domain :: ORC:main
+
+# === AGENT CHAINS (Versioned) ===
+# Add chains below using: archeon parse "<chain>"
