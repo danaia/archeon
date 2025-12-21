@@ -739,6 +739,147 @@ def import_doc(
                 rprint(f"  [red]✗[/red] {e}")
 
 
+@app.command()
+def run(
+    glyph: Optional[str] = typer.Argument(None, help="Component or chain to execute"),
+    mode: str = typer.Option("sandbox", "--mode", "-m", help="Execution mode: sandbox or live"),
+    input_json: Optional[str] = typer.Option(None, "--input", "-i", help="Input data as JSON"),
+    chain: Optional[str] = typer.Option(None, "--chain", "-c", help="Execute a raw chain string"),
+    all_chains: bool = typer.Option(False, "--all", "-a", help="Execute all chains"),
+):
+    """Execute chains in headless mode (sandbox or live)."""
+    import json as json_module
+    from archeon.orchestrator.HED_executor import (
+        HeadlessExecutor,
+        ExecutionMode,
+        run_sandbox,
+    )
+    
+    arcon_path = get_arcon_path()
+    
+    # Parse input data
+    input_data = {}
+    if input_json:
+        try:
+            input_data = json_module.loads(input_json)
+        except json_module.JSONDecodeError as e:
+            rprint(f"[red]✗[/red] Invalid JSON input: {e}")
+            raise typer.Exit(1)
+    
+    exec_mode = ExecutionMode.LIVE if mode == "live" else ExecutionMode.SANDBOX
+    
+    # Execute raw chain string
+    if chain:
+        try:
+            ast = parse_chain(chain)
+        except ParseError as e:
+            rprint(f"[red]✗[/red] Invalid chain: {e}")
+            raise typer.Exit(1)
+        
+        executor = HeadlessExecutor()
+        result = executor.execute(ast, exec_mode, input_data, strict=False)
+        _display_execution_result(result, console)
+        return
+    
+    # Need arcon for other modes
+    if not arcon_path.exists():
+        rprint(f"[red]✗[/red] No {DEFAULT_ARCON} found. Run [cyan]archeon init[/cyan] first.")
+        raise typer.Exit(1)
+    
+    graph = load_graph(str(arcon_path))
+    executor = HeadlessExecutor(graph)
+    
+    if all_chains:
+        # Execute all chains
+        rprint(f"[cyan]Executing all {len(graph.chains)} chains in {mode} mode...[/cyan]\n")
+        
+        for i, stored in enumerate(graph.chains):
+            rprint(f"[dim]Chain {i+1}/{len(graph.chains)}:[/dim] {stored.ast.raw[:60]}...")
+            result = executor.execute(stored.ast, exec_mode, input_data, strict=False)
+            
+            if result.success:
+                rprint(f"  [green]✓[/green] Success ({len(result.trace.steps)} steps)")
+            else:
+                rprint(f"  [red]✗[/red] Failed: {result.error}")
+        
+        # Show metrics summary
+        metrics = executor.get_metrics()
+        total_exec = sum(m.get('executions', 0) for m in metrics.values())
+        total_success = sum(m.get('successes', 0) for m in metrics.values())
+        rprint(f"\n[bold]Summary:[/bold] {total_success}/{total_exec} chains succeeded")
+        return
+    
+    if glyph:
+        # Execute chains containing this glyph
+        results = executor.execute_by_glyph(glyph, exec_mode, input_data)
+        
+        if not results:
+            rprint(f"[yellow]![/yellow] No chains found containing {glyph}")
+            raise typer.Exit(1)
+        
+        rprint(f"[cyan]Found {len(results)} chain(s) containing {glyph}[/cyan]\n")
+        for result in results:
+            _display_execution_result(result, console)
+        return
+    
+    rprint("[yellow]![/yellow] Specify a glyph, --chain, or --all")
+    rprint("  Examples:")
+    rprint("    [cyan]archeon run CMP:LoginForm[/cyan]")
+    rprint("    [cyan]archeon run --chain \"NED:test => OUT:done\"[/cyan]")
+    rprint("    [cyan]archeon run --all --mode sandbox[/cyan]")
+
+
+def _display_execution_result(result, console):
+    """Display execution result with formatting."""
+    from rich.json import JSON
+    
+    trace = result.trace
+    status_color = "green" if result.success else "red"
+    status_icon = "✓" if result.success else "✗"
+    
+    rprint(f"[{status_color}]{status_icon}[/{status_color}] {trace.chain_id[:60]}...")
+    rprint(f"  Mode: [bold]{trace.mode.value}[/bold] | Status: [{status_color}]{trace.status}[/{status_color}]")
+    rprint(f"  Steps: {len(trace.steps)}")
+    
+    # Show step summary
+    for step in trace.steps:
+        step_icon = {
+            'success': '[green]✓[/green]',
+            'mocked': '[blue]◎[/blue]',
+            'failed': '[red]✗[/red]',
+            'skipped': '[dim]○[/dim]',
+        }.get(step.status.value, '[dim]?[/dim]')
+        
+        duration = f" ({step.duration_ms:.1f}ms)" if step.duration_ms else ""
+        rprint(f"    {step_icon} {step.glyph}{duration}")
+    
+    if result.error:
+        rprint(f"  [red]Error:[/red] {result.error}")
+    
+    if result.output:
+        rprint(f"  [dim]Output:[/dim]")
+        console.print(JSON.from_data(result.output))
+    
+    rprint("")
+
+
+@app.command()
+def serve(
+    host: str = typer.Option("localhost", "--host", "-h", help="Host to bind to"),
+    port: int = typer.Option(8765, "--port", "-p", help="Port to listen on"),
+):
+    """Start the headless HTTP server for chain execution."""
+    from archeon.server.headless_server import serve as start_server
+    
+    arcon_path = get_arcon_path()
+    
+    if not arcon_path.exists():
+        rprint(f"[red]✗[/red] No {DEFAULT_ARCON} found. Run [cyan]archeon init[/cyan] first.")
+        raise typer.Exit(1)
+    
+    start_server(str(arcon_path), host, port)
+
+
 @app.callback(invoke_without_command=True)
 def main(
     ctx: typer.Context,

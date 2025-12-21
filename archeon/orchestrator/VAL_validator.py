@@ -385,3 +385,38 @@ def validate_graph(graph: KnowledgeGraph) -> ValidationResult:
     """Convenience function to validate a graph."""
     validator = GraphValidator(graph)
     return validator.validate()
+
+
+def validate_headless(ast: ChainAST) -> ValidationResult:
+    """
+    Validate that a chain can run in headless mode.
+    
+    Checks that all executable glyphs (CMP, API, FNC, STO, MDL, EVT)
+    have the [headless] modifier.
+    """
+    result = ValidationResult()
+    
+    executable_prefixes = {"CMP", "API", "FNC", "STO", "MDL", "EVT"}
+    
+    for node in ast.nodes:
+        if node.prefix in executable_prefixes:
+            if "headless" not in node.modifiers:
+                result.add_error(
+                    'ERR:headless.required',
+                    f"{node.qualified_name} missing [headless] modifier - "
+                    "only headless components can be executed in headless mode",
+                    node=node.qualified_name
+                )
+    
+    # Check for at least one headless node
+    headless_nodes = [n for n in ast.nodes 
+                      if n.prefix in executable_prefixes 
+                      and "headless" in n.modifiers]
+    
+    if not headless_nodes and any(n.prefix in executable_prefixes for n in ast.nodes):
+        result.add_warning(
+            'WARN:headless.noEntry',
+            "No [headless] annotated nodes found - chain cannot be executed",
+        )
+    
+    return result

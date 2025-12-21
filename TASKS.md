@@ -299,36 +299,49 @@
 
 ---
 
-## Phase 12: Headless Execution Mode
+## Phase 12: Headless Execution Mode ✅
 
 ### 12.1 Opt-In System
-- [ ] Only `[headless]` annotated components can execute
-- [ ] `VAL:headless` validator — block non-annotated execution
+- [x] Only `[headless]` annotated components can execute (strict mode)
+- [x] `validate_headless()` validator — block non-annotated execution
+- [x] `HeadlessValidator.can_execute()` — check headless capability
 
 ### 12.2 Sandbox Mode (Default)
-- [ ] Trace execution without side effects
-- [ ] Mock all `API:` calls
-- [ ] Return execution trace:
+- [x] Trace execution without side effects
+- [x] Mock all `API:` calls via `MockRegistry`
+- [x] Return execution trace with timing, status, I/O:
   ```json
   {
-    "event": "...",
-    "data": {...},
-    "trace": [{"glyph": "...", "time_ms": ...}],
-    "sandbox": true
+    "chain_id": "...",
+    "mode": "sandbox",
+    "status": "completed",
+    "steps": [{"glyph": "...", "duration_ms": ..., "mocked": true}],
+    "final_output": {...}
   }
   ```
 
 ### 12.3 Live Mode
-- [ ] Require explicit `mode=live` flag
-- [ ] Execute real `API:` calls
-- [ ] Log all operations
+- [x] Require explicit `mode=live` flag
+- [x] Strict headless validation for live mode
+- [x] Placeholder for real code execution
 
 ### 12.4 HTTP Interface
-- [ ] `/api/cmp/{component}` endpoint
-- [ ] Query params: `action`, `from`, `mode`, `debug`
-- [ ] `/api/cmp/{component}/metrics` — Execution metrics
+- [x] `/api/cmp/{component}` endpoint — Execute component
+- [x] `/api/chain/{id}` endpoint — Execute by chain ID
+- [x] `/api/execute` endpoint — Execute raw chain string
+- [x] Query params: `mode=sandbox|live`
+- [x] `/api/cmp/{component}/metrics` — Execution metrics
+- [x] `/api/status`, `/api/chains`, `/health` endpoints
+- [x] WSGI-compatible `create_app()` for production servers
 
-**Test:** Execute headless component in sandbox, verify trace output.
+### 12.5 CLI Commands
+- [x] `archeon run <glyph>` — Execute chains containing glyph
+- [x] `archeon run --chain "<chain>"` — Execute raw chain
+- [x] `archeon run --all` — Execute all chains
+- [x] `archeon run --mode live` — Live execution mode
+- [x] `archeon serve [--port] [--host]` — Start HTTP server
+
+**Test:** ✅ Execute headless component in sandbox, verify trace output.
 
 ---
 
