@@ -197,8 +197,8 @@ project-name/
 | Flag | Frontend | Store | Notes |
 |------|----------|-------|-------|
 | (default) | React | Zustand | Vite + TypeScript |
-| `--frontend vue3` | Vue 3 | Pinia | Vite + JavaScript (no TS) |
-| `--frontend vue` | Vue 2 | Pinia | Options API (no TS) |
+| `--frontend vue3` | Vue 3 | Pinia | Vite + JavaScript (**NO TypeScript**) |
+| `--frontend vue` | Vue 2 | Pinia | Options API (**NO TypeScript**) |
 
 | Flag | Backend | Notes |
 |------|---------|-------|
@@ -213,6 +213,8 @@ mkdir my-app && cd my-app
 arc init --frontend vue3
 arc ai-setup
 ```
+
+**IMPORTANT:** Vue 3 projects use **JavaScript only** - NO TypeScript.
 
 **Step 1: Add glyphs** to ARCHEON.arcon:
 ```
