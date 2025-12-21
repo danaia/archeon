@@ -201,7 +201,7 @@ class STOAgent(BaseAgent):
         
         for action in actions:
             lines.append(f"""
-  async function {action}(payload?: unknown) {{
+  async function {action}(payload) {{
     loading.value = true;
     error.value = null;
     
@@ -256,8 +256,8 @@ class STOAgent(BaseAgent):
     def _build_zustand_actions_interface(self, actions: list[str]) -> str:
         lines = []
         for action in actions:
-            lines.append(f"  {action}: (payload?: unknown) => Promise<void>;")
-        lines.append("  reset: () => void;")
+            lines.append(f"  {action}: (payload) => Promise,")
+        lines.append("  reset: () => void,")
         return "\n".join(lines) if lines else "  // No actions defined"
     
     def _build_zustand_initial_state(self, fields: list[dict]) -> str:
@@ -269,7 +269,7 @@ class STOAgent(BaseAgent):
     def _build_zustand_actions(self, actions: list[str]) -> str:
         lines = []
         for action in actions:
-            lines.append(f"""  {action}: async (payload?: unknown) => {{
+            lines.append(f"""  {action}: async (payload) => {{
     set({{ loading: true, error: null }});
     try {{
       // TODO: Implement {action} logic

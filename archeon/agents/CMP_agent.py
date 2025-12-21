@@ -162,10 +162,10 @@ class CMPAgent(BaseAgent):
         return placeholders
     
     def _generate_vue3_state(self, name: str, store_name: Optional[str], full: bool = True) -> str:
-        """Generate Vue 3 reactive state refs."""
+        """Generate Vue 3 reactive state refs (plain JavaScript, no TypeScript)."""
         lines = ["// Local component state"]
         lines.append("const loading = ref(false);")
-        lines.append("const error = ref<string | null>(null);")
+        lines.append("const error = ref(null);")
         
         if store_name:
             lines.append(f"\n// Store")
@@ -173,7 +173,7 @@ class CMPAgent(BaseAgent):
         
         if full:
             lines.append(f"\n// Additional state")
-            lines.append(f"// const data = ref<{name}Data>(null);")
+            lines.append(f"// const data = ref(null);")
         
         return "\n".join(lines)
     
@@ -184,7 +184,7 @@ class CMPAgent(BaseAgent):
         return "\n".join(lines)
     
     def _generate_vue3_handlers(self, name: str, glyph: GlyphNode, chain: ChainAST) -> str:
-        """Generate Vue 3 event handlers based on chain context."""
+        """Generate Vue 3 event handlers based on chain context (plain JavaScript)."""
         lines = ["// Event handlers"]
         
         # Find API calls in chain to generate handlers
