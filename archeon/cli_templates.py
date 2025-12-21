@@ -251,6 +251,116 @@ arc ai-setup
 arc validate
 ```
 
+## Design Tokens (Theming)
+
+Archeon uses **W3C DTCG (Design Tokens Community Group)** format for design tokens - a single source of truth for all design system values (colors, typography, spacing, etc.).
+
+### Token Workflow
+
+```
+design-tokens.json (Source of Truth)
+        │
+        ▼
+   arc tokens build   OR   arc run TKN:transformer
+        │
+        ├──► tokens.css          (CSS custom properties)
+        ├──► tokens.semantic.css (Component-ready aliases)
+        ├──► tokens.tailwind.js  (Tailwind extend config)
+        └──► tokens.js           (JS module export)
+```
+
+### When a User Wants to Change Theme/Colors
+
+1. **Edit the design tokens file:**
+   ```bash
+   # Location: archeon/_config/design-tokens.json
+   # Or: client/src/tokens/design-tokens.json
+   ```
+
+2. **Change values in the JSON:**
+   ```json
+   {
+     "color": {
+       "semantic": {
+         "primary": {
+           "default": { "$value": "#8b5cf6" }  // Changed from blue to purple
+         }
+       }
+     }
+   }
+   ```
+
+3. **Regenerate outputs via TKN glyph:**
+   ```bash
+   arc run TKN:transformer
+   # Or use CLI directly:
+   arc tokens build
+   ```
+
+4. **Changes propagate to all generated files** - CSS variables, Tailwind config, and JS exports all update automatically.
+
+### Token Commands
+
+```bash
+arc tokens init       # Create default design-tokens.json in project
+arc tokens build      # Transform tokens to CSS/Tailwind/JS
+arc tokens validate   # Verify token file format
+arc tokens build -f css -o ./styles  # Only CSS to custom directory
+```
+
+### Token Categories
+
+| Category | Purpose | Example |
+|----------|---------|---------|
+| `color.primitive` | Base palette | `blue.500`, `gray.100` |
+| `color.semantic` | Intent colors | `primary`, `success`, `danger` |
+| `color.surface` | Backgrounds | `default`, `raised`, `sunken` |
+| `color.content` | Text colors | `primary`, `secondary`, `muted` |
+| `typography` | Font settings | `fontSize`, `fontWeight`, `lineHeight` |
+| `spacing` | Layout spacing | `1` (0.25rem) to `96` (24rem) |
+| `borderRadius` | Corner rounding | `sm`, `md`, `lg`, `full` |
+| `shadow` | Box shadows | `sm`, `md`, `lg`, `xl` |
+| `component` | Component-specific | `button.height.md`, `input.padding` |
+
+### Theme-Aware Components
+
+Generated components use semantic CSS classes that respond to tokens:
+
+```jsx
+// Uses CSS variables that update when tokens change
+<button className="bg-primary text-primary-foreground rounded-md">
+  Click me
+</button>
+```
+
+```css
+/* In tokens.semantic.css */
+:root {
+  --primary-default: #3b82f6;
+  --primary-foreground: #ffffff;
+}
+.dark {
+  --primary-default: #60a5fa;
+}
+```
+
+### Dark Mode
+
+Dark mode values are defined alongside light mode in the tokens:
+
+```json
+{
+  "color": {
+    "surface": {
+      "light": { "default": { "$value": "#ffffff" } },
+      "dark": { "default": { "$value": "#0f172a" } }
+    }
+  }
+}
+```
+
+Toggle dark mode by adding/removing the `dark` class on `<html>` or `<body>`.
+
 ## Validation Commands
 
 ```bash

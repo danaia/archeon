@@ -126,6 +126,17 @@ def init(
         create_client_structure(target / "client", frontend)
         create_server_structure(target / "server")
         create_server_files(target / "server", backend)
+        
+        # Generate design tokens to client/src/tokens for immediate use
+        from archeon.orchestrator.TKN_tokens import TokenTransformer
+        tokens_source = archeon_dir / "templates" / "_config" / "design-tokens.json"
+        tokens_output = target / "client" / "src" / "tokens"
+        if tokens_source.exists():
+            try:
+                transformer = TokenTransformer(tokens_source)
+                transformer.generate_all(tokens_output)
+            except Exception:
+                pass  # Non-fatal: tokens can be generated later with `arc tokens build`
     
     # Create ARCHEON.arcon
     create_arcon_file(archeon_dir, target.name)
@@ -144,6 +155,7 @@ def init(
     rprint(f"  Created AI_README.md (provisioning guide)")
     
     if monorepo:
+        rprint(f"  Generated design tokens to client/src/tokens/")
         rprint(f"\n  [bold]Project Structure:[/bold]")
         rprint(f"  [cyan]client/[/cyan]  → {frontend.capitalize()} frontend")
         rprint(f"  [cyan]server/[/cyan]  → {backend.capitalize()} backend (API, models, events)")
