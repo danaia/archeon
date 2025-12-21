@@ -37,7 +37,7 @@ arc status
 
 That's it. You now have:
 - `client/src/components/LoginForm.vue` - Vue 3 component
-- `client/src/stores/AuthStore.ts` - Pinia store  
+- `client/src/stores/AuthStore.js` - Pinia store  
 - `server/src/api/routes/auth_login.py` - FastAPI endpoint
 
 ## Natural Language Intent Flow
@@ -95,7 +95,7 @@ Action [a/e/r/s] (r): a
 
 $ arc gen
 ✓ Generated CMP:RegisterForm → client/src/components/RegisterForm.vue
-✓ Generated STO:Auth → client/src/stores/AuthStore.ts
+✓ Generated STO:Auth → client/src/stores/AuthStore.js
 ✓ Generated API:POST/register → server/src/api/routes/register.py
 ✓ Generated MDL:user → server/src/models/user.py
 ```

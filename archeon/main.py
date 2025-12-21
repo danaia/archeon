@@ -92,15 +92,15 @@ def get_arcon_path() -> Path:
 def init(
     path: Optional[str] = typer.Argument(None, help="Directory to initialize"),
     monorepo: bool = typer.Option(True, "--monorepo/--single", help="Create client/server separation"),
-    frontend: str = typer.Option("react", "--frontend", "-f", help="Frontend framework (react=TS, vue/vue3=JS only)"),
+    frontend: str = typer.Option("react", "--frontend", "-f", help="Frontend framework (react/vue/vue3)"),
     backend: str = typer.Option("fastapi", "--backend", "-b", help="Backend framework (fastapi, express)"),
 ):
     """Initialize a new Archeon project with client/server structure.
     
     Frontend options:
-    - react: React + TypeScript (default)
-    - vue3: Vue 3 + JavaScript (NO TypeScript)
-    - vue: Vue 2 + JavaScript (NO TypeScript)
+    - react: React (default)
+    - vue3: Vue 3
+    - vue: Vue 2
     """
     target = Path(path) if path else Path.cwd()
     archeon_dir = target / "archeon"
@@ -145,8 +145,7 @@ def init(
     
     if monorepo:
         rprint(f"\n  [bold]Project Structure:[/bold]")
-        lang_note = "JavaScript only - NO TypeScript" if frontend in ("vue", "vue3") else "TypeScript"
-        rprint(f"  [cyan]client/[/cyan]  → {frontend.capitalize()} frontend ({lang_note})")
+        rprint(f"  [cyan]client/[/cyan]  → {frontend.capitalize()} frontend")
         rprint(f"  [cyan]server/[/cyan]  → {backend.capitalize()} backend (API, models, events)")
         rprint(f"  [cyan]archeon/[/cyan] → Knowledge graph and orchestration")
     

@@ -87,10 +87,10 @@ PATH_MAPPINGS = {
         'svelte': 'components/{name}.svelte',
     },
     'STO': {
-        'zustand': 'stores/{name}Store.ts',
-        'redux': 'stores/{name}Slice.ts',
-        'pinia': 'stores/{name}Store.js',  # Vue uses JS, not TS
-        'ngrx': 'stores/{name}.store.ts',
+        'zustand': 'stores/{name}Store.js',
+        'redux': 'stores/{name}Slice.js',
+        'pinia': 'stores/{name}Store.js',
+        'ngrx': 'stores/{name}.store.js',
     },
     'API': {
         'fastapi': 'api/routes/{name}.py',

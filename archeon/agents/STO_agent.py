@@ -28,14 +28,12 @@ class STOAgent(BaseAgent):
     }
 
     def resolve_path(self, glyph: GlyphNode, framework: str) -> str:
-        """Return stores/{name}Store.{ext} - .ts for React, .js for Vue"""
+        """Return stores/{name}Store.js"""
         name = glyph.name
         # Remove 'Store' suffix if present to avoid duplication
         if name.lower().endswith('store'):
             name = name[:-5]
-        # React uses TypeScript, Vue uses plain JavaScript
-        ext = "js" if framework in ("vue", "vue3", "pinia") else "ts"
-        return f"stores/{name}Store.{ext}"
+        return f"stores/{name}Store.js"
 
     def get_template(self, framework: str) -> str:
         """Load store template for framework."""

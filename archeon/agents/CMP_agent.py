@@ -92,11 +92,9 @@ class CMPAgent(BaseAgent):
         
         if is_stateful:
             placeholders["USE_STATE_IMPORT"] = ", { useState }"
-            placeholders["STATE_INTERFACE"] = f"interface {name}State {{\n  // State properties\n}}\n"
-            placeholders["STATE_HOOKS"] = f"  const [state, setState] = useState<{name}State>({{}});\n"
+            placeholders["STATE_HOOKS"] = f"  const [state, setState] = useState({{}});\n"
         else:
             placeholders["USE_STATE_IMPORT"] = ""
-            placeholders["STATE_INTERFACE"] = ""
             placeholders["STATE_HOOKS"] = ""
 
         placeholders["HANDLERS"] = ""

@@ -17,10 +17,10 @@ export const useStoreNameStore = defineStore('storeId', () => {
 {RESET_ACTION}
   }
 
-  return {
-{STATE_RETURN}
-{GETTERS_RETURN}
-{ACTIONS_RETURN}
-    $reset
-  }
+return {
+  // {STATE_RETURN}
+  // {GETTERS_RETURN}
+  // {ACTIONS_RETURN}
+  $reset
+}
 })

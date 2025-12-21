@@ -5,13 +5,7 @@ import React{USE_STATE_IMPORT} from 'react';
 
 {IMPORTS}
 
-interface {COMPONENT_NAME}Props {
-{PROPS_INTERFACE}
-}
-
-{STATE_INTERFACE}
-
-export function {COMPONENT_NAME}({PROPS_DESTRUCTURE}: {COMPONENT_NAME}Props) {
+export function {COMPONENT_NAME}({PROPS_DESTRUCTURE}) {
 {STATE_HOOKS}
 {HANDLERS}
   return (

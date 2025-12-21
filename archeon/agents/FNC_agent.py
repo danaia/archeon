@@ -33,21 +33,18 @@ class FNCAgent(BaseAgent):
         base_path = self.NAMESPACE_PATHS.get(namespace, f"lib/{namespace}")
         
         # Determine extension based on framework
-        # React uses TypeScript, Vue uses plain JavaScript
-        if framework in ("react", "typescript"):
-            return f"{base_path}.ts"
-        elif framework in ("vue", "vue3"):
+        if framework in ("vue", "vue3", "react"):
             return f"{base_path}.js"
         return f"{base_path}.py"
 
     def get_template(self, framework: str) -> str:
         """Load function template for framework."""
         # Map frameworks to template names
-        # React uses TypeScript, Vue uses plain JavaScript (same template, different extension)
         if framework in ("fastapi", "python", "mongo"):
             template_name = "python"
         else:
-            template_name = "typescript"  # JS/TS share same template structure
+            # For frontend frameworks, use python template (no JS template available)
+            template_name = "python"
         template = self.load_template(template_name)
         if not template:
             raise ValueError(f"No template found for FNC:{framework}")
@@ -59,21 +56,18 @@ class FNCAgent(BaseAgent):
         
         func_name = self._extract_function_name(glyph)
         namespace = glyph.namespace or "utils"
-        
-        # React uses TypeScript types, Vue uses plain JavaScript
-        is_typescript = framework in ("react", "typescript")
 
         placeholders = {
             "GLYPH_QUALIFIED_NAME": glyph.qualified_name,
             "IMPORTS": "",
             "FUNCTION_NAME": func_name,
-            "PARAMETERS": self._build_parameters(is_typescript),
-            "RETURN_TYPE": "any" if is_typescript else "Any",
+            "PARAMETERS": self._build_parameters(False),
+            "RETURN_TYPE": "Any",
             "DOCSTRING": f"Function for {glyph.qualified_name}",
             "ARGS_DOC": "        (define arguments)",
             "RETURN_DOC": "(define return value)",
             "PARAMS_DOC": " * @param input - Input parameter",
-            "FUNCTION_BODY": self._build_body(is_typescript),
+            "FUNCTION_BODY": self._build_body(False),
         }
 
         return self.fill_template(template, placeholders)
@@ -82,10 +76,8 @@ class FNCAgent(BaseAgent):
         """Generate function test."""
         func_name = self._extract_function_name(glyph)
         namespace = glyph.namespace or "utils"
-        # React uses TypeScript, Vue uses plain JavaScript
-        is_typescript = framework in ("react", "typescript")
 
-        if is_typescript or framework in ("vue", "vue3"):
+        if framework in ("vue", "vue3", "react"):
             test_content = f'''// @archeon {glyph.qualified_name}
 // Generated test - Do not edit manually
 
@@ -133,14 +125,10 @@ def test_{func_name}_edge_cases():
 
     def _build_parameters(self, is_typescript: bool) -> str:
         """Build function parameters."""
-        if is_typescript:
-            return "input?: any"
         return "input: Any = None"
 
     def _build_body(self, is_typescript: bool) -> str:
         """Build function body placeholder."""
-        if is_typescript:
-            return "  // TODO: Implement function logic\n  return input;"
         return "    # TODO: Implement function logic\n    return input"
 
     @staticmethod

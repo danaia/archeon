@@ -132,11 +132,10 @@
 ### 5.2 Template Files (Initial Set)
 - [x] `templates/CMP/react.tsx` — React functional component
 - [x] `templates/CMP/vue.vue` — Vue 3 SFC
-- [x] `templates/STO/zustand.ts` — Zustand store
+- [x] `templates/STO/zustand.js` — Zustand store
 - [x] `templates/API/fastapi.py` — FastAPI router
 - [x] `templates/MDL/mongo.py` — MongoDB model (motor/pymongo)
 - [x] `templates/FNC/python.py` — Python function stub
-- [x] `templates/FNC/typescript.ts` — TypeScript function stub
 - [x] `templates/EVT/pubsub.py` — Python event emitter
 
 **Test:** ✅ Templates loaded and used in generation
@@ -152,7 +151,7 @@
 - [x] Generate companion test: render + snapshot
 
 ### 6.2 STO Agent (`agents/STO_agent.py`)
-- [x] Resolve path: `stores/{name}Store.ts`
+- [x] Resolve path: `stores/{name}Store.js`
 - [x] Parse actions from chain context
 - [x] Generate state interface + actions
 - [x] Generate test: state mutations
@@ -173,7 +172,7 @@
 ### 6.5 FNC Agent (`agents/FNC_agent.py`)
 - [ ] Resolve path by namespace:
   - `FNC:auth.*` → `lib/auth.py`
-  - `FNC:ui.*` → `lib/ui.ts`
+  - `FNC:ui.*` → `lib/ui.js`
   - `FNC:validation.*` → `lib/validation.py`
 - [ ] Generate function stub with docstring
 - [ ] Generate test: input/output assertion

@@ -24,14 +24,14 @@ def copy_templates(archeon_dir: Path, frontend: str, backend: str):
     
     # Map frontend/backend to template files
     frontend_map = {
-        "react": {"CMP": "react.tsx", "STO": "zustand.ts"},
+        "react": {"CMP": "react.tsx", "STO": "zustand.js"},
         "vue": {"CMP": "vue.vue", "STO": "pinia.js"},
         "vue3": {"CMP": "vue3.vue", "STO": "pinia.js"},
     }
     
     backend_map = {
         "fastapi": {"API": "fastapi.py", "MDL": "mongo.py", "EVT": "pubsub.py", "FNC": "python.py"},
-        "express": {"API": "fastapi.py", "MDL": "mongo.py", "EVT": "pubsub.py", "FNC": "typescript.ts"},  # TODO: add express templates
+        "express": {"API": "fastapi.py", "MDL": "mongo.py", "EVT": "pubsub.py", "FNC": "python.py"},  # TODO: add express templates
     }
     
     # Copy frontend templates
@@ -130,11 +130,11 @@ The flow: Form → API processes → Model validates & saves to DB
 The `../templates/` folder contains code generation templates:
 
 - `CMP/` - Component templates (react.tsx, vue3.vue)
-- `STO/` - Store templates (zustand.ts, pinia.ts)  
+- `STO/` - Store templates (zustand.js, pinia.js)  
 - `API/` - API route templates (fastapi.py)
 - `MDL/` - Model templates (mongo.py)
 - `EVT/` - Event templates (pubsub.py)
-- `FNC/` - Function templates (python.py, typescript.ts)
+- `FNC/` - Function templates (python.py)
 
 Templates use `{PLACEHOLDER}` syntax for code generation.
 
@@ -283,7 +283,7 @@ def create_client_structure(client_dir: Path, frontend: str):
     package_json = client_dir / "package.json"
     if not package_json.exists():
         if frontend in ("vue", "vue3"):
-            # Vue 3 package.json (JavaScript only - NO TypeScript)
+            # Vue 3 package.json
             package_json.write_text('''{
   "name": "client",
   "version": "0.1.0",
@@ -312,7 +312,7 @@ def create_client_structure(client_dir: Path, frontend: str):
 }
 ''')
         else:
-            # React package.json (TypeScript)
+            # React package.json
             package_json.write_text('''{
   "name": "client",
   "version": "0.1.0",
@@ -320,7 +320,7 @@ def create_client_structure(client_dir: Path, frontend: str):
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "vite build",
     "preview": "vite preview",
     "test": "vitest",
     "test:run": "vitest run"
@@ -331,12 +331,9 @@ def create_client_structure(client_dir: Path, frontend: str):
     "zustand": "^4.5.0"
   },
   "devDependencies": {
-    "@types/react": "^18.2.0",
-    "@types/react-dom": "^18.2.0",
     "@vitejs/plugin-react": "^4.0.0",
     "@testing-library/react": "^14.0.0",
     "@testing-library/jest-dom": "^6.0.0",
-    "typescript": "^5.0.0",
     "vite": "^5.0.0",
     "vitest": "^1.0.0",
     "jsdom": "^24.0.0"
@@ -345,7 +342,7 @@ def create_client_structure(client_dir: Path, frontend: str):
 ''')
     
     # Create vite.config for the appropriate framework
-    vite_config = client_dir / ("vite.config.js" if frontend in ("vue", "vue3") else "vite.config.ts")
+    vite_config = client_dir / "vite.config.js"
     if not vite_config.exists():
         if frontend in ("vue", "vue3"):
             vite_config.write_text('''import { defineConfig } from 'vite'

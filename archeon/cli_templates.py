@@ -124,7 +124,7 @@ arc parse "NED:login => CMP:LoginForm => STO:Auth => API:POST/auth/login => MDL:
 ### Step 2: Implement the Code
 Write the code for each glyph in the chain:
 - `CMP:LoginForm` → `client/src/components/LoginForm.tsx`
-- `STO:Auth` → `client/src/stores/Auth.ts`
+- `STO:Auth` → `client/src/stores/Auth.js`
 - `API:POST/auth/login` → `server/src/api/routes/auth_login.py`
 - `MDL:user` → `server/src/models/user.py`
 
@@ -196,9 +196,9 @@ project-name/
 
 | Flag | Frontend | Store | Notes |
 |------|----------|-------|-------|
-| (default) | React | Zustand | Vite + TypeScript |
-| `--frontend vue3` | Vue 3 | Pinia | Vite + JavaScript (**NO TypeScript**) |
-| `--frontend vue` | Vue 2 | Pinia | Options API (**NO TypeScript**) |
+| (default) | React | Zustand | Vite + React |
+| `--frontend vue3` | Vue 3 | Pinia | Vite + JavaScript |
+| `--frontend vue` | Vue 2 | Pinia | Options API |
 
 | Flag | Backend | Notes |
 |------|---------|-------|
@@ -213,8 +213,6 @@ mkdir my-app && cd my-app
 arc init --frontend vue3
 arc ai-setup
 ```
-
-**IMPORTANT:** Vue 3 projects use **JavaScript only** - NO TypeScript.
 
 **Step 1: Add glyphs** to ARCHEON.arcon:
 ```
