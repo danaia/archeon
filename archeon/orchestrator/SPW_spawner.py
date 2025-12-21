@@ -2,6 +2,7 @@
 SPW_spawner.py - Agent Spawner
 
 Orchestrates code generation by dispatching to appropriate agents.
+Supports monorepo structure with client/server separation.
 """
 
 from dataclasses import dataclass, field
@@ -27,6 +28,7 @@ class SpawnResult:
     test_path: Optional[str] = None
     status: str = "pending"  # pending, success, skipped, error
     error: Optional[str] = None
+    target: str = ""  # "client" or "server"
 
 
 @dataclass
@@ -45,6 +47,78 @@ class BatchResult:
     @property
     def skipped_count(self) -> int:
         return sum(1 for r in self.results if r.status == "skipped")
+    
+    @property
+    def client_count(self) -> int:
+        return sum(1 for r in self.results if r.target == "client" and r.status == "success")
+    
+    @property
+    def server_count(self) -> int:
+        return sum(1 for r in self.results if r.target == "server" and r.status == "success")
+
+
+@dataclass
+class ProjectConfig:
+    """Project configuration from .archeonrc"""
+    monorepo: bool = True
+    client_dir: str = "./client/src"
+    server_dir: str = "./server/src"
+    frontend: str = "react"
+    backend: str = "fastapi"
+    db: str = "mongo"
+    output_dir: str = "./src"  # Fallback for non-monorepo
+    
+    @classmethod
+    def load(cls, project_root: Optional[Path] = None) -> 'ProjectConfig':
+        """Load config from .archeonrc file."""
+        config = cls()
+        
+        # Find .archeonrc
+        search_paths = []
+        if project_root:
+            search_paths.append(project_root / ".archeonrc")
+        search_paths.append(Path.cwd() / ".archeonrc")
+        
+        for parent in Path.cwd().parents:
+            search_paths.append(parent / ".archeonrc")
+            if (parent / "archeon").exists():
+                break
+        
+        rc_path = None
+        for p in search_paths:
+            if p.exists():
+                rc_path = p
+                break
+        
+        if not rc_path:
+            return config
+        
+        # Parse simple YAML-like format
+        for line in rc_path.read_text().splitlines():
+            line = line.strip()
+            if not line or line.startswith('#'):
+                continue
+            if ':' in line:
+                key, value = line.split(':', 1)
+                key = key.strip()
+                value = value.strip()
+                
+                if key == "monorepo":
+                    config.monorepo = value.lower() == "true"
+                elif key == "client_dir":
+                    config.client_dir = value
+                elif key == "server_dir":
+                    config.server_dir = value
+                elif key == "frontend":
+                    config.frontend = value
+                elif key == "backend":
+                    config.backend = value
+                elif key == "db":
+                    config.db = value
+                elif key == "output_dir":
+                    config.output_dir = value
+        
+        return config
 
 
 class AgentSpawner:
@@ -72,19 +146,58 @@ class AgentSpawner:
         "FNC": "python",     # Default to Python for shared
         "EVT": "pubsub",     # Event emitter
     }
+    
+    # Frontend vs Backend glyph classification
+    CLIENT_PREFIXES = {"CMP", "STO", "V"}  # Frontend glyphs -> client dir
+    SERVER_PREFIXES = {"API", "MDL", "EVT"}  # Backend glyphs -> server dir
+    SHARED_PREFIXES = {"FNC"}  # Depends on namespace (FNC:ui -> client, FNC:auth -> server)
 
     def __init__(
         self, 
         output_dir: str = ".", 
         framework: str = "react",
         backend: str = "fastapi",
-        db: str = "mongo"
+        db: str = "mongo",
+        config: Optional[ProjectConfig] = None
     ):
+        self.config = config or ProjectConfig.load()
         self.output_dir = Path(output_dir)
-        self.framework = framework
-        self.backend = backend
-        self.db = db
+        self.framework = framework or self.config.frontend
+        self.backend = backend or self.config.backend
+        self.db = db or self.config.db
         self._agents: dict[str, BaseAgent] = {}
+    
+    def get_target_dir(self, glyph: GlyphNode) -> tuple[Path, str]:
+        """
+        Determine the target directory (client or server) for a glyph.
+        
+        Returns:
+            Tuple of (directory_path, target_name)
+        """
+        if not self.config.monorepo:
+            return self.output_dir / self.config.output_dir, "single"
+        
+        prefix = glyph.prefix
+        
+        # Explicit frontend glyphs
+        if prefix in self.CLIENT_PREFIXES:
+            return self.output_dir / self.config.client_dir, "client"
+        
+        # Explicit backend glyphs
+        if prefix in self.SERVER_PREFIXES:
+            return self.output_dir / self.config.server_dir, "server"
+        
+        # Shared glyphs - check namespace
+        if prefix == "FNC":
+            namespace = glyph.namespace or ""
+            # UI-related functions go to client
+            if namespace in ("ui", "utils", "hooks", "components"):
+                return self.output_dir / self.config.client_dir, "client"
+            # Everything else goes to server
+            return self.output_dir / self.config.server_dir, "server"
+        
+        # Default to server
+        return self.output_dir / self.config.server_dir, "server"
 
     def get_framework_for_glyph(self, prefix: str) -> str:
         """Get the appropriate framework for a glyph prefix."""
@@ -148,14 +261,18 @@ class AgentSpawner:
             return result
 
         try:
+            # Determine target directory (client or server)
+            target_dir, target_name = self.get_target_dir(glyph)
+            result.target = target_name
+            
             # Resolve output path
             rel_path = agent.resolve_path(glyph, fw)
-            full_path = self.output_dir / rel_path
+            full_path = target_dir / rel_path
 
             # Check if file exists
             if full_path.exists() and not force:
                 result.status = "skipped"
-                result.file_path = str(rel_path)
+                result.file_path = str(target_dir.relative_to(self.output_dir) / rel_path)
                 return result
 
             # Generate code
@@ -164,15 +281,25 @@ class AgentSpawner:
             # Write file
             full_path.parent.mkdir(parents=True, exist_ok=True)
             full_path.write_text(code)
-            result.file_path = str(rel_path)
+            result.file_path = str(target_dir.relative_to(self.output_dir) / rel_path)
 
-            # Generate test
+            # Generate test in appropriate test directory
             test_code = agent.generate_test(glyph, fw)
-            test_rel_path = f"tests/generated/test_{Path(rel_path).stem}.py"
-            test_full_path = self.output_dir / test_rel_path
+            if target_name == "client":
+                test_rel_path = f"tests/test_{Path(rel_path).stem}.tsx"
+            else:
+                test_rel_path = f"tests/test_{Path(rel_path).stem}.py"
+            
+            # Adjust test path for monorepo
+            if self.config.monorepo:
+                test_base = self.output_dir / ("client" if target_name == "client" else "server")
+            else:
+                test_base = self.output_dir
+                
+            test_full_path = test_base / test_rel_path
             test_full_path.parent.mkdir(parents=True, exist_ok=True)
             test_full_path.write_text(test_code)
-            result.test_path = test_rel_path
+            result.test_path = str(test_full_path.relative_to(self.output_dir))
 
             result.status = "success"
 
@@ -271,16 +398,25 @@ class AgentSpawner:
 def spawn_from_graph(
     graph: KnowledgeGraph,
     output_dir: str = ".",
-    framework: str = "react",
-    backend: str = "fastapi",
-    db: str = "mongo",
-    force: bool = False
+    framework: Optional[str] = None,
+    backend: Optional[str] = None,
+    db: Optional[str] = None,
+    force: bool = False,
+    config: Optional[ProjectConfig] = None
 ) -> BatchResult:
-    """Convenience function to spawn all unresolved glyphs."""
+    """
+    Convenience function to spawn all unresolved glyphs.
+    
+    Automatically loads .archeonrc config for monorepo support.
+    """
+    # Load config if not provided
+    config = config or ProjectConfig.load(Path(output_dir))
+    
     spawner = AgentSpawner(
         output_dir=output_dir, 
-        framework=framework,
-        backend=backend,
-        db=db
+        framework=framework or config.frontend,
+        backend=backend or config.backend,
+        db=db or config.db,
+        config=config
     )
     return spawner.spawn_all(graph, force=force)
