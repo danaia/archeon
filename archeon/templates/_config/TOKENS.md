@@ -207,6 +207,195 @@ Edit `design-tokens.json`:
 }
 ```
 
+---
+
+## Theme System Architecture
+
+### Understanding Theme Layers
+
+Archeon's theme system has **two independent layers**:
+
+| Layer | Purpose | Controls | Stored As |
+|-------|---------|----------|-----------|
+| **Mode** | Light/Dark brightness | Surface colors, shadows, text contrast | `light`/`dark`/`system` |
+| **Color Theme** | Primary brand color | `--color-primary-*` variables | `blue`/`purple`/`green` |
+
+These are **independent**—you can have a dark mode with a green color theme, or light mode with purple.
+
+### How Color Themes Work
+
+1. **Design tokens** define primitive color palettes (`color.primitive.blue.*`, `color.primitive.purple.*`, etc.)
+
+2. **Theme presets** (`theme-presets.css`) define CSS classes that override primary variables:
+   ```css
+   .theme-ocean { --color-primary-500: #3b82f6; } /* Blue */
+   .theme-royal { --color-primary-500: #a855f7; } /* Purple */
+   .theme-forest { --color-primary-500: #22c55e; } /* Green */
+   ```
+
+3. **Theme store** applies the appropriate class to `<html>`:
+   ```javascript
+   setColorTheme('purple') // Adds .theme-royal to document root
+   ```
+
+4. **Components** use Tailwind classes (`bg-primary-500`) or CSS variables (`var(--color-primary-500)`) which automatically resolve to the active theme.
+
+### Available Color Themes
+
+> **Note:** These are **example themes** from the default template. Each project defines its own themes based on its design system. The theme store constants (`COLOR_THEMES`, `COLOR_THEME_CLASSES`) must be updated to match your project's `theme-presets.css`.
+
+| Theme Name | Store Value | CSS Class | Primary Color |
+|------------|-------------|-----------|---------------|
+| Ocean Blue | `'blue'` | `.theme-ocean` | `#3b82f6` |
+| Royal Purple | `'purple'` | `.theme-royal` | `#a855f7` |
+| Forest Green | `'green'` | `.theme-forest` | `#22c55e` |
+
+**To customize for your project:**
+1. Define your color palettes in `design-tokens.json`
+2. Create theme classes in `theme-presets.css`
+3. Update `COLOR_THEMES` and `COLOR_THEME_CLASSES` in the theme store
+
+### Theme Store API
+
+**Vue (Pinia):**
+```javascript
+import { useThemeStore, COLOR_THEMES } from '@/stores/themeStore';
+
+const store = useThemeStore();
+
+// Read state
+store.colorTheme        // Current: 'blue' | 'purple' | 'green'
+store.theme             // Mode: 'light' | 'dark' | 'system'
+store.resolvedTheme     // Actual mode: 'light' | 'dark'
+
+// Change color theme
+store.setColorTheme('purple');
+store.cycleColorTheme();  // Cycles through blue → purple → green
+
+// Change mode
+store.setTheme('dark');
+store.toggleTheme();      // Toggles light ↔ dark
+```
+
+**React (Zustand):**
+```javascript
+import { useTheme, COLOR_THEMES } from '@/stores/themeStore';
+
+const { colorTheme, setColorTheme, cycleColorTheme } = useTheme();
+
+// Change theme
+setColorTheme('green');
+cycleColorTheme();
+```
+
+### Theme Selector Component
+
+To let users choose their theme, use the pre-built selectors:
+
+**Vue:** `ThemeSelector.vue` - Dropdown for light/dark/system
+**React:** `ThemeSelector` from `ThemeToggle.tsx`
+
+Or build custom UI:
+```jsx
+// Example: Color theme buttons
+<div className="flex gap-2">
+  <button 
+    onClick={() => setColorTheme('blue')}
+    className="w-6 h-6 rounded-full bg-blue-500"
+    aria-label="Blue theme"
+  />
+  <button 
+    onClick={() => setColorTheme('purple')}
+    className="w-6 h-6 rounded-full bg-purple-500"
+    aria-label="Purple theme"
+  />
+  <button 
+    onClick={() => setColorTheme('green')}
+    className="w-6 h-6 rounded-full bg-green-500"
+    aria-label="Green theme"
+  />
+</div>
+```
+
+### Initialization
+
+**IMPORTANT:** Call `initTheme()` once when your app mounts to apply persisted preferences:
+
+```javascript
+// Vue 3 (main.js or App.vue setup)
+import { useThemeStore } from '@/stores/themeStore';
+const themeStore = useThemeStore();
+themeStore.initTheme();
+
+// React (App.jsx or _app.tsx)
+import { useTheme } from '@/stores/themeStore';
+const { initTheme } = useTheme();
+useEffect(() => { initTheme(); }, []);
+```
+
+---
+
+## AI Assistant Instructions
+
+> **For AI agents working on this project:**
+
+### When Generating Theme-Aware Components
+
+1. **Use CSS variables or Tailwind classes** that reference the theme:
+   - ✅ `className="bg-primary-500"` or `background: var(--color-primary-500)`
+   - ❌ `className="bg-blue-500"` (hard-coded color)
+
+2. **Support both light and dark modes** via `.dark` variant:
+   - ✅ `className="bg-white dark:bg-slate-900"`
+   - ✅ `className="bg-surface"` (resolves via CSS variables)
+
+3. **Theme switching is reactive** - no page reload needed. The store updates CSS classes on `<html>`.
+
+### When Adding New Color Themes
+
+> **Remember:** Color themes are project-specific. The examples below use the default template themes, but your project will have its own palette.
+
+1. Add the primitive palette to `design-tokens.json` under `color.primitive`
+2. Create a theme class in `theme-presets.css`:
+   ```css
+   .theme-coral {
+     --color-primary-50: #fff7ed;
+     --color-primary-500: #f97316;
+     /* ... full scale ... */
+   }
+   ```
+3. Update the theme store constants to include your new theme:
+   ```javascript
+   // These are PROJECT-SPECIFIC - not hard-coded defaults
+   export const COLOR_THEMES = {
+     // Define themes that match YOUR design system
+     CORAL: 'coral',
+     MIDNIGHT: 'midnight',
+     // etc.
+   };
+   
+   const COLOR_THEME_CLASSES = {
+     [COLOR_THEMES.CORAL]: 'theme-coral',
+     [COLOR_THEMES.MIDNIGHT]: 'theme-midnight',
+   };
+   ```
+
+### Token Propagation Flow
+
+```
+design-tokens.json    (source of truth)
+       ↓
+theme-presets.css     (color theme class definitions)
+       ↓
+STO:Theme store       (applies .theme-* and .dark/.light classes)
+       ↓
+CSS Variables         (--color-primary-*, etc.)
+       ↓
+Tailwind/Components   (bg-primary-500, text-content, etc.)
+```
+
+---
+
 ## Best Practices
 
 1. **Use semantic tokens in components** - Don't use primitive colors directly

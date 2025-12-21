@@ -19,5 +19,22 @@ MIC:executor :: CTX:projection :: SPW:agent
 TKN:transformer :: CSS:variables :: TW:config :: JS:constants
 TKN:semantic :: TKN:transformer
 
+# === THEME SYSTEM ===
+# Two-layer theme architecture:
+# 1. Mode (light/dark/system) - controls brightness/contrast (standard)
+# 2. Color Theme - controls primary palette (PROJECT-SPECIFIC)
+#
+# IMPORTANT: Color themes (blue/purple/green in templates) are EXAMPLES.
+# Each project defines its own themes based on its design system.
+# The theme store constants must be customized per project.
+#
+# STO:Theme manages both layers and persists to localStorage
+# Color themes work via CSS class swapping on document root
+# Components use --color-primary-* variables which resolve to active theme
+#
+# Flow: design-tokens.json -> theme-presets.css -> STO:Theme -> CSS variables -> components
+STO:Theme ~> CMP:*
+TKN:transformer :: STO:Theme
+
 # === AGENT CHAINS (Versioned) ===
 # Add chains below using: archeon parse "<chain>"
