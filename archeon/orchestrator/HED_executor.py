@@ -340,6 +340,14 @@ class HeadlessExecutor:
             step.duration_ms = (step.end_time - start_time) * 1000
             return step
         
+        # Internal orchestrator glyphs with special execution
+        if node.prefix == "TKN":
+            step.output_data = self._execute_tkn(node, input_data)
+            step.status = StepStatus.SUCCESS
+            step.end_time = time.time()
+            step.duration_ms = (step.end_time - start_time) * 1000
+            return step
+        
         try:
             if mode == ExecutionMode.SANDBOX:
                 # Mock the execution
@@ -376,6 +384,85 @@ class HeadlessExecutor:
             return {"error": node.name, "triggered": False}
         else:
             return {"glyph": node.qualified_name, "passthrough": True}
+    
+    def _execute_tkn(self, node: GlyphNode, data: dict) -> dict:
+        """
+        Execute TKN (design token) glyph.
+        
+        Transforms design-tokens.json to CSS/Tailwind/JS outputs.
+        This is a deterministic build step that propagates token changes.
+        """
+        from archeon.orchestrator.TKN_tokens import TokenTransformer
+        from pathlib import Path
+        
+        # Determine source and output paths from input data or defaults
+        source = data.get("source")
+        output_dir = data.get("output", "client/src/tokens")
+        format_type = data.get("format", "all")
+        
+        # Look for design tokens in standard locations
+        if source:
+            tokens_path = Path(source)
+        else:
+            candidates = [
+                Path("archeon/_config/design-tokens.json"),
+                Path("client/src/tokens/design-tokens.json"),
+                Path(__file__).parent.parent / "templates" / "_config" / "design-tokens.json",
+            ]
+            tokens_path = next((p for p in candidates if p.exists()), candidates[-1])
+        
+        try:
+            transformer = TokenTransformer(tokens_path)
+            output_path = Path(output_dir)
+            
+            if format_type == "all":
+                generated = transformer.generate_all(output_path)
+                files = [str(f.name) for f in generated]
+            else:
+                # Single format
+                from archeon.orchestrator.TKN_tokens import (
+                    generate_css, generate_tailwind_extension, generate_js_tokens
+                )
+                output_path.mkdir(parents=True, exist_ok=True)
+                
+                if format_type == "css":
+                    out = output_path / "tokens.css"
+                    out.write_text(generate_css(transformer.tokens))
+                    files = [out.name]
+                elif format_type == "tailwind":
+                    out = output_path / "tokens.tailwind.js"
+                    out.write_text(generate_tailwind_extension(transformer.tokens))
+                    files = [out.name]
+                elif format_type == "js":
+                    out = output_path / "tokens.js"
+                    out.write_text(generate_js_tokens(transformer.tokens))
+                    files = [out.name]
+                else:
+                    files = []
+            
+            return {
+                "glyph": node.qualified_name,
+                "action": "token_transform",
+                "source": str(tokens_path),
+                "output_dir": str(output_path),
+                "generated": files,
+                "success": True
+            }
+            
+        except FileNotFoundError as e:
+            return {
+                "glyph": node.qualified_name,
+                "action": "token_transform",
+                "error": f"Design tokens not found: {e}",
+                "success": False
+            }
+        except Exception as e:
+            return {
+                "glyph": node.qualified_name,
+                "action": "token_transform",
+                "error": str(e),
+                "success": False
+            }
     
     def _execute_live(self, node: GlyphNode, data: dict) -> dict:
         """

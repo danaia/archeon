@@ -1585,6 +1585,170 @@ def _display_execution_result(result, console):
     rprint("")
 
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# TOKENS - Design Token Transformation
+# ═══════════════════════════════════════════════════════════════════════════════
+
+
+@app.command()
+def tokens(
+    action: str = typer.Argument(
+        "build",
+        help="Action: build (transform tokens), init (create default), validate (check format)"
+    ),
+    output: Optional[Path] = typer.Option(
+        None, "--output", "-o",
+        help="Output directory for generated files (default: client/src/tokens)"
+    ),
+    source: Optional[Path] = typer.Option(
+        None, "--source", "-s",
+        help="Path to design-tokens.json (default: archeon/templates/_config/design-tokens.json)"
+    ),
+    format_type: str = typer.Option(
+        "all", "--format", "-f",
+        help="Output format: all, css, tailwind, js"
+    ),
+):
+    """
+    Transform design tokens to CSS/Tailwind/JS.
+    
+    The design tokens follow the W3C DTCG (Design Tokens Community Group) format
+    for a single source of truth. This command transforms them into platform-specific
+    outputs for use in your application.
+    
+    Examples:
+        archeon tokens           # Build all outputs to client/src/tokens
+        archeon tokens build     # Same as above
+        archeon tokens init      # Create default design-tokens.json
+        archeon tokens validate  # Validate token file format
+        archeon tokens build -f css -o ./styles  # Only CSS to custom dir
+    """
+    from archeon.orchestrator.TKN_tokens import TokenTransformer, generate_css, generate_tailwind_extension, generate_js_tokens
+    
+    console = Console()
+    
+    # Determine source path
+    if source:
+        tokens_path = source
+    else:
+        # Look in project's archeon config, then package templates
+        project_tokens = Path("archeon/_config/design-tokens.json")
+        client_tokens = Path("client/src/tokens/design-tokens.json")
+        package_tokens = Path(__file__).parent / "templates" / "_config" / "design-tokens.json"
+        
+        if project_tokens.exists():
+            tokens_path = project_tokens
+        elif client_tokens.exists():
+            tokens_path = client_tokens
+        elif package_tokens.exists():
+            tokens_path = package_tokens
+        else:
+            tokens_path = package_tokens  # Will fail with helpful error
+    
+    # Determine output path
+    output_dir = output or Path("client/src/tokens")
+    
+    if action == "init":
+        # Create default design-tokens.json in the project
+        init_path = output or Path("archeon/_config")
+        init_path.mkdir(parents=True, exist_ok=True)
+        dest_file = init_path / "design-tokens.json"
+        
+        package_tokens = Path(__file__).parent / "templates" / "_config" / "design-tokens.json"
+        
+        if dest_file.exists():
+            if not Confirm.ask(f"[yellow]![/yellow] {dest_file} already exists. Overwrite?"):
+                raise typer.Exit(0)
+        
+        if package_tokens.exists():
+            shutil.copy(package_tokens, dest_file)
+            rprint(f"[green]✓[/green] Created {dest_file}")
+            rprint(f"  Edit this file to customize your design tokens")
+            rprint(f"  Then run [cyan]archeon tokens build[/cyan] to generate outputs")
+        else:
+            rprint(f"[red]✗[/red] Package design-tokens.json not found")
+            raise typer.Exit(1)
+        return
+    
+    if action == "validate":
+        # Validate the token file format
+        try:
+            transformer = TokenTransformer(tokens_path)
+            metadata = transformer.get_metadata()
+            
+            rprint(f"[green]✓[/green] Valid design tokens: {tokens_path}")
+            
+            if metadata:
+                rprint(f"\n[bold]Metadata:[/bold]")
+                if 'name' in metadata:
+                    rprint(f"  Name: {metadata['name']}")
+                if 'version' in metadata:
+                    rprint(f"  Version: {metadata['version']}")
+                if 'description' in metadata:
+                    rprint(f"  Description: {metadata['description']}")
+            
+            # Count tokens by category
+            tokens_data = transformer.tokens
+            categories = [k for k in tokens_data.keys() if not k.startswith('$')]
+            rprint(f"\n[bold]Categories:[/bold] {', '.join(categories)}")
+            
+        except FileNotFoundError:
+            rprint(f"[red]✗[/red] File not found: {tokens_path}")
+            raise typer.Exit(1)
+        except Exception as e:
+            rprint(f"[red]✗[/red] Invalid token file: {e}")
+            raise typer.Exit(1)
+        return
+    
+    if action == "build":
+        # Transform tokens
+        try:
+            transformer = TokenTransformer(tokens_path)
+            output_dir.mkdir(parents=True, exist_ok=True)
+            
+            rprint(f"[cyan]◈[/cyan] Transforming tokens from: {tokens_path}")
+            rprint(f"[cyan]◈[/cyan] Output directory: {output_dir}\n")
+            
+            if format_type == "all":
+                generated = transformer.generate_all(output_dir)
+                for path in generated:
+                    rprint(f"  [green]✓[/green] Generated {path.name}")
+            elif format_type == "css":
+                css_path = output_dir / "tokens.css"
+                css_path.write_text(generate_css(transformer.tokens))
+                rprint(f"  [green]✓[/green] Generated {css_path.name}")
+            elif format_type == "tailwind":
+                tw_path = output_dir / "tokens.tailwind.js"
+                tw_path.write_text(generate_tailwind_extension(transformer.tokens))
+                rprint(f"  [green]✓[/green] Generated {tw_path.name}")
+            elif format_type == "js":
+                js_path = output_dir / "tokens.js"
+                js_path.write_text(generate_js_tokens(transformer.tokens))
+                rprint(f"  [green]✓[/green] Generated {js_path.name}")
+            else:
+                rprint(f"[red]✗[/red] Unknown format: {format_type}")
+                rprint(f"  Available: all, css, tailwind, js")
+                raise typer.Exit(1)
+            
+            rprint(f"\n[green]✓[/green] Token transformation complete!")
+            rprint(f"  Import tokens in your app:")
+            rprint(f'    [dim]import "./tokens/tokens.css"[/dim]')
+            rprint(f'    [dim]import {{ themeExtend }} from "./tokens/tokens.tailwind.js"[/dim]')
+            
+        except FileNotFoundError:
+            rprint(f"[red]✗[/red] Design tokens not found: {tokens_path}")
+            rprint(f"  Run [cyan]archeon tokens init[/cyan] to create default tokens")
+            raise typer.Exit(1)
+        except Exception as e:
+            rprint(f"[red]✗[/red] Error transforming tokens: {e}")
+            raise typer.Exit(1)
+        return
+    
+    rprint(f"[red]✗[/red] Unknown action: {action}")
+    rprint(f"  Available actions: build, init, validate")
+    raise typer.Exit(1)
+
+
 @app.command()
 def serve(
     host: str = typer.Option("localhost", "--host", "-h", help="Host to bind to"),

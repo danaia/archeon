@@ -20,14 +20,14 @@ class TestGlyphLegend:
     """Tests for GLYPH_LEGEND definitions."""
 
     def test_all_glyphs_defined(self):
-        """Verify all 18 glyphs are defined."""
+        """Verify all 19 glyphs are defined."""
         expected = {
             'NED', 'TSK', 'OUT', 'ERR',  # Meta
             'V', 'CMP', 'STO',            # Frontend
             'FNC', 'EVT',                 # Shared
             'API', 'MDL',                 # Backend
             'ORC', 'PRS', 'VAL', 'SPW', 'TST', 'GRF',  # Internal
-            'CTX', 'MIC',                 # Context management
+            'CTX', 'MIC', 'TKN',          # Context management & tokens
         }
         assert set(GLYPH_LEGEND.keys()) == expected
 

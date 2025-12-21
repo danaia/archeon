@@ -168,6 +168,15 @@ GLYPH_LEGEND = {
         'qualifiers': ['executor', 'task', 'result'],
         'doc': 'Executes one glyph at a time with minimal context overhead'
     },
+    'TKN': {
+        'name': 'Token',
+        'description': 'Design token transformer (DTCG format)',
+        'agent': None,
+        'color': '#9C27B0',
+        'layer': 'internal',
+        'qualifiers': ['transformer', 'semantic', 'primitive'],
+        'doc': 'Transforms W3C DTCG design tokens to CSS/Tailwind/JS outputs'
+    },
 }
 
 EDGE_TYPES = {

@@ -13,5 +13,11 @@ CTX:budget :: CTX:projection :: ORC:main
 CTX:projection :: GRF:domain
 MIC:executor :: CTX:projection :: SPW:agent
 
+# === DESIGN TOKEN LAYER ===
+# TKN transforms DTCG design tokens into CSS/Tailwind/JS outputs
+# Single source of truth for all design system values
+TKN:transformer :: CSS:variables :: TW:config :: JS:constants
+TKN:semantic :: TKN:transformer
+
 # === AGENT CHAINS (Versioned) ===
 # Add chains below using: archeon parse "<chain>"
