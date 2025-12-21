@@ -342,6 +342,60 @@ class KnowledgeGraph:
             'deprecated': sum(1 for c in self.chains if c.ast.deprecated),
         }
 
+    def find_similar_chains(self, proposed_chain: str, threshold: float = 0.3) -> list[tuple[StoredChain, float, list[str]]]:
+        """
+        Find existing chains that are similar to a proposed chain.
+        
+        Args:
+            proposed_chain: The proposed chain string to compare
+            threshold: Minimum similarity score (0-1) to include
+            
+        Returns:
+            List of (StoredChain, similarity_score, shared_glyphs) sorted by similarity
+        """
+        # Extract glyphs from proposed chain
+        proposed_glyphs = set()
+        for part in proposed_chain.replace(' => ', '|').replace(' -> ', '|').replace(' ~> ', '|').split('|'):
+            part = part.strip()
+            if part and ':' in part:
+                # Extract the base glyph (e.g., NED:login from NED:login)
+                proposed_glyphs.add(part)
+                # Also add the prefix for broader matching
+                prefix = part.split(':')[0]
+                name = part.split(':')[1].split('.')[0].split('(')[0].lower() if ':' in part else ''
+                proposed_glyphs.add(f"{prefix}:{name}")
+        
+        similar = []
+        
+        for stored in self.chains:
+            if stored.ast.deprecated:
+                continue
+                
+            # Extract glyphs from stored chain
+            stored_glyphs = set()
+            for node in stored.ast.nodes:
+                stored_glyphs.add(node.qualified_name)
+                # Also add normalized version for comparison
+                prefix = node.prefix
+                name = node.name.split('.')[0].split('(')[0].lower() if node.name else ''
+                stored_glyphs.add(f"{prefix}:{name}")
+            
+            # Calculate Jaccard similarity
+            shared = proposed_glyphs & stored_glyphs
+            union = proposed_glyphs | stored_glyphs
+            
+            if union:
+                similarity = len(shared) / len(union)
+                
+                if similarity >= threshold:
+                    # Get the actual shared glyph names
+                    shared_names = [g for g in shared if g in [n.qualified_name for n in stored.ast.nodes]]
+                    similar.append((stored, similarity, shared_names))
+        
+        # Sort by similarity (highest first)
+        similar.sort(key=lambda x: x[1], reverse=True)
+        return similar
+
 
 def load_graph(filepath: str) -> KnowledgeGraph:
     """Convenience function to load a graph."""

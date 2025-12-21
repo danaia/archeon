@@ -16,6 +16,7 @@ Then use from anywhere:
 
 import os
 import sys
+import shutil
 from pathlib import Path
 from typing import Optional
 
@@ -65,6 +66,113 @@ def get_arcon_path() -> Path:
     return current / DEFAULT_ARCON
 
 
+def _get_package_templates_dir() -> Path:
+    """Get the path to the templates directory in the installed archeon package."""
+    return Path(__file__).parent / "templates"
+
+
+def _copy_templates(archeon_dir: Path, frontend: str, backend: str):
+    """Copy reference templates to the project's archeon/templates folder."""
+    pkg_templates = _get_package_templates_dir()
+    target_templates = archeon_dir / "templates"
+    
+    # Map frontend/backend to template files
+    frontend_map = {
+        "react": {"CMP": "react.tsx", "STO": "zustand.ts"},
+        "vue": {"CMP": "vue.vue", "STO": "pinia.ts"},
+        "vue3": {"CMP": "vue3.vue", "STO": "pinia.ts"},
+    }
+    
+    backend_map = {
+        "fastapi": {"API": "fastapi.py", "MDL": "mongo.py", "EVT": "pubsub.py", "FNC": "python.py"},
+        "express": {"API": "fastapi.py", "MDL": "mongo.py", "EVT": "pubsub.py", "FNC": "typescript.ts"},  # TODO: add express templates
+    }
+    
+    # Copy frontend templates
+    for glyph, filename in frontend_map.get(frontend, frontend_map["react"]).items():
+        src = pkg_templates / glyph / filename
+        dst = target_templates / glyph / filename
+        if src.exists() and not dst.exists():
+            shutil.copy2(src, dst)
+    
+    # Copy backend templates  
+    for glyph, filename in backend_map.get(backend, backend_map["fastapi"]).items():
+        src = pkg_templates / glyph / filename
+        dst = target_templates / glyph / filename
+        if src.exists() and not dst.exists():
+            shutil.copy2(src, dst)
+
+
+def _create_orchestrator_readme(archeon_dir: Path):
+    """Create a README in the orchestrator folder explaining the system for AI IDEs."""
+    readme_path = archeon_dir / "orchestrator" / "README.md"
+    if readme_path.exists():
+        return
+    
+    readme_path.write_text('''# Archeon Orchestrator
+
+This folder contains reference documentation for AI IDE assistants.
+
+## Glyph System
+
+Archeon uses a glyph notation to define architectural components:
+
+| Glyph | Purpose | Output |
+|-------|---------|--------|
+| `NED` | User Need/Feature entry point | Documentation |
+| `TSK` | Task/Action step | Task handler |
+| `CMP` | UI Component | React/Vue component |
+| `STO` | State Store | Zustand/Pinia store |
+| `API` | API Endpoint | Route handler |
+| `MDL` | Data Model | Schema/Model class |
+| `EVT` | Event | Pub/Sub event |
+| `FNC` | Function | Utility function |
+| `V`   | View/Page | Page component |
+| `OUT` | Output/Result | Terminal node |
+| `ERR` | Error state | Error handler |
+
+## Edge Types
+
+- `=>` Structural flow (data/control)
+- `~>` Reactive/subscription flow
+- `->` Control flow
+- `::` Containment (parent :: child)
+
+## Chain Format
+
+```
+@v1 NED:feature => CMP:Component => STO:Store => API:POST/endpoint => MDL:model => OUT:result
+```
+
+- Version tag `@v1` tracks chain evolution
+- Glyphs are `TYPE:name` format
+- Names use PascalCase (components) or lowercase with slashes (APIs)
+
+## Templates
+
+The `../templates/` folder contains code generation templates:
+
+- `CMP/` - Component templates (react.tsx, vue3.vue)
+- `STO/` - Store templates (zustand.ts, pinia.ts)  
+- `API/` - API route templates (fastapi.py)
+- `MDL/` - Model templates (mongo.py)
+- `EVT/` - Event templates (pubsub.py)
+- `FNC/` - Function templates (python.py, typescript.ts)
+
+Templates use `{PLACEHOLDER}` syntax for code generation.
+
+## Knowledge Graph
+
+The `ARCHEON.arcon` file is the source of truth for all architecture.
+AI assistants should:
+
+1. Read `ARCHEON.arcon` to understand existing architecture
+2. Use templates from `templates/` for code generation patterns
+3. Follow glyph chains to maintain architectural consistency
+4. Never invent architecture outside the knowledge graph
+''')
+
+
 @app.command()
 def init(
     path: Optional[str] = typer.Argument(None, help="Directory to initialize"),
@@ -101,6 +209,12 @@ def init(
         init_file = d / "__init__.py"
         if not init_file.exists() and d.name not in ("templates", "CMP", "STO", "API", "MDL", "FNC", "EVT"):
             init_file.write_text(f"# Archeon {d.name.title()}\n")
+    
+    # Copy reference templates from the archeon package
+    _copy_templates(archeon_dir, frontend, backend)
+    
+    # Create orchestrator README for AI reference
+    _create_orchestrator_readme(archeon_dir)
     
     if monorepo:
         # Create client directory structure (frontend)
@@ -347,14 +461,525 @@ async def health():
     rprint(f"[green]✓[/green] Initialized Archeon project at [bold]{archeon_dir}[/bold]")
     rprint(f"  Created {DEFAULT_ARCON}")
     rprint(f"  Created .archeonrc")
+    rprint(f"  Copied {frontend}/{backend} templates to archeon/templates/")
+    rprint(f"  Created orchestrator/README.md (AI reference)")
     
     if monorepo:
         rprint(f"\n  [bold]Project Structure:[/bold]")
-        rprint(f"  [cyan]client/[/cyan]  → React frontend (components, stores)")
-        rprint(f"  [cyan]server/[/cyan]  → FastAPI backend (API, models, events)")
+        rprint(f"  [cyan]client/[/cyan]  → {frontend.capitalize()} frontend (components, stores)")
+        rprint(f"  [cyan]server/[/cyan]  → {backend.capitalize()} backend (API, models, events)")
         rprint(f"  [cyan]archeon/[/cyan] → Knowledge graph and orchestration")
     
-    rprint(f"\n  Next: [cyan]archeon parse \"NED:example => TSK:action => OUT:result\"[/cyan]")
+    rprint(f"\n  [bold]Next:[/bold] Describe a feature in natural language:")
+    rprint(f"  [cyan]arc intent \"user logs in with email and password\"[/cyan]")
+    rprint(f"\n  Or use glyph notation directly:")
+    rprint(f"  [cyan]arc parse \"NED:login => CMP:LoginForm => API:POST/auth => OUT:dashboard\"[/cyan]")
+    
+    rprint(f"\n  [bold]Tip:[/bold] Run [cyan]arc ai-setup[/cyan] to configure IDE AI assistants")
+
+
+@app.command("ai-setup")
+def ai_setup(
+    cursor: Optional[bool] = typer.Option(None, "--cursor/--no-cursor", help="Generate .cursorrules"),
+    copilot: Optional[bool] = typer.Option(None, "--copilot/--no-copilot", help="Generate .github/copilot-instructions.md"),
+    windsurf: Optional[bool] = typer.Option(None, "--windsurf/--no-windsurf", help="Generate .windsurfrules"),
+    cline: Optional[bool] = typer.Option(None, "--cline/--no-cline", help="Generate .clinerules"),
+    aider: Optional[bool] = typer.Option(None, "--aider/--no-aider", help="Generate .aider.conf.yml"),
+    vscode: Optional[bool] = typer.Option(None, "--vscode/--no-vscode", help="Update .vscode/settings.json"),
+    all_ides: bool = typer.Option(False, "--all", "-a", help="Generate configs for all IDEs"),
+):
+    """Generate AI assistant configuration files for IDE integration.
+    
+    By default, generates all configs. Use specific flags to generate only selected ones.
+    
+    Examples:
+        arc ai-setup              # Generate all (default)
+        arc ai-setup --cursor     # Only Cursor
+        arc ai-setup --vscode --copilot  # Only VS Code and Copilot
+        arc ai-setup --no-cline   # All except Cline
+    """
+    target = Path.cwd()
+    created = []
+    
+    # Determine which to generate:
+    # - If --all flag, generate everything
+    # - If any positive flag is set (True), only generate those
+    # - If only negative flags (False), generate all except those
+    # - If no flags, generate all (default behavior)
+    
+    flags = {'cursor': cursor, 'copilot': copilot, 'windsurf': windsurf, 
+             'cline': cline, 'aider': aider, 'vscode': vscode}
+    
+    has_positive = any(v is True for v in flags.values())
+    has_negative = any(v is False for v in flags.values())
+    
+    if all_ides:
+        # --all flag: enable everything
+        for key in flags:
+            if flags[key] is None:
+                flags[key] = True
+    elif has_positive:
+        # User specified specific IDEs to include
+        for key in flags:
+            if flags[key] is None:
+                flags[key] = False
+    else:
+        # No positive flags or --all: default to all (unless explicitly disabled)
+        for key in flags:
+            if flags[key] is None:
+                flags[key] = True
+    
+    # Archeon context block (shared across all configs)
+    archeon_context = '''## Archeon Architecture System
+
+This project uses Archeon, a glyph-based architecture notation system.
+
+### Critical Files - READ FIRST
+- `archeon/ARCHEON.arcon` - The knowledge graph defining all features
+- `.archeonrc` - Project configuration (frontend, backend, paths)
+
+### Glyph Notation
+Features are defined as chains:
+```
+NED:login => CMP:LoginForm => STO:Auth => API:POST/auth => MDL:user => OUT:dashboard
+```
+
+| Glyph | Meaning |
+|-------|---------|
+| `NED:` | User need/motivation |
+| `TSK:` | User task/action |
+| `CMP:` | UI Component |
+| `STO:` | State store |
+| `API:` | HTTP endpoint |
+| `MDL:` | Database model |
+| `FNC:` | Utility function |
+| `EVT:` | Event handler |
+| `OUT:` | Success outcome |
+| `ERR:` | Error path |
+
+### Edge Types
+- `=>` Structural flow (no cycles)
+- `~>` Reactive subscription (cycles OK)
+- `->` Control/branching
+- `::` Containment
+
+### Hard Rules
+1. **Always read ARCHEON.arcon first** before generating any code
+2. **Never invent architecture** - only implement what's in the knowledge graph
+3. **Respect layer boundaries** - CMP cannot directly access MDL
+4. **All features must have outcomes** - chains end with OUT: or ERR:
+5. **Propose via Archeon** - use `arc intent "description"` for new features
+6. **Generate via Archeon** - use `arc gen` for code generation
+
+### Commands
+- `arc intent "description"` - Propose new feature from natural language
+- `arc parse "chain"` - Add glyph chain directly  
+- `arc gen` - Generate code from knowledge graph
+- `arc status` - Show graph statistics
+- `arc validate` - Check architecture integrity
+'''
+    
+    if flags['cursor']:
+        cursor_dir = target / ".cursor"
+        cursor_dir.mkdir(exist_ok=True)
+        
+        # Create .cursorrules in project root (where Cursor looks for it)
+        cursor_file = target / ".cursorrules"
+        cursor_file.write_text(f'''# Archeon Project Rules for Cursor
+
+{archeon_context}
+
+### Cursor-Specific Instructions
+When asked to implement a feature:
+1. First, read `archeon/ARCHEON.arcon`
+2. Check if the feature exists as a chain
+3. If not, tell the user to run: `arc intent "feature description"`
+4. If yes, implement following the chain's structure exactly
+5. Do not add components, stores, or APIs not in the graph
+''')
+        
+        # Create README in .cursor directory
+        (cursor_dir / "README.md").write_text('''# Cursor Configuration for Archeon
+
+## Setup Complete ✓
+
+The `.cursorrules` file in your project root tells Cursor to:
+1. Always read `archeon/ARCHEON.arcon` before generating code
+2. Respect the glyph-based architecture
+3. Suggest `arc intent` for new features
+
+## How It Works
+
+When you ask Cursor to implement something, it will:
+- Check the knowledge graph first
+- Only implement what's defined in chains
+- Maintain architectural consistency
+
+## Manual Override
+
+If Cursor ignores the rules, you can:
+1. Open Cursor Settings → Rules
+2. Add the project path to "Project Rules"
+3. Or paste the `.cursorrules` content directly
+
+## Useful Prompts
+
+```
+"Read archeon/ARCHEON.arcon and implement the login feature"
+"Check the knowledge graph for CMP:LoginForm and generate it"
+"What chains are defined in this project?"
+```
+
+## More Info
+
+- [Cursor Documentation](https://cursor.sh/docs)
+- [Archeon README](../README.md)
+''')
+        created.append(".cursorrules")
+        created.append(".cursor/README.md")
+    
+    if flags['copilot']:
+        github_dir = target / ".github"
+        github_dir.mkdir(exist_ok=True)
+        copilot_file = github_dir / "copilot-instructions.md"
+        copilot_file.write_text(f'''# GitHub Copilot Instructions
+
+{archeon_context}
+
+### For Copilot Chat
+When implementing features, always reference the knowledge graph first.
+Suggest `arc intent` for new features rather than generating architecture directly.
+''')
+        
+        # Create README for GitHub Copilot setup
+        (github_dir / "COPILOT_README.md").write_text('''# GitHub Copilot Configuration for Archeon
+
+## Setup Complete ✓
+
+The `copilot-instructions.md` file tells GitHub Copilot to:
+1. Reference `archeon/ARCHEON.arcon` for architecture context
+2. Understand glyph notation (NED, CMP, STO, API, etc.)
+3. Not invent architecture outside the knowledge graph
+
+## How It Works
+
+GitHub Copilot Chat reads `copilot-instructions.md` as project context.
+When you ask Copilot to generate code, it should:
+- Check the knowledge graph first  
+- Follow defined chains
+- Suggest `arc intent` for new features
+
+## VS Code Setup
+
+1. Ensure GitHub Copilot extension is installed
+2. The instructions file is auto-detected from `.github/`
+3. In Copilot Chat, the context is applied automatically
+
+## Useful Chat Prompts
+
+```
+@workspace Read the ARCHEON.arcon and tell me what features are defined
+@workspace Implement CMP:LoginForm following the chain
+@workspace What's the architecture for the login feature?
+```
+
+## If Copilot Ignores Instructions
+
+Try being explicit in your prompts:
+```
+"Following the chains in archeon/ARCHEON.arcon, implement..."
+"Reference the knowledge graph and generate..."
+```
+
+## More Info
+
+- [GitHub Copilot Docs](https://docs.github.com/en/copilot)
+- [Archeon README](../README.md)
+''')
+        created.append(".github/copilot-instructions.md")
+        created.append(".github/COPILOT_README.md")
+    
+    if flags['windsurf']:
+        windsurf_dir = target / ".windsurf"
+        windsurf_dir.mkdir(exist_ok=True)
+        
+        # Windsurf rules file in project root
+        windsurf_file = target / ".windsurfrules"
+        windsurf_file.write_text(f'''# Archeon Rules for Windsurf
+
+{archeon_context}
+
+### Windsurf-Specific
+Before any code generation task:
+1. Read archeon/ARCHEON.arcon
+2. Understand the existing chains
+3. Only implement what's defined in the graph
+''')
+        
+        # Create README
+        (windsurf_dir / "README.md").write_text('''# Windsurf Configuration for Archeon
+
+## Setup Complete ✓
+
+The `.windsurfrules` file tells Windsurf (Codeium) to:
+1. Read `archeon/ARCHEON.arcon` before generating code
+2. Follow the glyph-based architecture
+3. Respect layer boundaries
+
+## How It Works
+
+Windsurf's Cascade AI reads the rules file for project context.
+When generating code, it will:
+- Check existing chains in the knowledge graph
+- Implement features following defined patterns
+- Suggest `arc intent` for new architecture
+
+## Manual Setup (if needed)
+
+1. Open Windsurf Settings
+2. Navigate to AI Rules
+3. Ensure project rules are enabled
+4. The `.windsurfrules` file should be auto-detected
+
+## Useful Prompts
+
+```
+"Check ARCHEON.arcon and implement the defined chains"
+"Follow the knowledge graph to generate CMP:LoginForm"
+"What architecture is defined for authentication?"
+```
+
+## More Info
+
+- [Windsurf Documentation](https://codeium.com/windsurf)
+- [Archeon README](../README.md)
+''')
+        created.append(".windsurfrules")
+        created.append(".windsurf/README.md")
+    
+    if flags['cline']:
+        cline_dir = target / ".cline"
+        cline_dir.mkdir(exist_ok=True)
+        
+        cline_file = target / ".clinerules"
+        cline_file.write_text(f'''# Archeon Rules for Cline/Claude Dev
+
+{archeon_context}
+
+IMPORTANT: Always read archeon/ARCHEON.arcon before any task.
+Do not create features not defined in the knowledge graph.
+''')
+        
+        # Create README
+        (cline_dir / "README.md").write_text('''# Cline / Claude Dev Configuration for Archeon
+
+## Setup Complete ✓
+
+The `.clinerules` file tells Cline (Claude Dev) to:
+1. Read `archeon/ARCHEON.arcon` as first action
+2. Follow glyph-based architecture constraints
+3. Not generate code outside the knowledge graph
+
+## How It Works
+
+Cline reads `.clinerules` for project-specific instructions.
+Before any code task, it will:
+- Check the knowledge graph for existing chains
+- Implement only what's defined
+- Maintain architectural consistency
+
+## VS Code Extension Setup
+
+1. Install Cline (Claude Dev) extension
+2. The `.clinerules` file is auto-detected
+3. Rules apply to all conversations in this project
+
+## Manual Setup (if needed)
+
+In Cline settings, you can also add custom instructions:
+1. Open Cline panel → Settings
+2. Add to "Custom Instructions":
+   ```
+   Always read archeon/ARCHEON.arcon before coding.
+   This project uses Archeon glyph notation.
+   ```
+
+## Useful Prompts
+
+```
+"Read ARCHEON.arcon and summarize the architecture"
+"Implement CMP:LoginForm as defined in the knowledge graph"
+"What chains include the Auth store?"
+```
+
+## More Info
+
+- [Cline Extension](https://marketplace.visualstudio.com/items?itemName=saoudrizwan.claude-dev)
+- [Archeon README](../README.md)
+''')
+        created.append(".clinerules")
+        created.append(".cline/README.md")
+    
+    if flags['aider']:
+        aider_dir = target / ".aider"
+        aider_dir.mkdir(exist_ok=True)
+        
+        aider_file = target / ".aider.conf.yml"
+        aider_file.write_text('''# Aider configuration for Archeon project
+
+# Always include these files in context
+read:
+  - archeon/ARCHEON.arcon
+  - .archeonrc
+
+# Don't auto-commit so user can review
+auto-commits: false
+
+# Model instructions
+model-settings-yaml: |
+  extra_params:
+    system: |
+      This project uses Archeon glyph notation.
+      Always read archeon/ARCHEON.arcon before generating code.
+      Do not create architecture not defined in the knowledge graph.
+      Use `arc intent` for new features.
+''')
+        
+        # Create README
+        (aider_dir / "README.md").write_text('''# Aider Configuration for Archeon
+
+## Setup Complete ✓
+
+The `.aider.conf.yml` configures Aider to:
+1. Auto-include `archeon/ARCHEON.arcon` in context
+2. Include `.archeonrc` for project config
+3. Disable auto-commits for review
+
+## How It Works
+
+When you run `aider`, it will:
+- Automatically load the knowledge graph
+- Include system instructions about Archeon
+- Wait for your approval before committing
+
+## Usage
+
+```bash
+# Start aider in your project
+cd your-project
+aider
+
+# Aider will auto-load ARCHEON.arcon
+# Just ask it to implement features
+```
+
+## Example Session
+
+```
+> Implement the login feature from ARCHEON.arcon
+
+Aider: I see the chain:
+  NED:login => CMP:LoginForm => STO:Auth => API:POST/auth => OUT:dashboard
+  
+Let me implement each component...
+```
+
+## Manual Override
+
+You can also explicitly add files:
+```bash
+aider --read archeon/ARCHEON.arcon src/components/LoginForm.vue
+```
+
+## More Info
+
+- [Aider Documentation](https://aider.chat)
+- [Archeon README](../README.md)
+''')
+        created.append(".aider.conf.yml")
+        created.append(".aider/README.md")
+    
+    if flags['vscode']:
+        vscode_dir = target / ".vscode"
+        vscode_dir.mkdir(exist_ok=True)
+        settings_file = vscode_dir / "settings.json"
+        
+        settings = {}
+        if settings_file.exists():
+            import json
+            try:
+                settings = json.loads(settings_file.read_text())
+            except:
+                pass
+        
+        # Add Archeon-specific settings
+        settings["files.associations"] = settings.get("files.associations", {})
+        settings["files.associations"]["*.arcon"] = "markdown"
+        
+        settings["search.include"] = settings.get("search.include", {})
+        settings["search.include"]["archeon/**"] = True
+        
+        settings["github.copilot.chat.codeGeneration.instructions"] = [
+            {"text": "Always reference archeon/ARCHEON.arcon for architecture. This project uses Archeon glyph notation. Do not invent architecture outside the knowledge graph."}
+        ]
+        
+        import json
+        settings_file.write_text(json.dumps(settings, indent=2))
+        
+        # Create README
+        (vscode_dir / "ARCHEON_README.md").write_text('''# VS Code Configuration for Archeon
+
+## Setup Complete ✓
+
+The `settings.json` has been updated with:
+1. File association: `*.arcon` → Markdown syntax highlighting
+2. Search include: `archeon/` folder included in searches  
+3. Copilot instructions: Reference knowledge graph for code generation
+
+## What This Enables
+
+### Syntax Highlighting
+- `.arcon` files get Markdown highlighting
+- Makes chains easier to read
+
+### Search Integration  
+- `Ctrl/Cmd + Shift + F` includes archeon folder
+- Find chains and glyphs across the project
+
+### Copilot Integration
+- Copilot Chat references the knowledge graph
+- Better architecture-aware suggestions
+
+## Recommended Extensions
+
+For the best Archeon experience, install:
+
+1. **GitHub Copilot** - AI code completion
+2. **Markdown Preview** - Preview .arcon files
+3. **Error Lens** - Inline error display
+
+## Useful Shortcuts
+
+- `Ctrl/Cmd + P` → type `ARCHEON.arcon` to open knowledge graph
+- `Ctrl/Cmd + Shift + F` → search for glyph names
+- `Ctrl/Cmd + Shift + E` → file explorer to browse archeon/
+
+## More Info
+
+- [VS Code Documentation](https://code.visualstudio.com/docs)
+- [Archeon README](../README.md)
+''')
+        created.append(".vscode/settings.json")
+        created.append(".vscode/ARCHEON_README.md")
+    
+    if created:
+        rprint(f"[green]✓[/green] Created AI assistant configurations:")
+        for f in created:
+            rprint(f"  [cyan]{f}[/cyan]")
+        rprint(f"\n[dim]Your IDE AI will now reference the Archeon knowledge graph.[/dim]")
+        rprint(f"[dim]Check the README files in each directory for setup details.[/dim]")
+    else:
+        rprint("[yellow]No configurations generated. Use --cursor, --copilot, etc.[/yellow]")
 
 
 @app.command()
@@ -810,14 +1435,15 @@ def audit():
         raise typer.Exit(1)
 
 
-@app.command()
+@app.command("i")
+@app.command("intent")
 def intent(
     text: str = typer.Argument(..., help="Natural language description"),
     auto_errors: bool = typer.Option(False, "--auto-errors", help="Auto-suggest error paths"),
     file: Optional[str] = typer.Option(None, "--file", "-f", help="Parse from markdown file instead"),
 ):
     """Parse natural language into proposed chains."""
-    from archeon.orchestrator.INT_intent import parse_intent, parse_markdown, suggest_errors
+    from archeon.orchestrator.INT_intent import parse_intent, parse_markdown, suggest_errors, extend_chain
     
     if file:
         rprint(f"[cyan]Parsing markdown file: {file}[/cyan]")
@@ -835,7 +1461,53 @@ def intent(
     
     arcon_path = get_arcon_path()
     
-    for i, proposal in enumerate(result.proposals, 1):
+    # Check for similar existing chains
+    similar_chains = []
+    if arcon_path.exists():
+        graph = load_graph(str(arcon_path))
+        for proposal in result.proposals:
+            similar = graph.find_similar_chains(proposal.chain, threshold=0.3)
+            if similar:
+                similar_chains.extend(similar)
+    
+    # If similar chains found, ask user what to do
+    if similar_chains:
+        rprint("\n[yellow]Found similar existing chains:[/yellow]")
+        unique_chains = []
+        seen_raws = set()
+        for stored, score, shared in similar_chains:
+            if stored.ast.raw not in seen_raws:
+                seen_raws.add(stored.ast.raw)
+                unique_chains.append((stored, score, shared))
+        
+        for i, (stored, score, shared) in enumerate(unique_chains[:5], 1):  # Show top 5
+            pct = int(score * 100)
+            rprint(f"  [dim]{i}.[/dim] [cyan]{stored.ast.raw}[/cyan]")
+            rprint(f"     [dim]Similarity: {pct}% | Shared: {', '.join(shared[:3])}{'...' if len(shared) > 3 else ''}[/dim]")
+        
+        rprint("\n[dim]Options: Enter number to extend that chain, or press Enter to create new[/dim]")
+        choice = Prompt.ask("Extend existing chain?", default="")
+        
+        if choice.isdigit() and 1 <= int(choice) <= len(unique_chains):
+            # User wants to extend an existing chain
+            selected = unique_chains[int(choice) - 1][0]
+            rprint(f"\n[cyan]Extending: {selected.ast.raw}[/cyan]")
+            rprint("[dim]Describe what to add (natural language):[/dim]\n")
+            
+            modification = Prompt.ask("Add")
+            extend_result = extend_chain(selected.ast.raw, modification)
+            
+            if extend_result.proposals:
+                # Replace result with the extended proposal
+                result.proposals = extend_result.proposals
+            else:
+                rprint("[yellow]![/yellow] Could not extend chain. Proceeding with original proposal.")
+                if extend_result.warnings:
+                    for warn in extend_result.warnings:
+                        rprint(f"  [yellow]•[/yellow] {warn}")
+    
+    def process_proposal(proposal, proposal_num):
+        """Process a single proposal with approval flow."""
         confidence_style = {
             'high': '[green]HIGH[/green]',
             'medium': '[yellow]MEDIUM[/yellow]',
@@ -846,7 +1518,7 @@ def intent(
             f"[bold cyan]{proposal.chain}[/bold cyan]\n\n"
             f"Confidence: {confidence_style}\n"
             f"Reasoning:\n" + "\n".join(f"  • {r}" for r in proposal.reasoning),
-            title=f"Proposal {i}"
+            title=f"Proposal {proposal_num}"
         ))
         
         # Show suggested errors
@@ -858,41 +1530,72 @@ def intent(
                     rprint(f"  [dim]→[/dim] {err}")
         
         # Prompt for action
-        if arcon_path.exists():
-            rprint("")
-            action = Prompt.ask(
-                "Action",
-                choices=["a", "e", "r", "s"],
-                default="r",
-            )
+        if not arcon_path.exists():
+            return
             
-            if action == "a":  # Approve
-                graph = load_graph(str(arcon_path))
-                try:
-                    stored = graph.add_chain(proposal.chain)
-                    graph.save()
-                    rprint(f"[green]✓[/green] Added chain to graph")
-                except Exception as e:
-                    rprint(f"[red]✗[/red] Failed to add: {e}")
-                    
-            elif action == "e":  # Edit
-                edited = Prompt.ask("Edit chain", default=proposal.chain)
+        rprint("")
+        rprint("[dim]Actions: [a]pprove  [e]dit (natural language)  [r]eject  [s]uggest errors[/dim]")
+        action = Prompt.ask(
+            "Action",
+            choices=["a", "e", "r", "s"],
+            default="r",
+        )
+        
+        if action == "a":  # Approve
+            graph = load_graph(str(arcon_path))
+            try:
+                stored = graph.add_chain(proposal.chain)
+                graph.save()
+                rprint(f"[green]✓[/green] Added chain to graph")
+            except Exception as e:
+                rprint(f"[red]✗[/red] Failed to add: {e}")
+                
+        elif action == "e":  # Edit with natural language
+            rprint("\n[dim]Describe what to add or change (natural language):[/dim]")
+            rprint("[dim]  Examples: 'add a store', 'add API endpoint', 'redirect to dashboard'[/dim]")
+            rprint("[dim]  Or type full glyph notation to replace the chain[/dim]\n")
+            
+            user_input = Prompt.ask("Edit")
+            
+            # Check if input looks like glyph notation or natural language
+            is_glyph_notation = ('=>' in user_input or 
+                                 user_input.startswith(('NED:', 'CMP:', 'STO:', 'API:', 'TSK:', 'MDL:', 'FNC:', 'EVT:', 'OUT:', 'ERR:')))
+            
+            if is_glyph_notation:
+                # Treat as direct glyph notation
                 try:
                     graph = load_graph(str(arcon_path))
-                    stored = graph.add_chain(edited)
+                    stored = graph.add_chain(user_input)
                     graph.save()
                     rprint(f"[green]✓[/green] Added edited chain to graph")
                 except Exception as e:
                     rprint(f"[red]✗[/red] Failed to add: {e}")
+            else:
+                # Treat as natural language modification
+                rprint(f"[cyan]Extending chain with: '{user_input}'...[/cyan]")
+                extend_result = extend_chain(proposal.chain, user_input)
+                
+                if extend_result.warnings:
+                    for warn in extend_result.warnings:
+                        rprint(f"[yellow]![/yellow] {warn}")
+                
+                if extend_result.proposals:
+                    # Recursively process the extended proposal
+                    process_proposal(extend_result.proposals[0], proposal_num)
+                else:
+                    rprint("[yellow]![/yellow] Could not extend chain. Try being more specific.")
                     
-            elif action == "s":  # Suggest errors
-                errors = suggest_errors(proposal.chain)
-                for err in errors:
-                    error_chain = f"{proposal.chain} -> {err} => OUT:error"
-                    rprint(f"  [cyan]{error_chain}[/cyan]")
-                    
-            else:  # Reject
-                rprint("[dim]Rejected[/dim]")
+        elif action == "s":  # Suggest errors
+            errors = suggest_errors(proposal.chain)
+            for err in errors:
+                error_chain = f"{proposal.chain} -> {err} => OUT:error"
+                rprint(f"  [cyan]{error_chain}[/cyan]")
+                
+        else:  # Reject
+            rprint("[dim]Rejected[/dim]")
+    
+    for i, proposal in enumerate(result.proposals, 1):
+        process_proposal(proposal, i)
 
 
 @app.command("diff")

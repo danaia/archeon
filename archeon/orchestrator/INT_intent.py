@@ -452,6 +452,159 @@ class IntentParser:
             suggestions.update(ERROR_SUGGESTIONS['validation'])
         
         return sorted(list(suggestions))
+    
+    def extend_chain(self, existing_chain: str, modification: str) -> IntentResult:
+        """
+        Extend or modify an existing chain using natural language.
+        
+        Args:
+            existing_chain: The current chain string (e.g., "NED:login => CMP:LoginForm => OUT:result")
+            modification: Natural language description of what to add/change
+            
+        Returns:
+            IntentResult with the extended/modified chain proposal
+        """
+        result = IntentResult(source=f"extend: {modification}")
+        modification_lower = modification.lower()
+        
+        # Extract version tag if present (e.g., "@v1")
+        version_tag = ""
+        chain_to_parse = existing_chain.strip()
+        if chain_to_parse.startswith('@'):
+            # Extract version tag
+            parts = chain_to_parse.split(' ', 1)
+            if len(parts) > 1:
+                version_tag = parts[0]  # e.g., "@v1"
+                chain_to_parse = parts[1]  # Rest of the chain
+        
+        # Parse the existing chain to get current glyphs (without version tag)
+        existing_glyphs = []
+        for part in chain_to_parse.replace(' => ', '|').replace(' -> ', '|').replace(' ~> ', '|').split('|'):
+            part = part.strip()
+            if part and ':' in part:
+                prefix = part.split(':')[0]
+                # Skip if it looks like a version tag that slipped through
+                if prefix.startswith('@') or prefix in ('v1', 'v2', 'v3'):
+                    continue
+                existing_glyphs.append((prefix, part))
+        
+        # Show the clean chain in reasoning
+        clean_chain = ' => '.join(g[1] for g in existing_glyphs)
+        reasoning = [f"Starting from: {clean_chain}"]
+        
+        # Parse the modification for new glyphs
+        new_glyphs = []
+        
+        # Check for store/state keywords
+        if any(kw in modification_lower for kw in ['store', 'state', 'persist', 'save state', 'auth state', 'user state']):
+            # Infer store name from existing chain
+            store_name = 'Auth'  # default
+            for prefix, glyph in existing_glyphs:
+                if prefix == 'NED':
+                    need_name = glyph.split(':')[1] if ':' in glyph else ''
+                    store_name = need_name.capitalize() if need_name else 'Auth'
+                    break
+            new_glyphs.append(('STO', f'STO:{store_name}'))
+            reasoning.append(f"Adding store: STO:{store_name}")
+        
+        # Check for API keywords
+        if any(kw in modification_lower for kw in ['api', 'endpoint', 'server', 'backend', 'call', 'request', 'post', 'get']):
+            # Infer API route from existing chain
+            route = '/api'
+            method = 'POST'
+            for prefix, glyph in existing_glyphs:
+                if prefix == 'NED':
+                    need_name = glyph.split(':')[1] if ':' in glyph else ''
+                    route = f'/{need_name}' if need_name else '/api'
+                    break
+            
+            # Check for specific HTTP method
+            if 'get' in modification_lower:
+                method = 'GET'
+            elif 'put' in modification_lower:
+                method = 'PUT'
+            elif 'delete' in modification_lower:
+                method = 'DELETE'
+            
+            new_glyphs.append(('API', f'API:{method}{route}'))
+            reasoning.append(f"Adding API endpoint: API:{method}{route}")
+        
+        # Check for database/model keywords
+        if any(kw in modification_lower for kw in ['database', 'model', 'db', 'save', 'persist', 'mongo', 'sql', 'table']):
+            # Infer model name from existing chain
+            model_name = 'user'
+            for prefix, glyph in existing_glyphs:
+                if prefix == 'NED':
+                    need_name = glyph.split(':')[1] if ':' in glyph else ''
+                    if need_name in ['login', 'register', 'profile', 'auth']:
+                        model_name = 'user'
+                    else:
+                        model_name = need_name if need_name else 'item'
+                    break
+            new_glyphs.append(('MDL', f'MDL:{model_name}'))
+            reasoning.append(f"Adding model: MDL:{model_name}")
+        
+        # Check for function keywords
+        if any(kw in modification_lower for kw in ['function', 'helper', 'util', 'validate', 'transform', 'hash']):
+            fn_name = 'helper'
+            if 'validate' in modification_lower:
+                fn_name = 'validate'
+            elif 'hash' in modification_lower:
+                fn_name = 'hashPassword'
+            elif 'token' in modification_lower:
+                fn_name = 'generateToken'
+            new_glyphs.append(('FNC', f'FNC:{fn_name}'))
+            reasoning.append(f"Adding function: FNC:{fn_name}")
+        
+        # Check for event keywords
+        if any(kw in modification_lower for kw in ['event', 'emit', 'publish', 'subscribe', 'notify', 'webhook']):
+            event_name = 'notify'
+            new_glyphs.append(('EVT', f'EVT:{event_name}'))
+            reasoning.append(f"Adding event: EVT:{event_name}")
+        
+        # Check for output/redirect keywords
+        if any(kw in modification_lower for kw in ['redirect', 'navigate', 'goto', 'dashboard', 'home', 'success']):
+            dest = 'dashboard'
+            if 'home' in modification_lower:
+                dest = 'home'
+            elif 'profile' in modification_lower:
+                dest = 'profile'
+            new_glyphs.append(('OUT', f"OUT:redirect('/{dest}')"))
+            reasoning.append(f"Updating output: redirect to /{dest}")
+        
+        if not new_glyphs:
+            result.warnings.append(f"Could not understand modification: '{modification}'")
+            result.warnings.append("Try: 'add a store', 'add API endpoint', 'add database model', 'redirect to dashboard'")
+            return result
+        
+        # Merge existing and new glyphs
+        all_glyphs = list(existing_glyphs)
+        
+        # Remove default OUT:result if we're adding a better output
+        if any(g[0] == 'OUT' for g in new_glyphs):
+            all_glyphs = [(p, g) for p, g in all_glyphs if not (p == 'OUT' and g == 'OUT:result')]
+        
+        # Add new glyphs
+        for prefix, glyph in new_glyphs:
+            if not any(g == glyph for _, g in all_glyphs):
+                all_glyphs.append((prefix, glyph))
+        
+        # Sort by typical flow order (V is a view/page, similar to CMP)
+        order = {'NED': 0, 'TSK': 1, 'V': 2, 'CMP': 3, 'STO': 4, 'FNC': 5, 'API': 6, 'MDL': 7, 'EVT': 8, 'OUT': 9, 'ERR': 10}
+        sorted_glyphs = sorted(all_glyphs, key=lambda g: order.get(g[0], 5))
+        
+        # Build the extended chain (without version tag - will be auto-assigned on add)
+        chain = ' => '.join(g[1] for g in sorted_glyphs)
+        
+        result.proposals.append(ProposedChain(
+            chain=chain,
+            confidence=IntentConfidence.HIGH,
+            source_text=modification,
+            reasoning=reasoning,
+            suggested_errors=self._suggest_errors([g[1] for g in sorted_glyphs], modification_lower)
+        ))
+        
+        return result
 
 
 # Module-level convenience functions
@@ -471,3 +624,8 @@ def parse_markdown(filepath: str) -> IntentResult:
 def suggest_errors(chain: str) -> list[str]:
     """Suggest error paths for a chain."""
     return _parser.suggest_errors(chain)
+
+
+def extend_chain(existing_chain: str, modification: str) -> IntentResult:
+    """Extend or modify an existing chain using natural language."""
+    return _parser.extend_chain(existing_chain, modification)

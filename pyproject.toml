@@ -18,6 +18,7 @@ dev = [
 ]
 
 [project.scripts]
+arc = "archeon.main:app"
 archeon = "archeon.main:app"
 
 [build-system]
