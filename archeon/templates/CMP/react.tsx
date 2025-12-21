@@ -15,7 +15,7 @@ export function {COMPONENT_NAME}({PROPS_DESTRUCTURE}: {COMPONENT_NAME}Props) {
 {STATE_HOOKS}
 {HANDLERS}
   return (
-    <div data-testid="{COMPONENT_NAME_KEBAB}">
+    <div className="{TAILWIND_CLASSES}" data-testid="{COMPONENT_NAME_KEBAB}">
 {RENDER_CONTENT}
     </div>
   );

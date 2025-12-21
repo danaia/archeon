@@ -20,16 +20,9 @@ const emit = defineEmits({EMITS_DEFINITION});
 
 <template>
   <div 
-    class="{COMPONENT_NAME_KEBAB}"
+    class="{TAILWIND_CLASSES}"
     data-testid="{COMPONENT_NAME_KEBAB}"
   >
 {RENDER_CONTENT}
   </div>
 </template>
-
-<style scoped>
-.{COMPONENT_NAME_KEBAB} {
-  /* Component styles */
-}
-{STYLES}
-</style>
