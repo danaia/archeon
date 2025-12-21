@@ -156,3 +156,45 @@ class TestValidationResult:
         assert len(r1.errors) == 1
         assert len(r1.warnings) == 1
         assert r1.valid is False
+
+
+class TestDuplicateValidation:
+    """Tests for duplicate glyph detection."""
+
+    def test_shared_glyphs_allowed(self):
+        """Glyphs can be referenced in multiple chains without error."""
+        graph = KnowledgeGraph()
+        # Both chains reference STO:AuthStore and OUT:dashboard - this is fine
+        graph.add_chain("@v1 NED:login => CMP:LoginForm => STO:AuthStore => OUT:dashboard")
+        graph.add_chain("@v1 NED:register => CMP:RegisterForm => STO:AuthStore => OUT:dashboard")
+        result = validate_graph(graph)
+        # Should have no duplicate errors - shared glyphs are references, not duplicates
+        duplicate_errors = [e for e in result.errors if 'duplicate' in e.code.lower()]
+        assert len(duplicate_errors) == 0
+
+    def test_duplicate_chain_roots_error(self):
+        """Same chain root with same version is caught by graph.add_chain."""
+        graph = KnowledgeGraph()
+        graph.add_chain("@v1 NED:login => OUT:result1")
+        # KnowledgeGraph.add_chain raises ValueError for duplicate roots
+        with pytest.raises(ValueError, match="already exists"):
+            graph.add_chain("@v1 NED:login => OUT:result2")
+
+    def test_same_root_different_versions_allowed(self):
+        """Same chain root with different versions is allowed."""
+        graph = KnowledgeGraph()
+        graph.add_chain("@v1 NED:login => OUT:result")
+        graph.add_chain("@v2 NED:login => OUT:result")
+        result = validate_graph(graph)
+        duplicate_errors = [e for e in result.errors if 'duplicate' in e.code.lower()]
+        assert len(duplicate_errors) == 0
+
+    def test_orchestrator_chains_allowed(self):
+        """Multiple unversioned orchestrator chains can reference same glyphs."""
+        graph = KnowledgeGraph()
+        graph.add_chain("ORC:main :: PRS:glyph :: VAL:chain")
+        graph.add_chain("GRF:domain :: ORC:main")
+        result = validate_graph(graph)
+        # Different roots (ORC:main vs GRF:domain), so no duplicates
+        duplicate_errors = [e for e in result.errors if 'duplicate' in e.code.lower()]
+        assert len(duplicate_errors) == 0

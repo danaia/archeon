@@ -277,27 +277,33 @@ class GraphValidator:
         return result
 
     def validate_duplicates(self) -> ValidationResult:
-        """Check for duplicate qualified glyphs."""
+        """Check for duplicate chain roots (not glyph references).
+        
+        Glyphs can be referenced across multiple chains - that's normal.
+        We only flag duplicates when the same ROOT glyph (first in chain)
+        appears in multiple chains with the same version.
+        """
         result = ValidationResult()
-        seen: dict[str, list[str]] = {}  # glyph -> list of chain versions
+        # Track chain roots: (root_glyph, version) -> chain_raw
+        seen_roots: dict[tuple[str, str], str] = {}
 
         for stored in self.graph.chains:
-            for node in stored.ast.nodes:
-                key = node.qualified_name
-                version = stored.ast.version or 'unversioned'
+            if not stored.ast.nodes:
+                continue
+                
+            # Only check the ROOT (first) glyph of each chain
+            root = stored.ast.nodes[0].qualified_name
+            version = stored.ast.version or 'unversioned'
+            key = (root, version)
 
-                if key not in seen:
-                    seen[key] = []
-
-                # Same glyph in same version is a duplicate
-                if version in seen[key]:
-                    result.add_error(
-                        'ERR:glyph.duplicate',
-                        f"Duplicate glyph {key} in version {version}",
-                        node=key
-                    )
-                else:
-                    seen[key].append(version)
+            if key in seen_roots:
+                result.add_error(
+                    'ERR:glyph.duplicate',
+                    f"Duplicate chain root {root} in version {version}",
+                    node=root
+                )
+            else:
+                seen_roots[key] = stored.ast.raw
 
         return result
 
