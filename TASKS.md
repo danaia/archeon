@@ -4,6 +4,40 @@
 
 ---
 
+## 🎯 CRITICAL: Small Model Context Optimization
+
+> **Target:** 30B parameter models (Qwen3) on RTX 5090 with ~60K token context window.
+> **Goal:** Never overload context. Keep agent prompts under 10K tokens each.
+
+### Core Principles
+1. **Glyph Projection** - Only load 1-hop neighbors, not entire graph
+2. **Micro-Agent Pattern** - One glyph per invocation, never batch
+3. **Template Compression** - Templates (~20 lines) not full code (~100+ lines)
+4. **Context Budgeting** - Track and enforce token limits per operation
+
+### Implemented Components
+- [x] `CTX_context.py` - Context budget manager with tier support
+- [x] `MIC_micro.py` - Micro-agent executor for single-glyph operations
+- [x] `GlyphProjection` - Minimal context projection (target + 1-hop deps)
+- [x] `ContextBudget` - Token tracking with allocation percentages
+
+### Token Budget Allocation (60K total)
+| Allocation | % | Tokens | Purpose |
+|------------|---|--------|---------|
+| Glyph notation | 10% | 6,000 | Chain definition |
+| Template | 20% | 12,000 | Framework template |
+| Dependencies | 30% | 18,000 | 1-hop neighbors only |
+| Chain context | 20% | 12,000 | Immediate chain |
+| Output reserved | 20% | 12,000 | Generated code |
+
+### Anti-Patterns to Avoid
+- ❌ Loading entire `.arcon` file into context
+- ❌ Batching multiple glyphs in one prompt
+- ❌ Including 2+ hop dependencies
+- ❌ Full file reads instead of projections
+
+---
+
 ## Phase 1: Project Foundation ✅
 
 ### 1.1 Project Structure

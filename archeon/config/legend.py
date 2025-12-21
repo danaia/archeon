@@ -150,6 +150,24 @@ GLYPH_LEGEND = {
         'color': '#1A1A2E',
         'layer': 'internal'
     },
+    'CTX': {
+        'name': 'Context',
+        'description': 'Context budget manager for small model optimization',
+        'agent': None,
+        'color': '#00BCD4',
+        'layer': 'internal',
+        'qualifiers': ['budget', 'projection', 'tier'],
+        'doc': 'Manages context window budgets for 30B parameter models (~60K tokens)'
+    },
+    'MIC': {
+        'name': 'Micro',
+        'description': 'Micro-agent executor for single-glyph operations',
+        'agent': None,
+        'color': '#FF5722',
+        'layer': 'internal',
+        'qualifiers': ['executor', 'task', 'result'],
+        'doc': 'Executes one glyph at a time with minimal context overhead'
+    },
 }
 
 EDGE_TYPES = {

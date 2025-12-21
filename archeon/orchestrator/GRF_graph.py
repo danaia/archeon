@@ -201,6 +201,13 @@ class KnowledgeGraph:
         """Find all chains containing a glyph."""
         indices = self._glyph_index.get(glyph_name, [])
         return [self.chains[i] for i in indices if i < len(self.chains)]
+    
+    def find_chains_containing(self, glyph_name: str) -> list[StoredChain]:
+        """
+        Alias for find_chains_by_glyph.
+        Used by CTX_context for projection queries.
+        """
+        return self.find_chains_by_glyph(glyph_name)
 
     def find_dependencies(self, glyph_name: str) -> list[GlyphNode]:
         """Find upstream dependencies of a glyph."""

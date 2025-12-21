@@ -6,5 +6,12 @@
 ORC:main :: PRS:glyph :: PRS:intent :: VAL:chain :: VAL:boundary :: VAL:version :: SPW:agent :: TST:e2e :: TST:error
 GRF:domain :: ORC:main
 
+# === CONTEXT MANAGEMENT (Small Model Optimization) ===
+# CTX manages context budgets to keep payloads within 60K tokens for 30B models
+# MIC executes single-glyph operations with minimal context
+CTX:budget :: CTX:projection :: ORC:main
+CTX:projection :: GRF:domain
+MIC:executor :: CTX:projection :: SPW:agent
+
 # === AGENT CHAINS (Versioned) ===
 # Add chains below using: archeon parse "<chain>"
