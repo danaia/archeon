@@ -307,8 +307,12 @@ def gen(
     frontend: str = typer.Option("react", "--frontend", "-f", help="Frontend framework"),
     backend: str = typer.Option("fastapi", "--backend", "-b", help="Backend framework"),
     db: str = typer.Option("mongo", "--db", "-d", help="Database type"),
+    output: str = typer.Option(".", "--output", "-o", help="Output directory"),
+    force: bool = typer.Option(False, "--force", help="Force regeneration of all glyphs"),
 ):
     """Generate code for all unresolved glyphs."""
+    from archeon.orchestrator.SPW_spawner import AgentSpawner
+    
     arcon_path = get_arcon_path()
     
     if not arcon_path.exists():
@@ -316,13 +320,53 @@ def gen(
         raise typer.Exit(1)
     
     graph = load_graph(str(arcon_path))
-    glyphs = graph.get_all_glyphs()
+    unresolved = graph.get_unresolved_glyphs()
     
-    rprint(f"[yellow]![/yellow] Code generation not yet implemented")
-    rprint(f"  Would generate for {len(glyphs)} glyphs")
+    if not unresolved and not force:
+        rprint("[green]✓[/green] All glyphs already resolved - nothing to generate")
+        return
+    
+    rprint(f"[cyan]Generating code for {len(unresolved)} glyph(s)...[/cyan]")
     rprint(f"  Frontend: {frontend}, Backend: {backend}, DB: {db}")
+    rprint(f"  Output: {output}")
     
-    # TODO: Implement agent spawning
+    # Create spawner with appropriate framework per glyph type
+    spawner = AgentSpawner(
+        output_dir=output, 
+        framework=frontend,
+        backend=backend,
+        db=db
+    )
+    
+    # Process all unresolved glyphs
+    batch = spawner.spawn_all(graph, force=force)
+    
+    # Display results
+    table = Table(title="Generation Results")
+    table.add_column("Glyph", style="cyan")
+    table.add_column("File", style="green")
+    table.add_column("Status")
+    
+    for result in batch.results:
+        status_style = {
+            "success": "[green]✓[/green]",
+            "skipped": "[yellow]○[/yellow]",
+            "error": "[red]✗[/red]",
+        }.get(result.status, result.status)
+        
+        file_display = result.file_path or "-"
+        if result.error:
+            file_display = f"[red]{result.error}[/red]"
+        
+        table.add_row(result.glyph, file_display, status_style)
+    
+    console.print(table)
+    
+    rprint(f"\n[green]✓ Generated:[/green] {batch.success_count}")
+    rprint(f"[yellow]○ Skipped:[/yellow] {batch.skipped_count}")
+    if batch.error_count:
+        rprint(f"[red]✗ Errors:[/red] {batch.error_count}")
+        raise typer.Exit(1)
 
 
 @app.command()

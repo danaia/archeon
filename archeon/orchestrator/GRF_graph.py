@@ -20,6 +20,15 @@ class StoredChain:
     section: str = ""
 
 
+@dataclass
+class Resolution:
+    """Tracks resolved (generated) artifacts for a glyph."""
+    glyph: str
+    file_path: str
+    test_path: Optional[str] = None
+    generated_at: Optional[str] = None
+
+
 class KnowledgeGraph:
     """In-memory knowledge graph built from ARCHEON.arcon."""
 
@@ -27,6 +36,7 @@ class KnowledgeGraph:
         self.chains: list[StoredChain] = []
         self.sections: dict[str, list[int]] = {}  # section name -> chain indices
         self._glyph_index: dict[str, list[int]] = {}  # glyph name -> chain indices
+        self._resolutions: dict[str, Resolution] = {}  # glyph -> resolution
         self._filepath: Optional[str] = None
 
     def load(self, filepath: str) -> None:
@@ -221,9 +231,58 @@ class KnowledgeGraph:
         return set(self._glyph_index.keys())
 
     def get_unresolved_glyphs(self) -> set[str]:
-        """Get glyphs that appear in chains but have no generated code."""
-        # This will be expanded when we add file tracing
-        return self.get_all_glyphs()
+        """Get glyphs that need code generation (no resolved artifacts)."""
+        from archeon.config.legend import GLYPH_LEGEND
+        
+        unresolved = set()
+        for glyph in self._glyph_index.keys():
+            # Skip if already resolved
+            if glyph in self._resolutions:
+                continue
+            
+            # Extract prefix from glyph
+            prefix = glyph.split(':')[0] if ':' in glyph else glyph
+            
+            # Skip meta glyphs (no code gen)
+            glyph_def = GLYPH_LEGEND.get(prefix, {})
+            if glyph_def.get('layer') == 'meta':
+                continue
+            
+            # Skip V (structural container, no code)
+            if prefix == 'V':
+                continue
+            
+            # Skip internal orchestrator glyphs
+            if glyph_def.get('layer') == 'internal':
+                continue
+            
+            # This glyph needs generation
+            if glyph_def.get('agent'):
+                unresolved.add(glyph)
+        
+        return unresolved
+
+    def mark_resolved(self, glyph: str, file_path: str, test_path: Optional[str] = None) -> None:
+        """Mark a glyph as resolved (code generated)."""
+        from datetime import datetime
+        self._resolutions[glyph] = Resolution(
+            glyph=glyph,
+            file_path=file_path,
+            test_path=test_path,
+            generated_at=datetime.now().isoformat()
+        )
+
+    def is_resolved(self, glyph: str) -> bool:
+        """Check if a glyph has been resolved."""
+        return glyph in self._resolutions
+
+    def get_resolution(self, glyph: str) -> Optional[Resolution]:
+        """Get resolution info for a glyph."""
+        return self._resolutions.get(glyph)
+
+    def clear_resolution(self, glyph: str) -> None:
+        """Clear resolution status for a glyph (force regeneration)."""
+        self._resolutions.pop(glyph, None)
 
     def get_chains_by_version(self, root_glyph: str) -> dict[str, StoredChain]:
         """Get all versions of chains starting with a glyph."""
