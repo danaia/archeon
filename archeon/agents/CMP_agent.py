@@ -103,8 +103,12 @@ class CMPAgent(BaseAgent):
         if is_headless:
             placeholders["RENDER_CONTENT"] = "      {/* @headless - logic-only component */}"
         
-        # Tailwind classes for container
-        placeholders["TAILWIND_CLASSES"] = "max-w-md mx-auto p-6 bg-white rounded-lg shadow-md"
+        # Theme support
+        placeholders["THEME_IMPORT"] = "import { useTheme } from '@/stores/themeStore';"
+        placeholders["THEME_HOOK"] = "  const { isDark, toggleTheme } = useTheme();"
+        
+        # Theme-aware Tailwind classes for container
+        placeholders["TAILWIND_CLASSES"] = "max-w-md mx-auto p-6 bg-surface text-content rounded-lg shadow-md border border-border"
         
         return placeholders
     
@@ -156,8 +160,8 @@ class CMPAgent(BaseAgent):
         else:
             placeholders["RENDER_CONTENT"] = self._generate_vue3_template(name, glyph, chain)
         
-        # Tailwind classes for container
-        placeholders["TAILWIND_CLASSES"] = "max-w-md mx-auto p-6 bg-white rounded-lg shadow-md"
+        # Theme-aware Tailwind classes for container
+        placeholders["TAILWIND_CLASSES"] = "max-w-md mx-auto p-6 bg-surface text-content rounded-lg shadow-md border border-border"
         
         return placeholders
     
@@ -252,17 +256,17 @@ async function handleSubmit() {
         lines = []
         lines.append('    <!-- Loading state -->')
         lines.append('    <div v-if="loading" class="flex items-center justify-center p-4">')
-        lines.append('      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>')
-        lines.append('      <span class="ml-2 text-gray-600">Loading...</span>')
+        lines.append('      <div class="spinner-md text-primary-500"></div>')
+        lines.append('      <span class="ml-2 text-content-secondary">Loading...</span>')
         lines.append('    </div>')
         lines.append('')
         lines.append('    <!-- Error state -->')
-        lines.append('    <div v-if="error" class="bg-red-50 border-l-4 border-red-400 p-4 mb-4">')
+        lines.append('    <div v-if="error" class="alert-danger mb-4">')
         lines.append('      <div class="flex items-center">')
-        lines.append('        <svg class="h-5 w-5 text-red-400 mr-2" fill="currentColor" viewBox="0 0 20 20">')
+        lines.append('        <svg class="h-5 w-5 text-danger-500 mr-2" fill="currentColor" viewBox="0 0 20 20">')
         lines.append('          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />')
         lines.append('        </svg>')
-        lines.append('        <p class="text-sm text-red-700">{{ error }}</p>')
+        lines.append('        <p class="text-sm">{{ error }}</p>')
         lines.append('      </div>')
         lines.append('    </div>')
         lines.append('')
@@ -275,7 +279,7 @@ async function handleSubmit() {
             lines.append('      <button')
             lines.append('        type="submit"')
             lines.append('        :disabled="isDisabled"')
-            lines.append('        class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"')
+            lines.append('        class="btn-primary w-full"')
             lines.append('      >')
             lines.append('        Submit')
             lines.append('      </button>')

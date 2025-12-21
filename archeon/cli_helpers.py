@@ -34,6 +34,13 @@ def copy_templates(archeon_dir: Path, frontend: str, backend: str):
         "express": {"API": "fastapi.py", "MDL": "mongo.py", "EVT": "pubsub.py", "FNC": "python.py"},  # TODO: add express templates
     }
     
+    # Theme store map (per framework)
+    theme_store_map = {
+        "react": "theme-zustand.js",
+        "vue": "theme-pinia.js",
+        "vue3": "theme-pinia.js",
+    }
+    
     # Copy frontend templates
     for glyph, filename in frontend_map.get(frontend, frontend_map["react"]).items():
         src = pkg_templates / glyph / filename
@@ -41,12 +48,30 @@ def copy_templates(archeon_dir: Path, frontend: str, backend: str):
         if src.exists() and not dst.exists():
             shutil.copy2(src, dst)
     
+    # Copy theme store template
+    theme_store_file = theme_store_map.get(frontend, "theme-zustand.js")
+    src = pkg_templates / "STO" / theme_store_file
+    dst = target_templates / "STO" / theme_store_file
+    if src.exists() and not dst.exists():
+        shutil.copy2(src, dst)
+    
     # Copy backend templates  
     for glyph, filename in backend_map.get(backend, backend_map["fastapi"]).items():
         src = pkg_templates / glyph / filename
         dst = target_templates / glyph / filename
         if src.exists() and not dst.exists():
             shutil.copy2(src, dst)
+    
+    # Copy Tailwind theming config files
+    config_dir = pkg_templates / "_config"
+    target_config_dir = target_templates / "_config"
+    if config_dir.exists():
+        target_config_dir.mkdir(parents=True, exist_ok=True)
+        for config_file in config_dir.iterdir():
+            if config_file.is_file():
+                dst = target_config_dir / config_file.name
+                if not dst.exists():
+                    shutil.copy2(config_file, dst)
 
 
 def create_orchestrator_readme(archeon_dir: Path):
@@ -427,8 +452,70 @@ export default defineConfig({
     
     # Create client files
     if frontend in ("vue", "vue3"):
-        # Vue style.css with Tailwind
+        # Vue style.css with Tailwind theme
         (client_dir / "src" / "style.css").write_text('''@import "tailwindcss";
+
+/* Archeon Theme Variables */
+:root {
+  /* Primary palette */
+  --color-primary-50: #eff6ff;
+  --color-primary-100: #dbeafe;
+  --color-primary-200: #bfdbfe;
+  --color-primary-300: #93c5fd;
+  --color-primary-400: #60a5fa;
+  --color-primary-500: #3b82f6;
+  --color-primary-600: #2563eb;
+  --color-primary-700: #1d4ed8;
+  --color-primary-800: #1e40af;
+  --color-primary-900: #1e3a8a;
+  --color-primary-950: #172554;
+
+  /* Surface colors (light mode) */
+  --color-surface: #ffffff;
+  --color-surface-raised: #f9fafb;
+  --color-content: #111827;
+  --color-content-secondary: #4b5563;
+  --color-content-muted: #9ca3af;
+  --color-border: #e5e7eb;
+}
+
+.dark {
+  --color-surface: #0f172a;
+  --color-surface-raised: #1e293b;
+  --color-content: #f1f5f9;
+  --color-content-secondary: #cbd5e1;
+  --color-content-muted: #64748b;
+  --color-border: #334155;
+}
+
+/* Theme-aware component classes */
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center px-4 py-2 font-medium text-sm rounded-md
+           bg-[var(--color-primary-500)] text-white
+           hover:bg-[var(--color-primary-600)]
+           focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)] focus:ring-offset-2
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-outline {
+    @apply inline-flex items-center justify-center px-4 py-2 font-medium text-sm rounded-md
+           border border-[var(--color-border)] bg-transparent text-[var(--color-content)]
+           hover:bg-[var(--color-surface-raised)]
+           focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)];
+  }
+
+  .card {
+    @apply bg-[var(--color-surface)] rounded-lg shadow-md border border-[var(--color-border)];
+  }
+
+  .input {
+    @apply block w-full px-3 py-2 text-sm rounded-md
+           bg-[var(--color-surface)] text-[var(--color-content)] border border-[var(--color-border)]
+           placeholder:text-[var(--color-content-muted)]
+           focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)] focus:border-transparent;
+  }
+}
 ''')
         
         # Vue main.js
@@ -442,32 +529,133 @@ const pinia = createPinia()
 
 app.use(pinia)
 app.mount('#app')
+
+// Initialize theme from localStorage or system preference
+const savedTheme = localStorage.getItem('archeon-theme')
+const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+  document.documentElement.classList.add('dark')
+}
 ''')
         
-        # Vue App.vue
+        # Vue App.vue with theme toggle
         (client_dir / "src" / "App.vue").write_text('''<template>
-  <div id="app" class="min-h-screen bg-gray-50 flex items-center justify-center">
-    <div class="text-center">
-      <h1 class="text-4xl font-bold text-gray-900 mb-4">Archeon Vue 3 App</h1>
-      <p class="text-gray-600">Add components to /src/components/</p>
-    </div>
+  <div id="app" class="min-h-screen bg-[var(--color-surface)] text-[var(--color-content)] transition-colors">
+    <header class="p-4 flex justify-between items-center border-b border-[var(--color-border)]">
+      <h1 class="text-xl font-bold">Archeon Vue 3</h1>
+      <button @click="toggleTheme" class="btn-outline p-2 rounded-md">
+        <span v-if="isDark">☀️</span>
+        <span v-else>🌙</span>
+      </button>
+    </header>
+    <main class="flex items-center justify-center" style="min-height: calc(100vh - 73px)">
+      <div class="text-center">
+        <h2 class="text-4xl font-bold mb-4">Welcome</h2>
+        <p class="text-[var(--color-content-secondary)]">Add components to /src/components/</p>
+        <div class="mt-8 flex gap-4 justify-center">
+          <button class="btn-primary">Primary</button>
+          <button class="btn-outline">Outline</button>
+        </div>
+      </div>
+    </main>
   </div>
 </template>
 
 <script setup>
-// Add imports here
+import { ref, onMounted } from 'vue'
+
+const isDark = ref(false)
+
+onMounted(() => {
+  isDark.value = document.documentElement.classList.contains('dark')
+})
+
+function toggleTheme() {
+  isDark.value = !isDark.value
+  document.documentElement.classList.toggle('dark')
+  localStorage.setItem('archeon-theme', isDark.value ? 'dark' : 'light')
+}
 </script>
 ''')
     else:
-        # React index.css with Tailwind
+        # React index.css with Tailwind theme
         (client_dir / "src" / "index.css").write_text('''@import "tailwindcss";
+
+/* Archeon Theme Variables */
+:root {
+  /* Primary palette */
+  --color-primary-50: #eff6ff;
+  --color-primary-100: #dbeafe;
+  --color-primary-200: #bfdbfe;
+  --color-primary-300: #93c5fd;
+  --color-primary-400: #60a5fa;
+  --color-primary-500: #3b82f6;
+  --color-primary-600: #2563eb;
+  --color-primary-700: #1d4ed8;
+  --color-primary-800: #1e40af;
+  --color-primary-900: #1e3a8a;
+  --color-primary-950: #172554;
+
+  /* Surface colors (light mode) */
+  --color-surface: #ffffff;
+  --color-surface-raised: #f9fafb;
+  --color-content: #111827;
+  --color-content-secondary: #4b5563;
+  --color-content-muted: #9ca3af;
+  --color-border: #e5e7eb;
+}
+
+.dark {
+  --color-surface: #0f172a;
+  --color-surface-raised: #1e293b;
+  --color-content: #f1f5f9;
+  --color-content-secondary: #cbd5e1;
+  --color-content-muted: #64748b;
+  --color-border: #334155;
+}
+
+/* Theme-aware component classes */
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center px-4 py-2 font-medium text-sm rounded-md
+           bg-[var(--color-primary-500)] text-white
+           hover:bg-[var(--color-primary-600)]
+           focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)] focus:ring-offset-2
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-outline {
+    @apply inline-flex items-center justify-center px-4 py-2 font-medium text-sm rounded-md
+           border border-[var(--color-border)] bg-transparent text-[var(--color-content)]
+           hover:bg-[var(--color-surface-raised)]
+           focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)];
+  }
+
+  .card {
+    @apply bg-[var(--color-surface)] rounded-lg shadow-md border border-[var(--color-border)];
+  }
+
+  .input {
+    @apply block w-full px-3 py-2 text-sm rounded-md
+           bg-[var(--color-surface)] text-[var(--color-content)] border border-[var(--color-border)]
+           placeholder:text-[var(--color-content-muted)]
+           focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)] focus:border-transparent;
+  }
+}
 ''')
         
-        # React main.tsx
+        # React main.tsx with theme init
         (client_dir / "src" / "main.tsx").write_text('''import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
+
+// Initialize theme from localStorage or system preference
+const savedTheme = localStorage.getItem('archeon-theme')
+const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+  document.documentElement.classList.add('dark')
+}
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
@@ -476,16 +664,40 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 )
 ''')
         
-        # React App.tsx
-        (client_dir / "src" / "App.tsx").write_text('''import React from 'react'
+        # React App.tsx with theme toggle
+        (client_dir / "src" / "App.tsx").write_text('''import React, { useState, useEffect } from 'react'
 
 function App() {
+  const [isDark, setIsDark] = useState(false)
+
+  useEffect(() => {
+    setIsDark(document.documentElement.classList.contains('dark'))
+  }, [])
+
+  const toggleTheme = () => {
+    setIsDark(!isDark)
+    document.documentElement.classList.toggle('dark')
+    localStorage.setItem('archeon-theme', !isDark ? 'dark' : 'light')
+  }
+
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">Archeon React App</h1>
-        <p className="text-gray-600">Add components to /src/components/</p>
-      </div>
+    <div className="min-h-screen bg-[var(--color-surface)] text-[var(--color-content)] transition-colors">
+      <header className="p-4 flex justify-between items-center border-b border-[var(--color-border)]">
+        <h1 className="text-xl font-bold">Archeon React</h1>
+        <button onClick={toggleTheme} className="btn-outline p-2 rounded-md">
+          {isDark ? '☀️' : '🌙'}
+        </button>
+      </header>
+      <main className="flex items-center justify-center" style={{ minHeight: 'calc(100vh - 73px)' }}>
+        <div className="text-center">
+          <h2 className="text-4xl font-bold mb-4">Welcome</h2>
+          <p className="text-[var(--color-content-secondary)]">Add components to /src/components/</p>
+          <div className="mt-8 flex gap-4 justify-center">
+            <button className="btn-primary">Primary</button>
+            <button className="btn-outline">Outline</button>
+          </div>
+        </div>
+      </main>
     </div>
   )
 }

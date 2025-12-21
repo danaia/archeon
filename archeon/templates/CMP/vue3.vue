@@ -3,6 +3,7 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue';
+import { useThemeStore } from '@/stores/themeStore';
 {STORE_IMPORT}
 {IMPORTS}
 
@@ -11,6 +12,10 @@ const props = defineProps({
 });
 
 const emit = defineEmits({EMITS_DEFINITION});
+
+// Theme support
+const themeStore = useThemeStore();
+const { isDark, resolvedTheme } = themeStore;
 
 {STATE_REFS}
 {COMPUTED}
