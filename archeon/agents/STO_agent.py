@@ -209,7 +209,8 @@ class STOAgent(BaseAgent):
     
     try {{
       // TODO: Implement {action} logic
-      // const response = await api.{action}(payload);
+      // const response = await axios.post('/api/{action}', payload);
+      // Update state with response.data
     }} catch (e) {{
       error.value = e instanceof Error ? e.message : 'Unknown error';
       throw e;
@@ -274,6 +275,8 @@ class STOAgent(BaseAgent):
     set({{ loading: true, error: null }});
     try {{
       // TODO: Implement {action} logic
+      // const response = await axios.post('/api/{action}', payload);
+      // set({{ ...get(), ...response.data }});
     }} catch (e) {{
       set({{ error: e instanceof Error ? e.message : 'Unknown error' }});
     }} finally {{

@@ -1,5 +1,6 @@
 // @archeon {GLYPH_QUALIFIED_NAME}
 // Generated Pinia store - Vue 3 state management (plain JavaScript)
+import axios from 'axios';
 {IMPORTS}
 
 import { defineStore } from 'pinia';
