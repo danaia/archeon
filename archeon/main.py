@@ -727,7 +727,7 @@ For the best Archeon experience, install:
     # Always create/update the AI provisioning guide
     archeon_dir = target / "archeon"
     if archeon_dir.exists():
-        _create_ai_readme(archeon_dir)
+        create_ai_readme(archeon_dir)
         created.append("archeon/AI_README.md")
     
     if created:
