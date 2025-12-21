@@ -2,59 +2,125 @@
 
 > Glyph-based architecture notation system for AI-orchestrated software development.
 
-Archeon provides a hyper-compressed, human-readable **intermediate representation (IR)** that serves as both documentation and executable specification.
+Archeon provides a hyper-compressed, human-readable **intermediate representation (IR)** that serves as both documentation and executable specification. It's a **constraint layer** that any LLM can understand, preventing hallucinations and architectural drift.
 
-## Installation
+## Quick Install
 
 ```bash
-# Create virtual environment
-python3 -m venv .venv
-source .venv/bin/activate
+# Install globally
+pip install -e /path/to/Archeon
 
-# Install with dev dependencies
-pip install -e ".[dev]"
+# Verify installation
+archeon --version
+
+# Uninstall
+pip uninstall archeon
 ```
 
 ## Quick Start
 
 ```bash
-# Initialize a new project
-archeon init
+# 1. Create a new project (Vue 3 + FastAPI)
+mkdir my-app && cd my-app
+archeon init --frontend vue3
 
-# Parse and add a chain
-archeon parse "NED:login => TSK:submit => CMP:LoginForm => API:POST/auth => OUT:redirect"
+# 2. Define a feature chain
+archeon parse "NED:login => CMP:LoginForm => STO:Auth => API:POST/auth/login => OUT:dashboard"
 
-# Validate the knowledge graph
-archeon validate
+# 3. Generate code
+archeon gen
 
-# Show status
+# 4. Check status
 archeon status
-
-# View glyph legend
-archeon legend
 ```
+
+That's it. You now have:
+- `client/src/components/LoginForm.vue` - Vue 3 component
+- `client/src/stores/AuthStore.ts` - Pinia store  
+- `server/src/api/routes/auth_login.py` - FastAPI endpoint
+
+## Why Archeon?
+
+```
+Without Archeon:  "AI, build me a login"  → Random architecture every time
+
+With Archeon:     NED:login => CMP:LoginForm => API:POST/auth
+                  → Same structure, any model, always
+```
+
+**Anti-hallucination** - Models can't invent random patterns. Glyphs define what's allowed.  
+**Anti-drift** - Context persists in `.arcon` files, not in chat history.  
+**Model-portable** - Switch Claude to GPT mid-project. The graph remains.
 
 ## Glyph Notation
 
-| Prefix | Name | Description |
-|--------|------|-------------|
-| `NED:` | Need | User intent/motivation |
-| `TSK:` | Task | User action |
-| `CMP:` | Component | UI component |
-| `STO:` | Store | Client state store |
-| `API:` | API | HTTP endpoint |
-| `MDL:` | Model | Database query/schema |
-| `OUT:` | Output | Feedback layer |
-| `ERR:` | Error | Failure/exception path |
+| Prefix | Name | Layer | Description |
+|--------|------|-------|-------------|
+| `NED:` | Need | Meta | User intent/motivation |
+| `TSK:` | Task | Meta | User action |
+| `CMP:` | Component | Client | UI component (React/Vue) |
+| `STO:` | Store | Client | State management (Zustand/Pinia) |
+| `API:` | API | Server | HTTP endpoint |
+| `MDL:` | Model | Server | Database model |
+| `EVT:` | Event | Server | Event handler |
+| `FNC:` | Function | Shared | Utility function |
+| `OUT:` | Output | Meta | Success outcome |
+| `ERR:` | Error | Meta | Failure path |
 
 ## Edge Types
 
-| Operator | Type | Cycles |
-|----------|------|--------|
-| `=>` | Structural | No |
-| `~>` | Reactive | Yes |
-| `!>` | Side-effect | Yes |
-| `->` | Control/Branch | No |
+| Operator | Type | Description |
+|----------|------|-------------|
+| `=>` | Structural | Data flow (no cycles) |
+| `~>` | Reactive | Subscriptions (cycles OK) |
+| `->` | Control | Branching/conditionals |
+| `::` | Containment | Parent-child grouping |
+
+## Commands
+
+```bash
+archeon init [--frontend react|vue3] [--backend fastapi]  # Create project
+archeon parse "<chain>"                                    # Add chain to graph
+archeon gen                                                # Generate code
+archeon validate                                           # Check architecture
+archeon status                                             # Show graph stats
+archeon legend                                             # Show all glyphs
+archeon audit                                              # Check for drift
+archeon run "<chain>" [--sandbox]                          # Execute headless
+```
+
+## Project Structure
+
+```
+my-app/
+├── .archeonrc           # Config (frontend, backend, paths)
+├── client/              # Frontend code (CMP, STO)
+│   └── src/
+│       ├── components/
+│       └── stores/
+├── server/              # Backend code (API, MDL, EVT)
+│   └── src/
+│       ├── api/routes/
+│       ├── models/
+│       └── events/
+└── archeon/
+    └── ARCHEON.arcon    # Knowledge graph
+```
+
+## Development
+
+```bash
+# Clone and install
+git clone <repo>
+cd Archeon
+pip install -e ".[dev]"
+
+# Run tests
+pytest archeon/tests/ -v
+
+# Uninstall
+pip uninstall archeon
+```
 
 ## License
 
