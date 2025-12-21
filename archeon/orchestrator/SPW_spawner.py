@@ -3,6 +3,7 @@ SPW_spawner.py - Agent Spawner
 
 Orchestrates code generation by dispatching to appropriate agents.
 Supports monorepo structure with client/server separation.
+Automatically updates semantic index after file generation.
 """
 
 from dataclasses import dataclass, field
@@ -18,6 +19,7 @@ from archeon.agents.API_agent import APIAgent
 from archeon.agents.MDL_agent import MDLAgent
 from archeon.agents.FNC_agent import FNCAgent
 from archeon.agents.EVT_agent import EVTAgent
+from archeon.orchestrator.IDX_index import IndexBuilder
 
 
 @dataclass
@@ -166,6 +168,26 @@ class AgentSpawner:
         self.backend = backend or self.config.backend
         self.db = db or self.config.db
         self._agents: dict[str, BaseAgent] = {}
+        self._index_builder: Optional[IndexBuilder] = None
+    
+    def _get_index_builder(self) -> IndexBuilder:
+        """Get or create the index builder."""
+        if self._index_builder is None:
+            self._index_builder = IndexBuilder(str(self.output_dir))
+            # Load existing index if present
+            self._index_builder.load()
+        return self._index_builder
+    
+    def _update_index(self, file_path: str) -> None:
+        """
+        Update the semantic index after generating a file.
+        Scans the file for @archeon:section markers and updates the index.
+        """
+        builder = self._get_index_builder()
+        entry = builder.build_from_file(file_path)
+        if entry:
+            # Save immediately to keep index current
+            builder.save()
     
     def get_target_dir(self, glyph: GlyphNode) -> tuple[Path, str]:
         """
@@ -282,6 +304,9 @@ class AgentSpawner:
             full_path.parent.mkdir(parents=True, exist_ok=True)
             full_path.write_text(code)
             result.file_path = str(target_dir.relative_to(self.output_dir) / rel_path)
+
+            # Update semantic index with section info
+            self._update_index(str(full_path))
 
             # Generate test in appropriate test directory
             test_code = agent.generate_test(glyph, fw)

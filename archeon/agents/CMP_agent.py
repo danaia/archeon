@@ -59,15 +59,18 @@ class CMPAgent(BaseAgent):
         is_headless = "headless" in glyph.modifiers
         is_presentational = "presentational" in glyph.modifiers
 
-        placeholders = {
-            "GLYPH_QUALIFIED_NAME": glyph.qualified_name,
+        # Get standard header placeholders for @archeon:file
+        placeholders = self.get_header_placeholders(glyph, chain)
+        
+        # Add component-specific placeholders
+        placeholders.update({
             "COMPONENT_NAME": name,
             "COMPONENT_NAME_KEBAB": self._to_kebab(name),
             "IMPORTS": "",
             "PROPS_INTERFACE": "  // Props will be defined based on chain context",
             "PROPS_DESTRUCTURE": "props",
             "RENDER_CONTENT": "    <!-- Component content -->",
-        }
+        })
 
         # React-specific
         if fw == "react":

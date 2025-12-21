@@ -299,18 +299,36 @@ class ContextProjector:
         return projections
 
 
-def create_minimal_prompt(projection: GlyphProjection, template: str) -> str:
+def create_minimal_prompt(projection: GlyphProjection, template: str, index_context: str = "") -> str:
     """
     Create the minimal prompt for agent execution.
     
     This is the ONLY context the agent needs. Nothing more.
     
     Total: ~2-5K tokens for a 60K context model = plenty of room
+    
+    Args:
+        projection: The glyph projection with chain context
+        template: The code template to fill
+        index_context: Optional semantic index context for existing files
     """
+    # Build index section if provided
+    index_section = ""
+    if index_context:
+        index_section = f"""
+# Existing Files (Semantic Index):
+{index_context}
+
+# Section Rules:
+- Edit ONLY within @archeon:section blocks
+- Do NOT delete or modify @archeon markers
+- If new section needed, add it explicitly
+"""
+
     return f"""# Task: Generate {projection.target.qualified_name}
 
 {projection.to_compact()}
-
+{index_section}
 # Template:
 ```
 {template}

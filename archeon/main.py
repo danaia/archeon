@@ -1327,6 +1327,37 @@ def intent(
                 stored = graph.add_chain(proposal.chain)
                 graph.save()
                 rprint(f"[green]✓[/green] Added chain to graph")
+                
+                # Ask if user wants to generate code now
+                should_gen = Confirm.ask("Generate code now?", default=True)
+                if should_gen:
+                    from archeon.orchestrator.SPW_spawner import AgentSpawner, ProjectConfig
+                    
+                    # Load config
+                    project_root = arcon_path.parent.parent if arcon_path.parent.name == "archeon" else arcon_path.parent
+                    config = ProjectConfig.load(project_root)
+                    
+                    rprint(f"\n[cyan]Generating code...[/cyan]")
+                    spawner = AgentSpawner(
+                        output_dir=str(project_root),
+                        framework=config.frontend,
+                        backend=config.backend,
+                        db=config.db,
+                        config=config
+                    )
+                    
+                    # Spawn just the glyphs in this chain
+                    batch = spawner.spawn_chain(stored.ast)
+                    
+                    for result in batch.results:
+                        if result.status == "success":
+                            rprint(f"  [green]✓[/green] {result.glyph} → {result.file_path}")
+                        elif result.status == "skipped":
+                            rprint(f"  [yellow]○[/yellow] {result.glyph} (skipped)")
+                    
+                    rprint(f"\n[green]✓ Generated {batch.success_count} files[/green]")
+                    rprint(f"[dim]Index updated at ARCHEON.index.json[/dim]")
+                    
             except Exception as e:
                 rprint(f"[red]✗[/red] Failed to add: {e}")
                 
@@ -1776,6 +1807,116 @@ def serve(
         raise typer.Exit(1)
     
     start_server(str(arcon_path), host, port)
+
+
+@app.command()
+def index(
+    action: str = typer.Argument("build", help="Action: build, show, scan"),
+    path: Optional[str] = typer.Option(None, "--path", "-p", help="Directory to scan"),
+    output: Optional[str] = typer.Option(None, "--output", "-o", help="Output file path"),
+    glyph: Optional[str] = typer.Option(None, "--glyph", "-g", help="Show specific glyph"),
+):
+    """Build and manage the semantic section index (ARCHEON.index.json).
+    
+    The index enables AI-native code navigation by tracking:
+    - Which file each glyph lives in
+    - What sections exist in each file
+    - Intent metadata for each glyph
+    
+    Actions:
+    - build: Scan files and rebuild ARCHEON.index.json
+    - show: Display the current index
+    - scan: Scan a single file for sections
+    """
+    from archeon.orchestrator.IDX_index import (
+        IndexBuilder,
+        build_index,
+        load_index,
+        format_index_for_prompt,
+    )
+    from archeon.orchestrator.SCN_scanner import scan_file, validate_sections
+    
+    project_root = Path(path) if path else Path.cwd()
+    
+    if action == "build":
+        # Build the index
+        index_path = build_index(str(project_root), output)
+        rprint(f"[green]✓[/green] Built index at [bold]{index_path}[/bold]")
+        
+        # Show summary
+        idx = load_index(str(project_root))
+        rprint(f"  Indexed [cyan]{len(idx.entries)}[/cyan] glyphs")
+        
+        if idx.entries:
+            table = Table(title="Indexed Glyphs", show_lines=True)
+            table.add_column("Glyph", style="cyan")
+            table.add_column("File", style="green")
+            table.add_column("Sections")
+            
+            for g, entry in sorted(idx.entries.items()):
+                table.add_row(g, entry.file, ", ".join(entry.sections))
+            
+            console.print(table)
+    
+    elif action == "show":
+        # Show the index
+        idx = load_index(str(project_root))
+        
+        if not idx.entries:
+            rprint("[yellow]No index found.[/yellow] Run [cyan]archeon index build[/cyan] first.")
+            raise typer.Exit(1)
+        
+        if glyph:
+            # Show specific glyph
+            entry = idx.entries.get(glyph)
+            if not entry:
+                rprint(f"[red]✗[/red] Glyph [cyan]{glyph}[/cyan] not found in index")
+                raise typer.Exit(1)
+            
+            rprint(Panel(
+                f"[bold]File:[/bold] {entry.file}\n"
+                f"[bold]Intent:[/bold] {entry.intent}\n"
+                f"[bold]Chain:[/bold] {entry.chain}\n"
+                f"[bold]Sections:[/bold] {', '.join(entry.sections)}",
+                title=f"[cyan]{glyph}[/cyan]",
+            ))
+        else:
+            # Show all - formatted for LLM prompt
+            rprint(Panel(
+                format_index_for_prompt(idx),
+                title="Semantic Index",
+            ))
+    
+    elif action == "scan":
+        # Scan a single file
+        if not path:
+            rprint("[red]✗[/red] --path required for scan action")
+            raise typer.Exit(1)
+        
+        scanned = scan_file(path)
+        errors = validate_sections(scanned)
+        
+        if not scanned.is_archeon_file:
+            rprint(f"[yellow]⚠[/yellow] {path} is not an Archeon file (no @archeon:file header)")
+            raise typer.Exit(1)
+        
+        rprint(Panel(
+            f"[bold]Glyph:[/bold] {scanned.header.glyph}\n"
+            f"[bold]Intent:[/bold] {scanned.header.intent}\n"
+            f"[bold]Chain:[/bold] {scanned.header.chain}\n"
+            f"[bold]Sections:[/bold] {', '.join(s.name for s in scanned.sections)}",
+            title=f"Scanned: [cyan]{path}[/cyan]",
+        ))
+        
+        if errors:
+            rprint("\n[yellow]Warnings:[/yellow]")
+            for err in errors:
+                rprint(f"  [yellow]⚠[/yellow] {err}")
+    
+    else:
+        rprint(f"[red]✗[/red] Unknown action: {action}")
+        rprint(f"  Available actions: build, show, scan")
+        raise typer.Exit(1)
 
 
 @app.callback(invoke_without_command=True)

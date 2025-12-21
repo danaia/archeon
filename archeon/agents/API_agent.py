@@ -42,8 +42,11 @@ class APIAgent(BaseAgent):
         # Find connected ERR glyphs for error handling
         error_glyphs = self._find_error_paths(glyph, chain)
 
-        placeholders = {
-            "GLYPH_QUALIFIED_NAME": glyph.qualified_name,
+        # Get standard header placeholders for @archeon:file
+        placeholders = self.get_header_placeholders(glyph, chain)
+        
+        # Add API-specific placeholders
+        placeholders.update({
             "IMPORTS": "",
             "ROUTE_PREFIX": self._get_route_prefix(route),
             "TAG": self._get_tag(route),
@@ -58,7 +61,7 @@ class APIAgent(BaseAgent):
             "PARAMETERS": self._build_parameters(method, f"{handler_name.title().replace('_', '')}Request"),
             "DOCSTRING": f"{method} {route}",
             "HANDLER_BODY": self._build_handler_body(error_glyphs, f"{handler_name.title().replace('_', '')}Response"),
-        }
+        })
 
         return self.fill_template(template, placeholders)
 

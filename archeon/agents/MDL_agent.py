@@ -47,14 +47,17 @@ class MDLAgent(BaseAgent):
         operation = self._extract_operation(glyph)
         model_name = entity[0].upper() + entity[1:]
 
-        placeholders = {
-            "GLYPH_QUALIFIED_NAME": glyph.qualified_name,
+        # Get standard header placeholders for @archeon:file
+        placeholders = self.get_header_placeholders(glyph, chain)
+        
+        # Add model-specific placeholders
+        placeholders.update({
             "IMPORTS": "",
             "MODEL_NAME": model_name,
             "ENTITY": entity,
             "SCHEMA_FIELDS": "    id: Optional[str] = Field(default=None, alias='_id')",
             "METHODS": self._build_methods(operation, model_name),
-        }
+        })
 
         return self.fill_template(template, placeholders)
 

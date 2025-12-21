@@ -57,8 +57,11 @@ class FNCAgent(BaseAgent):
         func_name = self._extract_function_name(glyph)
         namespace = glyph.namespace or "utils"
 
-        placeholders = {
-            "GLYPH_QUALIFIED_NAME": glyph.qualified_name,
+        # Get standard header placeholders for @archeon:file
+        placeholders = self.get_header_placeholders(glyph, chain)
+        
+        # Add function-specific placeholders
+        placeholders.update({
             "IMPORTS": "",
             "FUNCTION_NAME": func_name,
             "PARAMETERS": self._build_parameters(False),
@@ -68,7 +71,7 @@ class FNCAgent(BaseAgent):
             "RETURN_DOC": "(define return value)",
             "PARAMS_DOC": " * @param input - Input parameter",
             "FUNCTION_BODY": self._build_body(False),
-        }
+        })
 
         return self.fill_template(template, placeholders)
 

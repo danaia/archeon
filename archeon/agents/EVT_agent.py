@@ -36,13 +36,16 @@ class EVTAgent(BaseAgent):
         event_name = self._extract_event_name(glyph)
         event_class = self._to_pascal_case(event_name)
 
-        placeholders = {
-            "GLYPH_QUALIFIED_NAME": glyph.qualified_name,
+        # Get standard header placeholders for @archeon:file
+        placeholders = self.get_header_placeholders(glyph, chain)
+        
+        # Add event-specific placeholders
+        placeholders.update({
             "IMPORTS": "",
             "EVENT_NAME": event_class,
             "EVENT_NAME_LOWER": event_name.lower(),
             "EVENT_FIELDS": "    data: Any = None",
-        }
+        })
 
         return self.fill_template(template, placeholders)
 

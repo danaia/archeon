@@ -1,0 +1,23 @@
+{
+  "version": "1.0",
+  "project": "Archeon",
+  "glyphs": {
+    "FNC:helper\"": {
+      "file": "archeon/tests/test_scanner.py",
+      "intent": "Test component\" in header",
+      "chain": "@v1 NED:test => CMP:Test\" in header",
+      "sections": [
+        "markers",
+        "render",
+        "imports",
+        "implementation",
+        "imports",
+        "render",
+        "outer",
+        "unclosed",
+        "imports",
+        "imports"
+      ]
+    }
+  }
+}

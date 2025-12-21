@@ -20,6 +20,7 @@ from archeon.orchestrator.CTX_context import (
     GlyphProjection,
     create_minimal_prompt
 )
+from archeon.orchestrator.IDX_index import IndexBuilder, format_index_for_prompt
 from archeon.agents.base_agent import BaseAgent
 
 
@@ -66,6 +67,7 @@ class MicroAgentExecutor:
     2. Context is projected (1-hop only)
     3. Templates are used (never raw code)
     4. Total context fits in 60K tokens
+    5. Semantic index provides section awareness
     
     This is critical for running on a 5090 with a 30B model.
     """
@@ -74,12 +76,37 @@ class MicroAgentExecutor:
         self, 
         graph: KnowledgeGraph,
         agents: dict[str, BaseAgent],
-        model_size: str = "30b"
+        model_size: str = "30b",
+        project_root: Optional[str] = None
     ):
         self.graph = graph
         self.agents = agents
         self.budget = ContextBudget.for_model(model_size)
         self.projector = ContextProjector(graph, self.budget)
+        self._index_builder: Optional[IndexBuilder] = None
+        self._project_root = project_root or "."
+    
+    def _get_index_context(self, related_glyphs: list[str]) -> str:
+        """
+        Get semantic index context for related glyphs.
+        
+        This gives the AI visibility into existing file structure
+        and section organization for files it might need to reference.
+        """
+        if self._index_builder is None:
+            self._index_builder = IndexBuilder(self._project_root)
+            self._index_builder.load()
+        
+        # Filter to only glyphs that exist in the index
+        existing_glyphs = [
+            g for g in related_glyphs 
+            if g in self._index_builder.index.entries
+        ]
+        
+        if not existing_glyphs:
+            return ""
+        
+        return format_index_for_prompt(self._index_builder.index, existing_glyphs)
     
     def prepare_task(self, glyph_name: str, framework: str) -> Optional[MicroTask]:
         """
@@ -118,8 +145,14 @@ class MicroAgentExecutor:
             output_path=output_path
         )
         
-        # Generate prompt
-        task.prompt = create_minimal_prompt(projection, template)
+        # Get semantic index context for related glyphs
+        related_glyphs = [
+            n.qualified_name for n in projection.upstream + projection.downstream
+        ]
+        index_context = self._get_index_context(related_glyphs)
+        
+        # Generate prompt with index context
+        task.prompt = create_minimal_prompt(projection, template, index_context)
         
         # Verify within budget
         if task.token_estimate > self.budget.remaining:

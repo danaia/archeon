@@ -60,22 +60,26 @@ class STOAgent(BaseAgent):
         actions = self._extract_actions(glyph, chain)
 
         if store_lib == "pinia":
-            return self._generate_pinia_store(template, glyph, store_name, store_id, state_fields, actions)
+            return self._generate_pinia_store(template, glyph, chain, store_name, store_id, state_fields, actions)
         else:
-            return self._generate_zustand_store(template, glyph, store_name, state_fields, actions)
+            return self._generate_zustand_store(template, glyph, chain, store_name, state_fields, actions)
     
     def _generate_pinia_store(
         self, 
         template: str, 
-        glyph: GlyphNode, 
+        glyph: GlyphNode,
+        chain: ChainAST,
         store_name: str,
         store_id: str,
         state_fields: list[dict],
         actions: list[str]
     ) -> str:
         """Generate Pinia store for Vue 3."""
-        placeholders = {
-            "GLYPH_QUALIFIED_NAME": glyph.qualified_name,
+        # Get standard header placeholders for @archeon:file
+        placeholders = self.get_header_placeholders(glyph, chain)
+        
+        # Add Pinia-specific placeholders
+        placeholders.update({
             "STORE_NAME": store_name,
             "STORE_ID": store_id,
             "IMPORTS": "",
@@ -87,28 +91,32 @@ class STOAgent(BaseAgent):
             "STATE_RETURN": self._build_pinia_state_return(state_fields),
             "GETTERS_RETURN": self._build_pinia_getters_return(state_fields),
             "ACTIONS_RETURN": self._build_pinia_actions_return(actions),
-        }
+        })
         
         return self.fill_template(template, placeholders)
     
     def _generate_zustand_store(
         self, 
         template: str, 
-        glyph: GlyphNode, 
+        glyph: GlyphNode,
+        chain: ChainAST,
         store_name: str,
         state_fields: list[dict],
         actions: list[str]
     ) -> str:
         """Generate Zustand store for React."""
-        placeholders = {
-            "GLYPH_QUALIFIED_NAME": glyph.qualified_name,
+        # Get standard header placeholders for @archeon:file
+        placeholders = self.get_header_placeholders(glyph, chain)
+        
+        # Add Zustand-specific placeholders
+        placeholders.update({
             "STORE_NAME": store_name,
             "IMPORTS": "",
             "STATE_INTERFACE": self._build_zustand_state_interface(state_fields),
             "ACTIONS_INTERFACE": self._build_zustand_actions_interface(actions),
             "INITIAL_STATE": self._build_zustand_initial_state(state_fields),
             "ACTIONS": self._build_zustand_actions(actions),
-        }
+        })
         
         return self.fill_template(template, placeholders)
     

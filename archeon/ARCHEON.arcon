@@ -1,6 +1,83 @@
 # Archeon Knowledge Graph
-# Version: 2.0
+# Version: 3.0
 # Project: Archeon
+
+# ============================================================================
+# SEMANTIC SECTION SYSTEM
+# ============================================================================
+# Archeon uses comment-based semantic bracketing for AI-native code navigation.
+#
+# CORE PRINCIPLE:
+# The code describes itself using semantic comment brackets.
+# The index records *what sections exist*, not where they are.
+# The LLM uses section labels as attention anchors.
+#
+# FILE HEADER FORMAT (required at top of every generated file):
+# ```
+# // @archeon:file
+# // @glyph CMP:LoginForm
+# // @intent User login input and submission
+# // @chain @v1 NED:login => CMP:LoginForm => STO:Auth => API:POST/auth
+# ```
+#
+# SECTION FORMAT (inside files):
+# ```
+# // @archeon:section <snake_case_label>
+# // <1-sentence intent>
+# <code>
+# // @archeon:endsection
+# ```
+#
+# SECTION RULES:
+# - Sections MUST NOT nest
+# - Sections MUST be contiguous
+# - Section labels are STABLE identifiers
+# - Section comments are NEVER deleted without updating intent
+# - Code edits must occur INSIDE existing sections unless creating new one
+#
+# STANDARD SECTIONS BY GLYPH TYPE:
+# CMP: imports, props_and_state, handlers, render, styles
+# STO: imports, state, actions, selectors
+# API: imports, models, endpoint, helpers
+# FNC: imports, implementation, helpers
+# EVT: imports, channels, handlers
+# MDL: imports, schema, methods, indexes
+#
+# INDEX STRUCTURE (archeon/ARCHEON.index.json):
+# ```json
+# {
+#   "CMP:LoginForm": {
+#     "file": "components/LoginForm.vue",
+#     "intent": "User login input and submission",
+#     "chain": "@v1",
+#     "sections": ["props_and_state", "handlers", "render"]
+#   }
+# }
+# ```
+# ============================================================================
+
+# ============================================================================
+# AI INTEGRATION INSTRUCTIONS
+# ============================================================================
+# When the IDE AI (Copilot, Claude, etc.) generates Archeon-compatible files:
+#
+# 1. ALWAYS include the @archeon:file header with @glyph, @intent, @chain
+# 2. ALWAYS wrap code in @archeon:section / @archeon:endsection blocks
+# 3. ALWAYS update the index after creating/modifying files
+#
+# TO UPDATE INDEX (run in terminal after generating files):
+# ```bash
+# python -m archeon index build
+# ```
+#
+# OR in Python:
+# ```python
+# from archeon.orchestrator.IDX_index import build_index
+# build_index(".")
+# ```
+#
+# The AI should treat index updates as part of code generation - not optional.
+# ============================================================================
 
 # === ORCHESTRATOR LAYER (Deterministic) ===
 ORC:main :: PRS:glyph :: PRS:intent :: VAL:chain :: VAL:boundary :: VAL:version :: SPW:agent :: TST:e2e :: TST:error
@@ -12,6 +89,13 @@ GRF:domain :: ORC:main
 CTX:budget :: CTX:projection :: ORC:main
 CTX:projection :: GRF:domain
 MIC:executor :: CTX:projection :: SPW:agent
+
+# === SECTION SCANNER (Index Builder) ===
+# SCN scans files for @archeon:section markers and rebuilds index
+# IDX stores the semantic affordance map (glyph -> file -> sections)
+SCN:scanner :: IDX:index :: GRF:domain
+SCN:scanner :: PRS:glyph
+IDX:index :: CTX:projection
 
 # === DESIGN TOKEN LAYER ===
 # TKN transforms DTCG design tokens into CSS/Tailwind/JS outputs
