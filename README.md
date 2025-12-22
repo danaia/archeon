@@ -12,6 +12,8 @@ The most intuitive way to use Archeon is through **natural conversation** in you
 
 ### Quick Setup
 
+Archeon works by generating **IDE-specific rule files** that teach your AI assistant the glyph system. Each IDE has its own rules format:
+
 ```bash
 # 1. Install Archeon
 git clone git@github.com:danaia/archeon.git
@@ -21,8 +23,12 @@ pip install -e ./archeon
 mkdir my-app && cd my-app
 arc init --frontend vue3
 
-# 3. Configure your IDE's AI assistant
-arc ai-setup
+# 3. Generate rules for YOUR IDE
+arc ai-setup --cursor      # For Cursor → creates .cursorrules
+arc ai-setup --windsurf    # For Windsurf → creates .windsurfrules  
+arc ai-setup --copilot     # For GitHub Copilot → creates .github/copilot-instructions.md
+arc ai-setup --cline       # For Cline/Claude Dev → creates .clinerules
+arc ai-setup --vscode      # For VS Code → creates .vscode/settings.json
 ```
 
 That's it. **Now just chat.**
@@ -88,15 +94,16 @@ AI: Final chain:
 
 ### Supported IDEs
 
-| IDE | Config File | What It Does |
-|-----|------------|--------------|
-| **Cursor** | `.cursorrules` | AI reads + writes to ARCHEON.arcon |
-| **Windsurf** | `.windsurfrules` | Cascade AI follows the graph |
-| **VS Code + Copilot** | `.github/copilot-instructions.md` | Copilot Chat understands glyphs |
-| **Cline/Claude Dev** | `.clinerules` | Claude writes chains first |
-| **Aider** | `.aider.conf.yml` | Auto-loads graph context |
+Archeon is **rule-based** — it generates IDE-specific configuration files that constrain your AI assistant to the glyph taxonomy:
 
-All configured with one command: `arc ai-setup`
+| IDE | Command | Creates | What It Does |
+|-----|---------|---------|--------------|
+| **Cursor** | `arc ai-setup --cursor` | `.cursorrules` | AI reads + writes to ARCHEON.arcon |
+| **Windsurf** | `arc ai-setup --windsurf` | `.windsurfrules` | Cascade AI follows the graph |
+| **VS Code + Copilot** | `arc ai-setup --copilot` | `.github/copilot-instructions.md` | Copilot Chat understands glyphs |
+| **Cline/Claude Dev** | `arc ai-setup --cline` | `.clinerules` | Claude writes chains first |
+| **Aider** | `arc ai-setup --aider` | `.aider.conf.yml` | Auto-loads graph context |
+| **All at once** | `arc ai-setup` | All of the above | Full setup |
 
 ---
 
