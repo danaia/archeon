@@ -6,20 +6,43 @@
 
 This project uses Archeon, a glyph-based architecture notation system.
 
-### ⚠️ MANDATORY: Glyph-Code-Test Workflow
+### 🚨 CRITICAL: NEVER WRITE CODE WITHOUT UPDATING ARCHEON FILES
 
-**Every feature MUST follow this exact workflow:**
+**BEFORE writing ANY new file, you MUST:**
+1. ✅ Add the glyph chain to `archeon/ARCHEON.arcon`
+2. ✅ Write the code file(s)
+3. ✅ Update `archeon/ARCHEON.index.json` with the new file entry
+4. ✅ Run `arc validate` to verify
 
-1. **ADD GLYPH** → Write the chain to `archeon/ARCHEON.arcon`
-2. **WRITE CODE** → Implement the code for each glyph
-3. **RUN VALIDATE** → Execute `arc validate` to test architecture
+**These steps are NOT optional. Code without glyphs is architectural drift. Every single file must be tracked.**
 
-```bash
-# ALWAYS run after adding glyphs and writing code:
-arc validate
-```
+### ⚠️ MANDATORY: Glyph-Code-Index-Test Workflow
 
-**Never skip validation.** If it fails, fix issues before continuing.
+**Every feature MUST follow this exact workflow — NO EXCEPTIONS:**
+
+1. **ADD GLYPH CHAIN** → Write the chain to `archeon/ARCHEON.arcon`
+   ```
+   @v1 NED:feature => CMP:Component => STO:Store => API:POST/path => OUT:success
+   ```
+
+2. **WRITE CODE** → Implement the code for each glyph in the chain
+
+3. **UPDATE INDEX** → Add entry to `archeon/ARCHEON.index.json` for each new file
+   ```json
+   "CMP:Component": {
+     "file": "client/src/components/Component.vue",
+     "intent": "Description",
+     "chain": "@v1",
+     "sections": ["imports", "props_and_state", "handlers", "render"]
+   }
+   ```
+
+4. **RUN VALIDATE** → Execute `arc validate` to test architecture
+   ```bash
+   arc validate
+   ```
+
+**If you skip steps 1, 3, or 4, you have violated Archeon principles. Never skip these steps.**
 
 ### Critical Files - READ FIRST
 - `archeon/ARCHEON.arcon` - The knowledge graph defining all features
@@ -110,14 +133,16 @@ You CAN and SHOULD write glyph chains directly to `archeon/ARCHEON.arcon`.
 ```
 
 ### Hard Rules
-1. **Always read ARCHEON.arcon first** before generating any code
-11. **Always read ARCHEON.index.json before generating any code for context. 
-2. **You can add chains** - write new chains following the format above
-3. **Never invent architecture outside the graph** - add the chain first, then implement
-4. **Respect layer boundaries** - CMP cannot directly access MDL
-5. **All features must have outcomes** - chains end with OUT: or ERR:
-6. **Increment versions** - when modifying a feature, create `@v2`, `@v3`, etc.
-7. **Always validate** - run `arc validate` after every code change
+1. **🚨 ALWAYS add chains to ARCHEON.arcon BEFORE writing code** - No code without a glyph chain
+2. **🚨 ALWAYS update ARCHEON.index.json AFTER creating files** - Every file must be indexed
+3. **Always read ARCHEON.arcon first** before generating any code
+4. **Always read ARCHEON.index.json** before generating any code for context
+5. **You can and MUST add chains** - write new chains following the format above
+6. **Never invent architecture outside the graph** - add the chain first, then implement
+7. **Respect layer boundaries** - CMP cannot directly access MDL
+8. **All features must have outcomes** - chains end with OUT: or ERR:
+9. **Increment versions** - when modifying a feature, create `@v2`, `@v3`, etc.
+10. **🚨 ALWAYS validate** - run `arc validate` after every code change
 
 ### ⚠️ MANDATORY: File Headers and Semantic Sections
 
