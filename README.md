@@ -9,7 +9,7 @@ Archeon provides a hyper-compressed, human-readable **intermediate representatio
 ```bash
 # Clone and install globally
 git clone git@github.com:danaia/archeon.git
-pip install -e ./Archeon
+pip install -e ./archeon
 
 # Verify installation
 arc --version
