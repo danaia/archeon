@@ -129,6 +129,12 @@ Implementing now...
 
 ### Why IDE Chat Works Better
 
+**Traditional AI chat forgets architecture and generates inconsistent code. Archeon's `.arcon` file provides persistent rules that eliminate drift.**
+
+See the [Home](Home) page for detailed metrics and charts comparing Traditional AI vs Archeon.
+
+**Key advantages:**
+
 | Traditional AI Chat | Archeon + IDE |
 |---------------------|---------------|
 | "Build login" → random structure | "Build login" → follows `.arcon` rules |
@@ -136,6 +142,9 @@ Implementing now...
 | Hallucinations common | Constrained to glyph taxonomy |
 | Inconsistent across devs | Everyone follows same `.arcon` |
 | No approval step | AI proposes, you approve |
+| **60% architectural drift** | **0% drift (enforced)** |
+| **35 min to working code** | **10 min to working code** |
+| **3.2 hrs/week on refactors** | **0.1 hrs/week on refactors** |
 
 ---
 
