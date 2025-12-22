@@ -269,22 +269,22 @@ my-app/
 
 ## 📚 Documentation
 
-For complete guides, see the [wiki documentation](wiki/):
+For complete guides, see the [wiki documentation](https://github.com/danaia/archeon/wiki):
 
 ### Getting Started
-- [Installation](wiki/Installation.md) — Install via pip
-- [Quick Start](wiki/Quick-Start.md) — First project in 5 minutes
+- [Installation](https://github.com/danaia/archeon/wiki/Installation) — Install via pip
+- [Quick Start](https://github.com/danaia/archeon/wiki/Quick-Start) — First project in 5 minutes
 
 ### Core Concepts
-- [Glyph Reference](wiki/Glyph-Reference.md) — All 16 glyph types
-- [Chain Syntax](wiki/Chain-Syntax.md) — Composition rules and validation
-- [Natural Language Intent](wiki/Natural-Language-Intent.md) — Plain English → chains
-- [Knowledge Graph](wiki/Knowledge-Graph.md) — The `.arcon` file explained
+- [Glyph Reference](https://github.com/danaia/archeon/wiki/Glyph-Reference) — All 16 glyph types
+- [Chain Syntax](https://github.com/danaia/archeon/wiki/Chain-Syntax) — Composition rules and validation
+- [Natural Language Intent](https://github.com/danaia/archeon/wiki/Natural-Language-Intent) — Plain English → chains
+- [Knowledge Graph](https://github.com/danaia/archeon/wiki/Knowledge-Graph) — The `.arcon` file explained
 
 ### Reference
-- [CLI Commands](wiki/CLI-Commands.md) — Complete command reference
-- [Templates](wiki/Templates.md) — Template customization
-- [Architecture](wiki/Architecture.md) — System design and mechanisms
+- [CLI Commands](https://github.com/danaia/archeon/wiki/CLI-Commands) — Complete command reference
+- [Templates](https://github.com/danaia/archeon/wiki/Templates) — Template customization
+- [Architecture](https://github.com/danaia/archeon/wiki/Architecture) — System design and mechanisms
 
 ---
 
