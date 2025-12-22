@@ -37,6 +37,9 @@ env.bak/
 venv.bak/
 .python-version
 
+# === Docs DIR ===
+docs/
+
 # === Testing ===
 .pytest_cache/
 .coverage
