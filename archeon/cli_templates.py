@@ -151,19 +151,52 @@ cd client && npm test
 cd server && python -m pytest tests/ -v
 ```
 
-## Code Generation
+## Code Generation - Two Paths
 
-After chains are defined:
+There are TWO ways to create Archeon-compatible files. Both require updating the index.
+
+### Path 1: Use `arc gen` (Recommended for CLI)
 
 ```bash
-# Generate all code from the knowledge graph
+# First, add chains to ARCHEON.arcon
+arc parse "NED:login => CMP:LoginForm => STO:Auth => API:POST/auth => OUT:dashboard"
+
+# Generate all code from the knowledge graph (auto-updates index)
 arc gen
 
-# Then validate
+# Validate architecture
 arc validate
-
-# Or AI implements manually following the chains, then validates
 ```
+
+`arc gen` automatically:
+- Creates files with proper `@archeon:file` headers
+- Adds `@archeon:section` markers
+- Updates `archeon/ARCHEON.index.json`
+
+### Path 2: Manual File Creation (For IDE AI like Copilot/Claude)
+
+When the AI creates files manually:
+
+```bash
+# Step 1: AI creates files WITH headers and sections (see format below)
+# Step 2: ALWAYS update the index after creating/modifying files:
+arc index build
+
+# Step 3: Validate
+arc validate
+```
+
+**⚠️ CRITICAL:** If you create files manually without running `arc index build`, the files will be INVISIBLE to the Archeon system. The index is how Archeon knows what files exist and what sections they contain.
+
+### Quick Reference
+
+| Action | Command |
+|--------|---------|
+| Generate files from chains | `arc gen` (auto-updates index) |
+| After manually creating files | `arc index build` |
+| Check for files missing headers | `arc index check` |
+| Add header to existing file | `arc index inject --path <file> --glyph <GLYPH> ...` |
+| View current index | `arc index show` |
 
 ## Project Structure After Init
 
@@ -428,4 +461,108 @@ arc validate
 4. **Test Continuously**: Run tests after validation passes
 
 The knowledge graph is the single source of truth. Every component, store, API, and model should be represented as a glyph in a chain before implementation.
+
+---
+
+## ⚠️ CRITICAL: File Headers and Semantic Sections
+
+**EVERY generated file MUST include Archeon headers and section markers.** This enables AI-native code navigation via the semantic index.
+
+### File Header Format (REQUIRED at top of every file)
+
+**Vue/HTML files:**
+```vue
+<!-- @archeon:file -->
+<!-- @glyph CMP:LoginForm -->
+<!-- @intent User login input and submission -->
+<!-- @chain @v1 NED:login => CMP:LoginForm => STO:Auth => API:POST/auth => OUT:dashboard -->
+```
+
+**JavaScript/TypeScript files:**
+```javascript
+// @archeon:file
+// @glyph STO:Auth
+// @intent Authentication state management
+// @chain @v1 NED:login => CMP:LoginForm => STO:Auth => API:POST/auth => OUT:dashboard
+```
+
+**Python files:**
+```python
+# @archeon:file
+# @glyph API:POST./auth/login
+# @intent Authentication endpoint for user login
+# @chain @v1 NED:login => CMP:LoginForm => STO:Auth => API:POST/auth/login => OUT:dashboard
+```
+
+### Section Markers (REQUIRED to wrap code blocks)
+
+Wrap logical code blocks in section markers:
+
+```javascript
+// @archeon:section imports
+import { ref, computed } from 'vue';
+import { useAuthStore } from '@/stores/auth';
+// @archeon:endsection
+
+// @archeon:section props_and_state
+const email = ref('');
+const password = ref('');
+const loading = ref(false);
+// @archeon:endsection
+
+// @archeon:section handlers
+async function submitLogin() {
+  // implementation
+}
+// @archeon:endsection
+```
+
+### Standard Sections by Glyph Type
+
+| Glyph Type | Required Sections |
+|------------|-------------------|
+| `CMP` | `imports`, `props_and_state`, `handlers`, `render`, `styles` |
+| `STO` | `imports`, `state`, `actions`, `selectors` |
+| `API` | `imports`, `models`, `endpoint`, `helpers` |
+| `FNC` | `imports`, `implementation`, `helpers` |
+| `EVT` | `imports`, `channels`, `handlers` |
+| `MDL` | `imports`, `schema`, `methods`, `indexes` |
+
+### Section Rules
+
+1. **Sections MUST NOT nest** - no section inside another section
+2. **Sections MUST be contiguous** - no gaps between start and end
+3. **Section labels are STABLE** - don't rename without updating index
+4. **Code edits occur INSIDE sections** - unless creating a new section
+
+### ⚠️ MANDATORY: Update the Index After Creating Files
+
+**Every time you create or modify a file with `@archeon:file` headers, you MUST run:**
+
+```bash
+# ALWAYS run after generating files to update ARCHEON.index.json
+arc index build
+```
+
+This scans all files for `@archeon:file` headers and section markers, building the semantic index that enables AI navigation.
+
+### Checking for Missing Headers
+
+```bash
+# Find files that should have headers but don't
+arc index check
+
+# Inject a header into an existing file
+arc index inject --path <file> --glyph <GLYPH> --intent "<intent>" --chain "<chain>"
+```
+
+### Why This Matters
+
+The semantic index (`archeon/ARCHEON.index.json`) enables:
+- **AI attention routing** - LLMs know exactly which files/sections to read
+- **Architecture awareness** - Every file declares its glyph ownership
+- **Refactor stability** - Section names survive code movement (unlike line numbers)
+- **Minimal context** - AI reads index metadata instead of entire files
+
+**Without headers and sections, files are invisible to the Archeon system.**
 '''

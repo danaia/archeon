@@ -355,3 +355,113 @@ STANDARD_SECTIONS = {
 def get_standard_sections(glyph_prefix: str) -> list[str]:
     """Get the standard section names for a glyph type."""
     return STANDARD_SECTIONS.get(glyph_prefix, ['imports', 'implementation'])
+
+
+def find_files_missing_headers(
+    directory: str,
+    extensions: Optional[list[str]] = None,
+    include_patterns: Optional[list[str]] = None
+) -> list[str]:
+    """
+    Find files that look like they should be Archeon files but lack headers.
+    
+    Detects files in standard Archeon paths (components/, stores/, api/routes/, models/)
+    that don't have @archeon:file markers.
+    
+    Args:
+        directory: Directory to scan
+        extensions: File extensions to check
+        include_patterns: Path patterns that indicate Archeon files
+        
+    Returns:
+        List of file paths that are missing headers
+    """
+    if extensions is None:
+        extensions = list(EXT_TO_LANG.keys())
+    
+    if include_patterns is None:
+        include_patterns = [
+            'components/', 'stores/', 'api/routes/', 'models/',
+            'lib/', 'events/', 'views/'
+        ]
+    
+    # Directories to always skip
+    skip_dirs = [
+        'node_modules', '__pycache__', '.git', 'dist', 'build', 'templates/',
+        '.venv', 'venv', '.env', 'env', 'site-packages', '.tox', '.nox',
+        '.mypy_cache', '.pytest_cache', '.ruff_cache', 'htmlcov', '.coverage',
+        '__pypackages__', '.eggs', '*.egg-info'
+    ]
+    
+    missing = []
+    dir_path = Path(directory)
+    
+    for ext in extensions:
+        for filepath in dir_path.rglob(f"*{ext}"):
+            path_str = str(filepath)
+            
+            # Skip ignored directories
+            if any(skip in path_str for skip in skip_dirs):
+                continue
+            
+            # Check if path matches Archeon patterns
+            if not any(pattern in path_str for pattern in include_patterns):
+                continue
+            
+            # Check if file has @archeon:file marker
+            scanned = scan_file(path_str)
+            if not scanned.is_archeon_file:
+                missing.append(path_str)
+    
+    return missing
+
+
+def inject_header(
+    filepath: str,
+    glyph: str,
+    intent: str,
+    chain: str
+) -> str:
+    """
+    Inject an @archeon:file header into an existing file.
+    
+    Args:
+        filepath: Path to the file
+        glyph: Qualified glyph name (e.g., "CMP:LoginForm")
+        intent: One-sentence description
+        chain: Chain reference (e.g., "@v1 NED:login => CMP:LoginForm => ...")
+        
+    Returns:
+        The updated file content
+    """
+    content = Path(filepath).read_text()
+    ext = Path(filepath).suffix.lower()
+    
+    # Determine comment style
+    if ext in ['.vue', '.html', '.svelte']:
+        header = f"""<!-- @archeon:file -->
+<!-- @glyph {glyph} -->
+<!-- @intent {intent} -->
+<!-- @chain {chain} -->
+
+"""
+    elif ext in ['.py']:
+        header = f"""# @archeon:file
+# @glyph {glyph}
+# @intent {intent}
+# @chain {chain}
+
+"""
+    else:  # JS, TS, etc.
+        header = f"""// @archeon:file
+// @glyph {glyph}
+// @intent {intent}
+// @chain {chain}
+
+"""
+    
+    # Don't duplicate if already has header
+    if '@archeon:file' in content:
+        return content
+    
+    return header + content

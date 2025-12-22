@@ -138,7 +138,7 @@ def init(
             except Exception:
                 pass  # Non-fatal: tokens can be generated later with `arc tokens build`
     
-    # Create ARCHEON.arcon
+    # Create ARCHEON.arcon (also creates ARCHEON.index.json)
     create_arcon_file(archeon_dir, target.name)
     
     # Create .archeonrc config file
@@ -149,6 +149,7 @@ def init(
     
     rprint(f"[green]✓[/green] Initialized Archeon project at [bold]{archeon_dir}[/bold]")
     rprint(f"  Created {DEFAULT_ARCON}")
+    rprint(f"  Created ARCHEON.index.json (semantic index)")
     rprint(f"  Created .archeonrc")
     rprint(f"  Copied {frontend}/{backend} templates to archeon/templates/")
     rprint(f"  Created orchestrator/README.md (glyph reference)")
@@ -224,146 +225,14 @@ def ai_setup(
             if flags[key] is None:
                 flags[key] = True
     
-    # Archeon context block (shared across all configs)
-    archeon_context = '''## Archeon Architecture System
-
-This project uses Archeon, a glyph-based architecture notation system.
-
-### ⚠️ MANDATORY: Glyph-Code-Test Workflow
-
-**Every feature MUST follow this exact workflow:**
-
-1. **ADD GLYPH** → Write the chain to `archeon/ARCHEON.arcon`
-2. **WRITE CODE** → Implement the code for each glyph
-3. **RUN VALIDATE** → Execute `arc validate` to test architecture
-
-```bash
-# ALWAYS run after adding glyphs and writing code:
-arc validate
-```
-
-**Never skip validation.** If it fails, fix issues before continuing.
-
-### Critical Files - READ FIRST
-- `archeon/ARCHEON.arcon` - The knowledge graph defining all features
-- `archeon/AI_README.md` - **Provisioning guide** (how to create new projects)
-- `.archeonrc` - Project configuration (frontend, backend, paths)
-
-### Creating New Projects
-If the user asks to create a new application (React, Vue, etc.), read `archeon/AI_README.md` for shell commands:
-```bash
-mkdir project-name && cd project-name
-arc init --frontend vue3  # or react (default)
-arc ai-setup
-```
-
-### Glyph Notation
-Features are defined as chains:
-```
-NED:login => CMP:LoginForm => STO:Auth => API:POST/auth => MDL:user => OUT:dashboard
-```
-
-| Glyph | Meaning |
-|-------|---------|
-| `NED:` | User need/motivation |
-| `TSK:` | User task/action |
-| `CMP:` | UI Component |
-| `STO:` | State store |
-| `API:` | HTTP endpoint |
-| `MDL:` | Data model (API schemas + database) |
-| `FNC:` | Utility function |
-| `EVT:` | Event handler |
-| `OUT:` | Success outcome |
-| `ERR:` | Error path |
-
-### Edge Types
-- `=>` Structural flow (no cycles)
-- `~>` Reactive subscription (cycles OK)
-- `->` Control/branching
-- `::` Containment
-
-### The Complete Workflow (REQUIRED)
-
-**Step 1: Add Glyph Chain**
-```bash
-arc parse "NED:feature => CMP:Component => STO:Store => API:POST/path => MDL:model => OUT:result"
-```
-Or write directly to `archeon/ARCHEON.arcon`.
-
-**Step 2: Implement Code**
-Write code for each glyph in the chain.
-
-**Step 3: Validate Architecture**
-```bash
-arc validate
-```
-This checks:
-- All glyphs have corresponding code
-- No boundary violations (CMP cannot access MDL)
-- No cycles in structural edges
-- API endpoints have error handlers
-
-**Step 4: Run Tests**
-```bash
-cd client && npm test      # Frontend
-cd server && pytest        # Backend
-```
-
-### Writing Glyph Chains
-You CAN and SHOULD write glyph chains directly to `archeon/ARCHEON.arcon`.
-
-**Chain Format:**
-```
-@v1 NED:feature => CMP:Component => STO:Store => API:METHOD/path => MDL:model => OUT:result
-```
-
-**Writing Rules:**
-1. Add new chains under `# === AGENT CHAINS ===` section
-2. Use incremental version tags: if `@v1 NED:login` exists, next version is `@v2 NED:login`
-3. Chains must start with `NED:` or `TSK:` and end with `OUT:` or `ERR:`
-4. Use PascalCase for components/stores: `CMP:LoginForm`, `STO:AuthStore`
-5. Use METHOD/path for APIs: `API:POST/auth/login`, `API:GET/users/{id}`
-6. Add comments above chains to describe the feature
-
-**Example - Adding a new feature:**
-```
-# User registration with email verification
-@v1 NED:register => CMP:RegisterForm => STO:Auth => API:POST/auth/register => MDL:user => EVT:sendVerificationEmail => OUT:checkEmail
-```
-
-### Hard Rules
-1. **Always read ARCHEON.arcon first** before generating any code
-2. **You can add chains** - write new chains following the format above
-3. **Never invent architecture outside the graph** - add the chain first, then implement
-4. **Respect layer boundaries** - CMP cannot directly access MDL
-5. **All features must have outcomes** - chains end with OUT: or ERR:
-6. **Increment versions** - when modifying a feature, create `@v2`, `@v3`, etc.
-7. **Always validate** - run `arc validate` after every code change
-
-### Backend Route Registration (CRITICAL)
-When creating API endpoints, you MUST also update `server/src/main.py`:
-
-```python
-# Import the new route module
-from server.src.api.routes import auth_login
-
-# Register the router
-app.include_router(auth_login.router)
-```
-
-**Every API glyph requires:**
-1. Create route file: `server/src/api/routes/{name}.py`
-2. Import in `server/src/main.py`
-3. Call `app.include_router(module.router)`
-4. Run `arc validate`
-
-### Commands
-- `arc intent "description"` - Propose new feature from natural language
-- `arc parse "chain"` - Add glyph chain directly  
-- `arc gen` - Generate code from knowledge graph
-- `arc status` - Show graph statistics
-- `arc validate` - **Check architecture integrity (REQUIRED after every change)**
-'''
+    # Load shared AI rules from template file
+    rules_file = Path(__file__).parent / "templates" / "_config" / "ai-rules.md"
+    if rules_file.exists():
+        archeon_rules = rules_file.read_text()
+    else:
+        # Fallback if rules file not found
+        archeon_rules = "# Archeon AI Rules\n\nSee archeon/ARCHEON.arcon for architecture.\n"
+        rprint(f"[yellow]![/yellow] Rules template not found at {rules_file}, using fallback")
     
     if flags['cursor']:
         cursor_dir = target / ".cursor"
@@ -373,17 +242,7 @@ app.include_router(auth_login.router)
         cursor_file = target / ".cursorrules"
         cursor_file.write_text(f'''# Archeon Project Rules for Cursor
 
-{archeon_context}
-
-### Cursor-Specific Instructions
-When asked to implement a feature:
-1. First, read `archeon/ARCHEON.arcon`
-2. Check if the feature exists as a chain
-3. If NOT, write a new chain to `archeon/ARCHEON.arcon` under `# === AGENT CHAINS ===`
-4. Implement the code following the chain structure exactly
-5. **Run `arc validate`** to verify the implementation
-6. Fix any validation errors before considering the task complete
-7. Do not add components, stores, or APIs not represented in the graph
+{archeon_rules}
 ''')
         
         # Create README in .cursor directory
@@ -395,7 +254,8 @@ The `.cursorrules` file in your project root tells Cursor to:
 1. Always read `archeon/ARCHEON.arcon` before generating code
 2. Write new chains to the knowledge graph for new features
 3. Respect the glyph-based architecture
-4. **Run `arc validate` after every code change**
+4. Update `archeon/ARCHEON.index.json` when creating files or sections
+5. **Run `arc validate` after every code change**
 
 ## The Glyph-Code-Test Workflow
 
@@ -403,32 +263,10 @@ Every feature follows this mandatory workflow:
 
 ```
 1. ADD GLYPH    → Write chain to ARCHEON.arcon
-2. WRITE CODE   → Implement each glyph
-3. RUN VALIDATE → arc validate (REQUIRED)
-4. RUN TESTS    → npm test / pytest
-```
-
-## How It Works
-
-When you ask Cursor to implement something, it will:
-- Check the knowledge graph first
-- If the feature doesn't exist, ADD A NEW CHAIN first
-- Implement code following that chain
-- Run `arc validate` to verify architecture
-- Fix any validation errors
-
-## Example Prompts
-
-```
-"Create a user registration feature"
-→ Cursor adds: @v1 NED:register => CMP:RegisterForm => STO:Auth => API:POST/auth/register => MDL:user => OUT:success
-→ Implements the code
-→ Runs arc validate
-→ Fixes any issues
-
-"Read archeon/ARCHEON.arcon and implement the login feature"
-"What chains are defined in this project?"
-"Add a password reset flow to the knowledge graph"
+2. WRITE CODE   → Implement each glyph (with headers + sections)
+3. UPDATE INDEX → Add glyphs/sections to ARCHEON.index.json
+4. RUN VALIDATE → arc validate (REQUIRED)
+5. RUN TESTS    → npm test / pytest
 ```
 
 ## More Info
@@ -445,13 +283,7 @@ When you ask Cursor to implement something, it will:
         copilot_file = github_dir / "copilot-instructions.md"
         copilot_file.write_text(f'''# GitHub Copilot Instructions
 
-{archeon_context}
-
-### For Copilot Chat
-When implementing features:
-1. Always read `archeon/ARCHEON.arcon` first
-2. If the feature doesn't exist, write a new chain to `ARCHEON.arcon`
-3. Then implement the code following that chain
+{archeon_rules}
 ''')
         
         # Create README for GitHub Copilot setup
@@ -462,7 +294,9 @@ When implementing features:
 The `copilot-instructions.md` file tells GitHub Copilot to:
 1. Reference `archeon/ARCHEON.arcon` for architecture context
 2. Write new chains to the knowledge graph when needed
-3. Understand glyph notation (NED, CMP, STO, API, etc.)
+3. Add @archeon:file headers and @archeon:section markers to all files
+4. Update `archeon/ARCHEON.index.json` when creating files or sections
+5. Understand glyph notation (NED, CMP, STO, API, etc.)
 
 ## How It Works
 
@@ -471,23 +305,7 @@ When you ask Copilot to generate code, it will:
 - Check the knowledge graph first  
 - If feature doesn't exist, ADD A NEW CHAIN first
 - Then implement code following the chain
-
-## VS Code Setup
-
-1. Ensure GitHub Copilot extension is installed
-2. The instructions file is auto-detected from `.github/`
-3. In Copilot Chat, the context is applied automatically
-
-## Example Prompts
-
-```
-@workspace Create a user profile feature
-→ Copilot adds chain to ARCHEON.arcon, then implements
-
-@workspace Read ARCHEON.arcon and implement the login feature
-@workspace What chains are defined in this project?
-@workspace Add a password reset flow to the architecture
-```
+- Update the index with new glyphs and sections
 
 ## More Info
 
@@ -505,13 +323,7 @@ When you ask Copilot to generate code, it will:
         windsurf_file = target / ".windsurfrules"
         windsurf_file.write_text(f'''# Archeon Rules for Windsurf
 
-{archeon_context}
-
-### Windsurf-Specific
-Before any code generation task:
-1. Read archeon/ARCHEON.arcon
-2. If the feature doesn't exist, write a new chain first
-3. Then implement code following the chain structure
+{archeon_rules}
 ''')
         
         # Create README
@@ -522,7 +334,9 @@ Before any code generation task:
 The `.windsurfrules` file tells Windsurf (Codeium) to:
 1. Read `archeon/ARCHEON.arcon` before generating code
 2. Write new chains when features don't exist
-3. Follow the glyph-based architecture
+3. Add @archeon:file headers and @archeon:section markers to all files
+4. Update `archeon/ARCHEON.index.json` when creating files or sections
+5. Follow the glyph-based architecture
 
 ## How It Works
 
@@ -531,16 +345,7 @@ When generating code, it will:
 - Check existing chains in the knowledge graph
 - If feature doesn't exist, ADD A NEW CHAIN first
 - Then implement following the chain
-
-## Example Prompts
-
-```
-"Create a user settings feature"
-→ Windsurf adds chain to ARCHEON.arcon, then implements
-
-"Check ARCHEON.arcon and implement the defined chains"
-"Add a notifications system to the architecture"
-```
+- Update the index with new glyphs and sections
 
 ## More Info
 
@@ -557,10 +362,7 @@ When generating code, it will:
         cline_file = target / ".clinerules"
         cline_file.write_text(f'''# Archeon Rules for Cline/Claude Dev
 
-{archeon_context}
-
-IMPORTANT: Always read archeon/ARCHEON.arcon before any task.
-If a feature doesn't exist, write a new chain to ARCHEON.arcon first, then implement.
+{archeon_rules}
 ''')
         
         # Create README
@@ -571,7 +373,9 @@ If a feature doesn't exist, write a new chain to ARCHEON.arcon first, then imple
 The `.clinerules` file tells Cline (Claude Dev) to:
 1. Read `archeon/ARCHEON.arcon` as first action
 2. Write new chains when features don't exist
-3. Follow glyph-based architecture constraints
+3. Add @archeon:file headers and @archeon:section markers to all files
+4. Update `archeon/ARCHEON.index.json` when creating files or sections
+5. Follow glyph-based architecture constraints
 
 ## How It Works
 
@@ -580,17 +384,7 @@ Before any code task, it will:
 - Check the knowledge graph for existing chains
 - If feature doesn't exist, ADD A NEW CHAIN first
 - Then implement following the chain
-
-## Example Prompts
-
-```
-"Create a shopping cart feature"
-→ Cline adds chain to ARCHEON.arcon, then implements
-
-"Read ARCHEON.arcon and summarize the architecture"
-"Add a checkout flow to the knowledge graph"
-"Implement CMP:LoginForm as defined in the graph"
-```
+- Update the index with new glyphs and sections
 
 ## More Info
 
@@ -610,6 +404,8 @@ Before any code task, it will:
 # Always include these files in context
 read:
   - archeon/ARCHEON.arcon
+  - archeon/ARCHEON.index.json
+  - archeon/templates/_config/ai-rules.md
   - .archeonrc
 
 # Don't auto-commit so user can review
@@ -620,9 +416,16 @@ model-settings-yaml: |
   extra_params:
     system: |
       This project uses Archeon glyph notation.
-      Always read archeon/ARCHEON.arcon before generating code.
-      If a feature doesn't exist, write a new chain to ARCHEON.arcon first.
-      Then implement code following that chain.
+      Read archeon/templates/_config/ai-rules.md for the complete rules.
+      
+      Key rules:
+      - Always read archeon/ARCHEON.arcon before generating code
+      - If a feature doesn't exist, write a new chain to ARCHEON.arcon first
+      - EVERY file MUST have @archeon:file headers at top with @glyph, @intent, @chain
+      - EVERY file MUST use @archeon:section / @archeon:endsection markers
+      - ALWAYS update archeon/ARCHEON.index.json when creating files or adding sections
+      - The index MUST stay in sync with the code
+      - Run arc validate after implementation
 ''')
         
         # Create README
@@ -632,38 +435,18 @@ model-settings-yaml: |
 
 The `.aider.conf.yml` configures Aider to:
 1. Auto-include `archeon/ARCHEON.arcon` in context
-2. Include `.archeonrc` for project config
-3. Disable auto-commits for review
+2. Auto-include `archeon/templates/_config/ai-rules.md` for rules
+3. Include `.archeonrc` for project config
+4. Disable auto-commits for review
 
 ## How It Works
 
 When you run `aider`, it will:
-- Automatically load the knowledge graph
+- Automatically load the knowledge graph and rules
 - If feature doesn't exist, ADD A NEW CHAIN first
 - Then implement code following the chain
+- Update the index with new glyphs and sections
 - Wait for your approval before committing
-
-## Usage
-
-```bash
-# Start aider in your project
-cd your-project
-aider
-
-# Aider will auto-load ARCHEON.arcon
-# Just ask it to implement features
-```
-
-## Example Session
-
-```
-> Create a user settings feature
-
-Aider: I'll add this chain to ARCHEON.arcon:
-  @v1 NED:settings => CMP:SettingsForm => STO:UserSettings => API:PUT/user/settings => MDL:user => OUT:saved
-  
-Now implementing each component...
-```
 
 ## More Info
 
@@ -694,7 +477,7 @@ Now implementing each component...
         settings["search.include"]["archeon/**"] = True
         
         settings["github.copilot.chat.codeGeneration.instructions"] = [
-            {"text": "Always reference archeon/ARCHEON.arcon for architecture. This project uses Archeon glyph notation. Do not invent architecture outside the knowledge graph."}
+            {"text": "Always reference archeon/ARCHEON.arcon for architecture and archeon/templates/_config/ai-rules.md for complete rules. This project uses Archeon glyph notation. Do not invent architecture outside the knowledge graph. EVERY file MUST have @archeon:file headers and @archeon:section markers. ALWAYS update archeon/ARCHEON.index.json when creating files or adding sections."}
         ]
         
         import json
@@ -708,7 +491,7 @@ Now implementing each component...
 The `settings.json` has been updated with:
 1. File association: `*.arcon` → Markdown syntax highlighting
 2. Search include: `archeon/` folder included in searches  
-3. Copilot instructions: Reference knowledge graph for code generation
+3. Copilot instructions: Reference knowledge graph and rules for code generation
 
 ## What This Enables
 
@@ -724,19 +507,11 @@ The `settings.json` has been updated with:
 - Copilot Chat references the knowledge graph
 - Better architecture-aware suggestions
 
-## Recommended Extensions
+## Key Files
 
-For the best Archeon experience, install:
-
-1. **GitHub Copilot** - AI code completion
-2. **Markdown Preview** - Preview .arcon files
-3. **Error Lens** - Inline error display
-
-## Useful Shortcuts
-
-- `Ctrl/Cmd + P` → type `ARCHEON.arcon` to open knowledge graph
-- `Ctrl/Cmd + Shift + F` → search for glyph names
-- `Ctrl/Cmd + Shift + E` → file explorer to browse archeon/
+- `archeon/ARCHEON.arcon` - Knowledge graph (chains)
+- `archeon/ARCHEON.index.json` - Semantic index (glyph→file mapping)
+- `archeon/templates/_config/ai-rules.md` - Complete AI rules
 
 ## More Info
 
@@ -757,7 +532,7 @@ For the best Archeon experience, install:
         for f in created:
             rprint(f"  [cyan]{f}[/cyan]")
         rprint(f"\n[dim]Your IDE AI will now reference the Archeon knowledge graph.[/dim]")
-        rprint(f"[dim]Check the README files in each directory for setup details.[/dim]")
+        rprint(f"[dim]Rules loaded from: archeon/templates/_config/ai-rules.md[/dim]")
     else:
         rprint("[yellow]No configurations generated. Use --cursor, --copilot, etc.[/yellow]")
 
@@ -1811,10 +1586,12 @@ def serve(
 
 @app.command()
 def index(
-    action: str = typer.Argument("build", help="Action: build, show, scan"),
-    path: Optional[str] = typer.Option(None, "--path", "-p", help="Directory to scan"),
+    action: str = typer.Argument("build", help="Action: build, show, scan, check, inject"),
+    path: Optional[str] = typer.Option(None, "--path", "-p", help="Directory or file to scan"),
     output: Optional[str] = typer.Option(None, "--output", "-o", help="Output file path"),
-    glyph: Optional[str] = typer.Option(None, "--glyph", "-g", help="Show specific glyph"),
+    glyph: Optional[str] = typer.Option(None, "--glyph", "-g", help="Glyph for show/inject"),
+    intent: Optional[str] = typer.Option(None, "--intent", "-i", help="Intent for inject"),
+    chain: Optional[str] = typer.Option(None, "--chain", "-c", help="Chain reference for inject"),
 ):
     """Build and manage the semantic section index (ARCHEON.index.json).
     
@@ -1827,6 +1604,8 @@ def index(
     - build: Scan files and rebuild ARCHEON.index.json
     - show: Display the current index
     - scan: Scan a single file for sections
+    - check: Find files that are missing @archeon:file headers
+    - inject: Add @archeon:file header to an existing file
     """
     from archeon.orchestrator.IDX_index import (
         IndexBuilder,
@@ -1834,9 +1613,14 @@ def index(
         load_index,
         format_index_for_prompt,
     )
-    from archeon.orchestrator.SCN_scanner import scan_file, validate_sections
+    from archeon.orchestrator.SCN_scanner import (
+        scan_file,
+        validate_sections,
+        find_files_missing_headers,
+        inject_header,
+    )
     
-    project_root = Path(path) if path else Path.cwd()
+    project_root = Path(path) if path and Path(path).is_dir() else Path.cwd()
     
     if action == "build":
         # Build the index
@@ -1913,9 +1697,55 @@ def index(
             for err in errors:
                 rprint(f"  [yellow]⚠[/yellow] {err}")
     
+    elif action == "check":
+        # Find files missing headers
+        rprint(f"[cyan]Checking for files missing @archeon:file headers...[/cyan]\n")
+        
+        missing = find_files_missing_headers(str(project_root))
+        
+        if not missing:
+            rprint("[green]✓[/green] All files in Archeon paths have headers!")
+        else:
+            rprint(f"[yellow]⚠[/yellow] Found [bold]{len(missing)}[/bold] files without @archeon:file headers:\n")
+            for f in missing:
+                rel_path = Path(f).relative_to(project_root) if project_root in Path(f).parents else f
+                rprint(f"  [yellow]•[/yellow] {rel_path}")
+            
+            rprint(f"\n[bold]To add headers, use:[/bold]")
+            rprint(f"  [cyan]arc index inject --path <file> --glyph <GLYPH> --intent '<intent>' --chain '<chain>'[/cyan]")
+    
+    elif action == "inject":
+        # Inject header into a file
+        if not path:
+            rprint("[red]✗[/red] --path required for inject action")
+            raise typer.Exit(1)
+        if not glyph:
+            rprint("[red]✗[/red] --glyph required for inject action")
+            rprint("  Example: --glyph CMP:LoginForm")
+            raise typer.Exit(1)
+        
+        file_path = Path(path)
+        if not file_path.exists():
+            rprint(f"[red]✗[/red] File not found: {path}")
+            raise typer.Exit(1)
+        
+        # Default intent and chain if not provided
+        intent_str = intent or f"{glyph.split(':')[1]} implementation"
+        chain_str = chain or glyph
+        
+        # Inject the header
+        new_content = inject_header(str(file_path), glyph, intent_str, chain_str)
+        file_path.write_text(new_content)
+        
+        rprint(f"[green]✓[/green] Injected header into [bold]{path}[/bold]")
+        rprint(f"  [bold]Glyph:[/bold] {glyph}")
+        rprint(f"  [bold]Intent:[/bold] {intent_str}")
+        rprint(f"  [bold]Chain:[/bold] {chain_str}")
+        rprint(f"\n[cyan]Run 'arc index build' to update the index[/cyan]")
+    
     else:
         rprint(f"[red]✗[/red] Unknown action: {action}")
-        rprint(f"  Available actions: build, show, scan")
+        rprint(f"  Available actions: build, show, scan, check, inject")
         raise typer.Exit(1)
 
 

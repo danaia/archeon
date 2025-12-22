@@ -297,8 +297,8 @@ def create_client_structure(client_dir: Path, frontend: str):
         client_dir / "src" / "views",
         client_dir / "src" / "lib",
         client_dir / "src" / "hooks",
-        client_dir / "src" / "types",
-        client_dir / "public",
+        client_dir / "src" / "types",        client_dir / "src" / "views",
+        client_dir / "src" / "router",        client_dir / "public",
     ]
     
     for d in dirs_to_create:
@@ -518,16 +518,18 @@ export default defineConfig({
 }
 ''')
         
-        # Vue main.js
+        # Vue main.js with router
         (client_dir / "src" / "main.js").write_text('''import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import App from './App.vue'
+import router from './router'
 import './style.css'
 
 const app = createApp(App)
 const pinia = createPinia()
 
 app.use(pinia)
+app.use(router)
 app.mount('#app')
 
 // Initialize theme from localStorage or system preference
@@ -538,9 +540,69 @@ if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
 }
 ''')
         
-        # Vue App.vue with theme toggle
-        (client_dir / "src" / "App.vue").write_text('''<template>
-  <div id="app" class="min-h-screen bg-[var(--color-surface)] text-[var(--color-content)] transition-colors">
+        # Vue App.vue - router only
+        (client_dir / "src" / "App.vue").write_text('''<!-- @archeon:file -->
+<!-- @glyph CMP:App -->
+<!-- @intent Root application component with router outlet -->
+<!-- @chain @v1 NED:app => CMP:App => OUT:render -->
+<template>
+  <RouterView />
+</template>
+
+<script setup>
+// @archeon:section imports
+import { RouterView } from 'vue-router'
+// @archeon:endsection
+</script>
+''')
+        
+        # Create router directory and index.js
+        router_dir = client_dir / "src" / "router"
+        router_dir.mkdir(parents=True, exist_ok=True)
+        
+        (router_dir / "index.js").write_text('''// @archeon:file
+// @glyph FNC:router
+// @intent Application routing configuration
+// @chain @v1 NED:navigation => FNC:router => CMP:* => OUT:render
+
+// @archeon:section imports
+import { createRouter, createWebHistory } from 'vue-router'
+import HomeView from '../views/HomeView.vue'
+// @archeon:endsection
+
+// @archeon:section implementation
+const router = createRouter({
+  history: createWebHistory(import.meta.env.BASE_URL),
+  routes: [
+    {
+      path: '/',
+      name: 'home',
+      component: HomeView
+    },
+    // Add more routes here as needed
+    // {
+    //   path: '/about',
+    //   name: 'about',
+    //   component: () => import('../views/AboutView.vue')
+    // }
+  ]
+})
+
+export default router
+// @archeon:endsection
+''')
+        
+        # Create views directory and HomeView.vue
+        views_dir = client_dir / "src" / "views"
+        views_dir.mkdir(parents=True, exist_ok=True)
+        
+        (views_dir / "HomeView.vue").write_text('''<!-- @archeon:file -->
+<!-- @glyph CMP:HomeView -->
+<!-- @intent Home page with theme toggle -->
+<!-- @chain @v1 NED:home => CMP:HomeView => OUT:render -->
+<template>
+  <!-- @archeon:section render -->
+  <div class="min-h-screen bg-[var(--color-surface)] text-[var(--color-content)] transition-colors">
     <header class="p-4 flex justify-between items-center border-b border-[var(--color-border)]">
       <h1 class="text-xl font-bold">Archeon Vue 3</h1>
       <button @click="toggleTheme" class="btn-outline p-2 rounded-md">
@@ -552,6 +614,7 @@ if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
       <div class="text-center">
         <h2 class="text-4xl font-bold mb-4">Welcome</h2>
         <p class="text-[var(--color-content-secondary)]">Add components to /src/components/</p>
+        <p class="text-[var(--color-content-muted)] mt-2">Add views to /src/views/</p>
         <div class="mt-8 flex gap-4 justify-center">
           <button class="btn-primary">Primary</button>
           <button class="btn-outline">Outline</button>
@@ -559,13 +622,19 @@ if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
       </div>
     </main>
   </div>
+  <!-- @archeon:endsection -->
 </template>
 
 <script setup>
+// @archeon:section imports
 import { ref, onMounted } from 'vue'
+// @archeon:endsection
 
+// @archeon:section props_and_state
 const isDark = ref(false)
+// @archeon:endsection
 
+// @archeon:section handlers
 onMounted(() => {
   isDark.value = document.documentElement.classList.contains('dark')
 })
@@ -575,6 +644,7 @@ function toggleTheme() {
   document.documentElement.classList.toggle('dark')
   localStorage.setItem('archeon-theme', isDark.value ? 'dark' : 'light')
 }
+// @archeon:endsection
 </script>
 ''')
     else:
@@ -830,6 +900,27 @@ def create_arcon_file(archeon_dir: Path, project_name: str):
             "# === AGENT CHAINS ===\n"
             "# Add chains using: archeon parse \"<chain>\"\n"
         )
+    
+    # Also create the index file
+    create_index_file(archeon_dir, project_name)
+
+
+def create_index_file(archeon_dir: Path, project_name: str):
+    """Create initial ARCHEON.index.json file.
+    
+    This file is created at provisioning time and updated by scanning
+    files for @archeon:file headers and @archeon:section markers.
+    The AI must write to this file directly when generating code files.
+    """
+    import json
+    index_path = archeon_dir / "ARCHEON.index.json"
+    if not index_path.exists():
+        index_data = {
+            "version": "1.0",
+            "project": project_name,
+            "glyphs": {}
+        }
+        index_path.write_text(json.dumps(index_data, indent=2))
 
 
 def create_archeonrc_file(target: Path, monorepo: bool, frontend: str, backend: str):
