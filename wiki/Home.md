@@ -8,14 +8,14 @@ Archeon is a **structural constraint system** — a hyper-compressed intermediat
 
 ## Why This Exists (Measured Impact)
 
-| Metric | Traditional AI | Archeon | Mechanism |
-|--------|---------------|---------|-----------|
-| **Structural drift** | 60% of features | **0%** | Rejected at parse-time |
-| **Missing outcomes** | 42% incomplete | **0%** | NED→OUT invariant enforced |
-| **Reasoning context** | ~45K tokens | ~12K tokens | Glyph projection |
-| **Time to valid code** | ~35 min | ~10 min | Validate before generate |
-| **Structural rework** | 60% | **~1-2%** | Invalid chains rejected |
-| **Refactor overhead** | 3+ hrs/week | <10 min | Persistent architecture |
+| Metric                 | Traditional AI  | Archeon     | Mechanism                  |
+| ---------------------- | --------------- | ----------- | -------------------------- |
+| **Structural drift**   | 60% of features | **0%**      | Rejected at parse-time     |
+| **Missing outcomes**   | 42% incomplete  | **0%**      | NED→OUT invariant enforced |
+| **Reasoning context**  | ~45K tokens     | ~12K tokens | Glyph projection           |
+| **Time to valid code** | ~35 min         | ~10 min     | Validate before generate   |
+| **Structural rework**  | 60%             | **~1-2%**   | Invalid chains rejected    |
+| **Refactor overhead**  | 3+ hrs/week     | <10 min     | Persistent architecture    |
 
 ---
 
@@ -26,7 +26,7 @@ sequenceDiagram
     participant You as You (IDE Chat)
     participant AI as IDE AI
     participant Arc as ARCHEON.arcon
-    
+
     You->>AI: "Build user login with email"
     AI->>Arc: Read architectural rules
     Arc->>AI: Glyph taxonomy + constraints
@@ -52,7 +52,7 @@ sequenceDiagram
 ```
 
 Archeon enforces a strict **NED → OUT (or ERR)** invariant.
-If a feature does not terminate in user-visible feedback, it is rejected *before* code generation.
+If a feature does not terminate in user-visible feedback, it is rejected _before_ code generation.
 
 This is not linting. It is a **structural requirement**.
 
@@ -64,15 +64,15 @@ This is not linting. It is a **structural requirement**.
 
 Instead of loading entire repositories, Archeon performs **glyph-based context projection**:
 
-| Traditional AI Context | Archeon Context |
-|----------------------|-----------------|
-| Components: ~15K tokens | Chain + metadata: ~2K tokens |
-| API routes: ~10K tokens | Template: ~6K tokens |
-| Stores: ~8K tokens | 1-hop deps only: ~4K tokens |
-| Docs/examples: ~12K tokens | |
-| **Total: ~45K tokens** | **Total: ~12K tokens** |
+| Traditional AI Context     | Archeon Context              |
+| -------------------------- | ---------------------------- |
+| Components: ~15K tokens    | Chain + metadata: ~2K tokens |
+| API routes: ~10K tokens    | Template: ~6K tokens         |
+| Stores: ~8K tokens         | 1-hop deps only: ~4K tokens  |
+| Docs/examples: ~12K tokens |                              |
+| **Total: ~45K tokens**     | **Total: ~12K tokens**       |
 
-The model doesn't reason over *less information* — it reasons over **only the information that matters**.
+The model doesn't reason over _less information_ — it reasons over **only the information that matters**.
 
 👉 [Architecture – Context Projection](Architecture#context-projection)
 
@@ -97,11 +97,12 @@ Failures are caught at the **architecture level**, not during review.
 Invalid architectural changes cannot be committed to the graph.
 
 **Observed internally:**
+
 - 200+ generated features
 - 2–3 required rework (human-approved invalid chains)
 - **~1.25% structural rework rate**
 
-Most rework disappears because mistakes are rejected *before* they become code.
+Most rework disappears because mistakes are rejected _before_ they become code.
 
 👉 [Knowledge Graph – Validation](Knowledge-Graph#graph-validation)
 
@@ -111,11 +112,11 @@ Most rework disappears because mistakes are rejected *before* they become code.
 
 The `.arcon` file persists architecture across sessions.
 
-| Traditional AI | Archeon |
-|---------------|---------|
+| Traditional AI                      | Archeon                |
+| ----------------------------------- | ---------------------- |
 | Each session renegotiates structure | Rules live in `.arcon` |
-| Inconsistencies accumulate | AI reads once |
-| ~3+ hours/week fixing drift | <10 min/week overhead |
+| Inconsistencies accumulate          | AI reads once          |
+| ~3+ hours/week fixing drift         | <10 min/week overhead  |
 
 Architecture becomes **memory**, not suggestion.
 
@@ -153,18 +154,18 @@ These failures are eliminated by construction.
 
 16 typed symbols representing architectural concerns:
 
-| Glyph | Layer | Purpose |
-|-------|-------|---------|
-| `NED` | Meta | User need |
-| `TSK` | Meta | User action |
-| `OUT` | Meta | Observable outcome |
-| `ERR` | Meta | Error state |
-| `CMP` | Frontend | UI component |
-| `STO` | Frontend | Client state |
-| `FNC` | Backend | Function |
-| `EVT` | Backend | Event handler |
-| `API` | Backend | HTTP endpoint |
-| `MDL` | Backend | Data model |
+| Glyph | Layer    | Purpose            |
+| ----- | -------- | ------------------ |
+| `NED` | Meta     | User need          |
+| `TSK` | Meta     | User action        |
+| `OUT` | Meta     | Observable outcome |
+| `ERR` | Meta     | Error state        |
+| `CMP` | Frontend | UI component       |
+| `STO` | Frontend | Client state       |
+| `FNC` | Backend  | Function           |
+| `EVT` | Backend  | Event handler      |
+| `API` | Backend  | HTTP endpoint      |
+| `MDL` | Backend  | Data model         |
 
 👉 [Full Glyph Reference](Glyph-Reference)
 
@@ -174,9 +175,12 @@ These failures are eliminated by construction.
 
 ```bash
 # Install
+git clone git@github.com:danaia/archeon.git
+cd archeon        # Important: install from the project root, not archeon/archeon/
 pip install -e .
 
 # Initialize project
+mkdir my-app && cd my-app
 arc init --frontend vue3 --backend fastapi
 
 # Define feature (or just ask your IDE AI)
@@ -191,16 +195,19 @@ arc gen
 ## 📚 Documentation
 
 ### Getting Started
+
 - [Installation](Installation) — Install via pip
 - [Quick Start](Quick-Start) — First project in 5 minutes
 
 ### Core Concepts
+
 - [Glyph Reference](Glyph-Reference) — All 16 glyph types
 - [Chain Syntax](Chain-Syntax) — Composition rules
 - [Natural Language Intent](Natural-Language-Intent) — Plain English → chains
 - [Knowledge Graph](Knowledge-Graph) — The `.arcon` file
 
 ### Reference
+
 - [CLI Commands](CLI-Commands) — Command reference
 - [Templates](Templates) — Template customization
 - [Architecture](Architecture) — System design
