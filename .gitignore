@@ -25,6 +25,8 @@ wheels/
 *.egg
 MANIFEST
 
+CURSOR.md
+
 docs/
 
 # Virtual environments

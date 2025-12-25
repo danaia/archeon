@@ -69,6 +69,56 @@ AI: ✓ Generated RegisterForm.vue
 
 Your AI now understands your architecture, validates every feature before generating code, and maintains consistency across sessions.
 
+## Quickstart: Setting Up Your Framework
+
+### 1. Create a New Project from Scratch
+Archeon supports multiple architecture shapes that define complete frontend/backend stacks:
+
+```bash
+arc init --arch vue3-fastapi       # Use vue3-fastapi shape
+arc init --arch react-fastapi      # Use react-fastapi shape
+arc init --arch vue3-fastapi --copilot  # With GitHub Copilot rules
+arc init --arch react-fastapi --copilot --cline  # Multiple IDE rules
+```
+
+These commands create complete projects with:
+- ✅ Frontend (Vue 3 or React) with TypeScript and Tailwind CSS
+- ✅ Backend (FastAPI Python) with MongoDB database integration  
+- ✅ Complete directory structure and package configurations
+- ✅ Pre-configured state management (Pinia for Vue, Zustand for React)
+- ✅ IDE-specific rules for AI assistants (Copilot, Windsurf, Cline)
+
+### 2. Scan an Existing Repository
+For existing codebases, Archeon can automatically discover and document your architecture:
+
+```bash
+cd your-existing-project
+arc index code
+```
+
+This one-command setup performs these 5 steps:
+1. Creates `archeon/` directory structure
+2. Scans & classifies all files to glyphs  
+3. Generates `ARCHEON.index.json`
+4. Generates `ARCHEON.arcon` knowledge graph
+5. Creates AI rules for all IDEs
+
+You can then open the scanned project in ArcheonGUI to visualize your architecture.
+
+### 3. List Available Architectures
+See what architecture shapes are available:
+
+```bash
+arc shapes
+arc shapes -v                      # Detailed information
+```
+
+This shows all supported full-stack combinations like:
+- `vue3-fastapi` - Vue 3 frontend with FastAPI backend  
+- `react-fastapi` - React frontend with FastAPI backend
+- And others for different framework combinations
+
+
 ---
 
 ## What Archeon Looks Like
