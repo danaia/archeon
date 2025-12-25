@@ -2,6 +2,8 @@
 
 > **The missing architecture layer for vibecoding.**
 
+🖥️ **[ArcheonGUI](https://github.com/danaia/archeonGUI)** — Companion app to visualize your architecture
+
 You're chatting with AI, building features in minutes. It's magic — until your codebase becomes a haunted house of inconsistent patterns, orphaned components, and APIs that don't match your frontend.
 
 **Archeon fixes this.**
