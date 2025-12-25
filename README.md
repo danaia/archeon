@@ -152,10 +152,11 @@ No CLI gymnastics. No memorizing commands. **Just describe what you want.**
 pip install archeon
 
 # Create project with your preferred stack
-arc init --arch vue3-fastapi    # Vue 3 + FastAPI + MongoDB
-arc init --arch react-fastapi   # React + FastAPI + MongoDB
+arc init --arch vue3-fastapi              # Vue 3 + FastAPI + MongoDB
+arc init --arch react-fastapi             # React + FastAPI + MongoDB
+arc init --arch react-fastapi --copilot   # With GitHub Copilot rules
 
-# Set up your IDE
+# Or set up IDE rules separately
 arc ai-setup --cursor    # or --windsurf, --copilot, --vscode
 
 # Start chatting with your AI
@@ -192,11 +193,11 @@ Archeon works by generating **IDE-specific rule files** that teach your AI assis
 git clone git@github.com:danaia/archeon.git
 pip install -e ./archeon
 
-# 2. Initialize your project
+# 2. Initialize your project (with optional --copilot flag)
 mkdir my-app && cd my-app
-arc init --frontend vue3
+arc init --arch vue3-fastapi --copilot   # Creates project + Copilot rules in one step
 
-# 3. Generate rules for YOUR IDE
+# Or generate IDE rules separately with ai-setup
 arc ai-setup --cursor      # For Cursor → creates .cursorrules
 arc ai-setup --windsurf    # For Windsurf → creates .windsurfrules  
 arc ai-setup --copilot     # For GitHub Copilot → creates .github/copilot-instructions.md

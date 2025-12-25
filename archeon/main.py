@@ -98,6 +98,12 @@ def init(
     frontend: str = typer.Option("vue3", "--frontend", "-f", help="Frontend framework (react/vue/vue3)"),
     backend: str = typer.Option("fastapi", "--backend", "-b", help="Backend framework (fastapi, express)"),
     arch: Optional[str] = typer.Option(None, "--arch", "-a", help="Architecture shape ID (e.g., vue3-fastapi). Overrides frontend/backend."),
+    copilot: bool = typer.Option(False, "--copilot", help="Generate .github/copilot-instructions.md for GitHub Copilot"),
+    cursor: bool = typer.Option(False, "--cursor", help="Generate .cursorrules for Cursor IDE"),
+    windsurf: bool = typer.Option(False, "--windsurf", help="Generate .windsurfrules for Windsurf"),
+    cline: bool = typer.Option(False, "--cline", help="Generate .clinerules for Cline/Claude Dev"),
+    aider: bool = typer.Option(False, "--aider", help="Generate .aider.conf.yml for Aider"),
+    vscode: bool = typer.Option(False, "--vscode", help="Update .vscode/settings.json"),
 ):
     """Initialize a new Archeon project with client/server structure.
     
@@ -107,6 +113,8 @@ def init(
         arc init                           # Vue 3 + FastAPI (default)
         arc init --arch vue3-fastapi       # Explicit shape selection
         arc init -f react -b fastapi       # React + FastAPI
+        arc init --arch react-fastapi --copilot  # With GitHub Copilot rules
+        arc init --arch react-fastapi --copilot --cline  # Multiple IDE rules
         
     Run 'arc shapes' to list available architecture shapes.
     """
@@ -171,6 +179,103 @@ def init(
     # Create .gitignore
     create_gitignore(target)
     
+    # Generate IDE rule files if any flags are set
+    ide_files_created = []
+    ide_flags = {'copilot': copilot, 'cursor': cursor, 'windsurf': windsurf, 
+                 'cline': cline, 'aider': aider, 'vscode': vscode}
+    
+    if any(ide_flags.values()):
+        # Load AI rules from template
+        rules_file = Path(__file__).parent / "templates" / "_config" / "ai-rules.md"
+        if rules_file.exists():
+            archeon_rules = rules_file.read_text()
+        else:
+            archeon_rules = "# Archeon AI Rules\n\nSee archeon/ARCHEON.arcon for architecture.\n"
+        
+        if copilot:
+            github_dir = target / ".github"
+            github_dir.mkdir(exist_ok=True)
+            (github_dir / "copilot-instructions.md").write_text(f'''# GitHub Copilot Instructions
+
+{archeon_rules}
+''')
+            ide_files_created.append(".github/copilot-instructions.md")
+        
+        if cursor:
+            (target / ".cursorrules").write_text(f'''# Archeon Project Rules for Cursor
+
+{archeon_rules}
+''')
+            ide_files_created.append(".cursorrules")
+        
+        if windsurf:
+            (target / ".windsurfrules").write_text(f'''# Archeon Rules for Windsurf
+
+{archeon_rules}
+''')
+            ide_files_created.append(".windsurfrules")
+        
+        if cline:
+            (target / ".clinerules").write_text(f'''# Archeon Rules for Cline/Claude Dev
+
+{archeon_rules}
+''')
+            ide_files_created.append(".clinerules")
+        
+        if aider:
+            (target / ".aider.conf.yml").write_text('''# Aider configuration for Archeon project
+
+# Always include these files in context
+read:
+  - archeon/ARCHEON.arcon
+  - archeon/ARCHEON.index.json
+  - archeon/templates/_config/ai-rules.md
+  - .archeonrc
+
+# Don't auto-commit so user can review
+auto-commits: false
+
+# Model instructions
+model-settings-yaml: |
+  extra_params:
+    system: |
+      This project uses Archeon glyph notation.
+      Read archeon/templates/_config/ai-rules.md for the complete rules.
+      
+      Key rules:
+      - Always read archeon/ARCHEON.arcon before generating code
+      - If a feature doesn't exist, write a new chain to ARCHEON.arcon first
+      - EVERY file MUST have @archeon:file headers at top with @glyph, @intent, @chain
+      - EVERY file MUST use @archeon:section / @archeon:endsection markers
+      - ALWAYS update archeon/ARCHEON.index.json when creating files or adding sections
+      - The index MUST stay in sync with the code
+      - Run arc validate after implementation
+''')
+            ide_files_created.append(".aider.conf.yml")
+        
+        if vscode:
+            import json
+            vscode_dir = target / ".vscode"
+            vscode_dir.mkdir(exist_ok=True)
+            settings_file = vscode_dir / "settings.json"
+            
+            settings = {}
+            if settings_file.exists():
+                try:
+                    settings = json.loads(settings_file.read_text())
+                except:
+                    pass
+            
+            settings["files.associations"] = settings.get("files.associations", {})
+            settings["files.associations"]["*.arcon"] = "markdown"
+            settings["search.include"] = settings.get("search.include", {})
+            settings["search.include"]["archeon/**"] = True
+            settings["github.copilot.chat.codeGeneration.instructions"] = [
+                {"text": "Always reference archeon/ARCHEON.arcon for architecture and archeon/templates/_config/ai-rules.md for complete rules. This project uses Archeon glyph notation. Do not invent architecture outside the knowledge graph. EVERY file MUST have @archeon:file headers and @archeon:section markers. ALWAYS update archeon/ARCHEON.index.json when creating files or adding sections."}
+            ]
+            settings_file.write_text(json.dumps(settings, indent=2))
+            ide_files_created.append(".vscode/settings.json")
+    
     rprint(f"[green]✓[/green] Initialized Archeon project at [bold]{archeon_dir}[/bold]")
     rprint(f"  Architecture shape: [cyan]{shape_id}[/cyan]")
     rprint(f"  Created {DEFAULT_ARCON}")
@@ -181,6 +286,9 @@ def init(
     rprint(f"  Created templates from shape ({frontend}/{backend})")
     rprint(f"  Created orchestrator/README.md (glyph reference)")
     rprint(f"  Created AI_README.md (provisioning guide)")
+    if ide_files_created:
+        for ide_file in ide_files_created:
+            rprint(f"  Created [cyan]{ide_file}[/cyan] (AI rules)")
     
     if monorepo:
         rprint(f"  Generated design tokens to client/src/tokens/")

@@ -20,6 +20,9 @@ mkdir my-app && cd my-app
 
 # Initialize with Vue 3 frontend and FastAPI backend
 arc init --frontend vue3 --backend fastapi
+
+# Or with GitHub Copilot rules included
+arc init --arch vue3-fastapi --copilot
 ```
 
 This creates:

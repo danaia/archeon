@@ -28,15 +28,31 @@ arc init [PATH] [OPTIONS]
 - `PATH` - Directory to initialize (default: current directory)
 
 **Options:**
-- `--frontend, -f` - Frontend framework: `react`, `vue`, `vue3` (default: `react`)
+- `--frontend, -f` - Frontend framework: `react`, `vue`, `vue3` (default: `vue3`)
 - `--backend, -b` - Backend framework: `fastapi`, `express` (default: `fastapi`)
+- `--arch, -a` - Architecture shape ID (e.g., `vue3-fastapi`). Overrides frontend/backend.
 - `--monorepo/--single` - Create client/server separation (default: `--monorepo`)
+- `--copilot` - Generate `.github/copilot-instructions.md` for GitHub Copilot
+- `--cursor` - Generate `.cursorrules` for Cursor IDE
+- `--windsurf` - Generate `.windsurfrules` for Windsurf
+- `--cline` - Generate `.clinerules` for Cline/Claude Dev
+- `--aider` - Generate `.aider.conf.yml` for Aider
+- `--vscode` - Update `.vscode/settings.json`
 
 **Examples:**
 
 ```bash
 # Initialize with Vue 3 + FastAPI
 arc init --frontend vue3 --backend fastapi
+
+# Initialize with architecture shape
+arc init --arch react-fastapi
+
+# Initialize with GitHub Copilot rules included
+arc init --arch react-fastapi --copilot
+
+# Initialize with multiple IDE rules
+arc init --arch react-fastapi --copilot --cline
 
 # Initialize React + FastAPI in specific directory
 arc init my-app --frontend react
