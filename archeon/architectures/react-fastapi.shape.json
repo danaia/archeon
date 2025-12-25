@@ -1,0 +1,172 @@
+{
+  "$schema": "./_schema.json",
+  "meta": {
+    "id": "react-fastapi",
+    "name": "React + FastAPI",
+    "description": "Modern React frontend with TypeScript, Zustand state management, and Python FastAPI backend",
+    "version": "1.0.0",
+    "author": "Archeon"
+  },
+  "stack": {
+    "frontend": "react",
+    "backend": "fastapi",
+    "database": "mongodb",
+    "state": "zustand"
+  },
+  "directories": {
+    "frontend": {
+      "src": {
+        "components": {},
+        "stores": {},
+        "hooks": {},
+        "types": {},
+        "utils": {},
+        "styles": {}
+      },
+      "public": {}
+    },
+    "backend": {
+      "app": {
+        "api": {},
+        "models": {},
+        "events": {},
+        "services": {}
+      }
+    }
+  },
+  "glyphs": {
+    "CMP": {
+      "description": "React functional component with TypeScript",
+      "fileExtension": ".tsx",
+      "targetDir": "src/components",
+      "snippet": "// @archeon:file {{name}}.tsx\n// @glyph CMP:{{name}}\n\nimport React from 'react';\n\n// @archeon:section types\ninterface {{name}}Props {\n  // Define props here\n}\n// @archeon:end types\n\n// @archeon:section component\nexport const {{name}}: React.FC<{{name}}Props> = (props) => {\n  return (\n    <div className=\"{{name | kebab}}\">\n      {/* Component content */}\n    </div>\n  );\n};\n// @archeon:end component\n\nexport default {{name}};",
+      "placeholders": {
+        "name": {
+          "description": "Component name in PascalCase",
+          "transform": "pascalCase"
+        }
+      }
+    },
+    "STO": {
+      "description": "Zustand store with TypeScript",
+      "fileExtension": ".ts",
+      "targetDir": "src/stores",
+      "snippet": "// @archeon:file {{name}}Store.ts\n// @glyph STO:{{name}}\n\nimport { create } from 'zustand';\nimport { devtools, persist } from 'zustand/middleware';\n\n// @archeon:section types\ninterface {{name}}State {\n  // Define state properties\n  items: any[];\n  loading: boolean;\n  error: string | null;\n}\n\ninterface {{name}}Actions {\n  // Define actions\n  setItems: (items: any[]) => void;\n  setLoading: (loading: boolean) => void;\n  setError: (error: string | null) => void;\n  reset: () => void;\n}\n\ntype {{name}}Store = {{name}}State & {{name}}Actions;\n// @archeon:end types\n\n// @archeon:section initial-state\nconst initialState: {{name}}State = {\n  items: [],\n  loading: false,\n  error: null,\n};\n// @archeon:end initial-state\n\n// @archeon:section store\nexport const use{{name}}Store = create<{{name}}Store>()(\n  devtools(\n    persist(\n      (set) => ({\n        ...initialState,\n        \n        setItems: (items) => set({ items }, false, 'setItems'),\n        setLoading: (loading) => set({ loading }, false, 'setLoading'),\n        setError: (error) => set({ error }, false, 'setError'),\n        reset: () => set(initialState, false, 'reset'),\n      }),\n      {\n        name: '{{name | kebab}}-storage',\n      }\n    ),\n    { name: '{{name}}Store' }\n  )\n);\n// @archeon:end store",
+      "placeholders": {
+        "name": {
+          "description": "Store name in PascalCase",
+          "transform": "pascalCase"
+        }
+      }
+    },
+    "API": {
+      "description": "FastAPI router endpoint",
+      "fileExtension": ".py",
+      "targetDir": "app/api",
+      "snippet": "# @archeon:file {{name}}_router.py\n# @glyph API:{{name}}\n\nfrom fastapi import APIRouter, HTTPException, Depends\nfrom typing import List, Optional\nfrom app.models.{{name | snake}}_model import {{name}}Model, {{name}}Create, {{name}}Update\nfrom app.services.database import get_database\n\nrouter = APIRouter(prefix=\"/{{name | kebab}}s\", tags=[\"{{name}}s\"])\n\n# @archeon:section endpoints\n@router.get(\"/\", response_model=List[{{name}}Model])\nasync def list_{{name | snake}}s(skip: int = 0, limit: int = 100, db=Depends(get_database)):\n    \"\"\"List all {{name | lower}}s with pagination.\"\"\"\n    items = await db[\"{{name | snake}}s\"].find().skip(skip).limit(limit).to_list(limit)\n    return items\n\n@router.get(\"/{item_id}\", response_model={{name}}Model)\nasync def get_{{name | snake}}(item_id: str, db=Depends(get_database)):\n    \"\"\"Get a specific {{name | lower}} by ID.\"\"\"\n    item = await db[\"{{name | snake}}s\"].find_one({\"_id\": item_id})\n    if not item:\n        raise HTTPException(status_code=404, detail=\"{{name}} not found\")\n    return item\n\n@router.post(\"/\", response_model={{name}}Model, status_code=201)\nasync def create_{{name | snake}}(data: {{name}}Create, db=Depends(get_database)):\n    \"\"\"Create a new {{name | lower}}.\"\"\"\n    result = await db[\"{{name | snake}}s\"].insert_one(data.model_dump())\n    created = await db[\"{{name | snake}}s\"].find_one({\"_id\": result.inserted_id})\n    return created\n\n@router.put(\"/{item_id}\", response_model={{name}}Model)\nasync def update_{{name | snake}}(item_id: str, data: {{name}}Update, db=Depends(get_database)):\n    \"\"\"Update an existing {{name | lower}}.\"\"\"\n    update_data = {k: v for k, v in data.model_dump().items() if v is not None}\n    if update_data:\n        await db[\"{{name | snake}}s\"].update_one({\"_id\": item_id}, {\"$set\": update_data})\n    item = await db[\"{{name | snake}}s\"].find_one({\"_id\": item_id})\n    if not item:\n        raise HTTPException(status_code=404, detail=\"{{name}} not found\")\n    return item\n\n@router.delete(\"/{item_id}\", status_code=204)\nasync def delete_{{name | snake}}(item_id: str, db=Depends(get_database)):\n    \"\"\"Delete a {{name | lower}}.\"\"\"\n    result = await db[\"{{name | snake}}s\"].delete_one({\"_id\": item_id})\n    if result.deleted_count == 0:\n        raise HTTPException(status_code=404, detail=\"{{name}} not found\")\n# @archeon:end endpoints",
+      "placeholders": {
+        "name": {
+          "description": "Resource name in PascalCase",
+          "transform": "pascalCase"
+        }
+      }
+    },
+    "MDL": {
+      "description": "Pydantic model for MongoDB",
+      "fileExtension": ".py",
+      "targetDir": "app/models",
+      "snippet": "# @archeon:file {{name}}_model.py\n# @glyph MDL:{{name}}\n\nfrom pydantic import BaseModel, Field\nfrom typing import Optional\nfrom datetime import datetime\nfrom bson import ObjectId\n\n# @archeon:section pyobjectid\nclass PyObjectId(ObjectId):\n    @classmethod\n    def __get_validators__(cls):\n        yield cls.validate\n    \n    @classmethod\n    def validate(cls, v, info):\n        if not ObjectId.is_valid(v):\n            raise ValueError(\"Invalid ObjectId\")\n        return ObjectId(v)\n    \n    @classmethod\n    def __get_pydantic_json_schema__(cls, schema, handler):\n        return {\"type\": \"string\"}\n# @archeon:end pyobjectid\n\n# @archeon:section models\nclass {{name}}Base(BaseModel):\n    \"\"\"Base {{name}} schema with common fields.\"\"\"\n    name: str = Field(..., min_length=1, max_length=255)\n    description: Optional[str] = Field(None, max_length=1000)\n    \n    class Config:\n        populate_by_name = True\n        json_encoders = {ObjectId: str}\n\nclass {{name}}Create({{name}}Base):\n    \"\"\"Schema for creating a new {{name}}.\"\"\"\n    pass\n\nclass {{name}}Update(BaseModel):\n    \"\"\"Schema for updating an existing {{name}}.\"\"\"\n    name: Optional[str] = Field(None, min_length=1, max_length=255)\n    description: Optional[str] = Field(None, max_length=1000)\n\nclass {{name}}Model({{name}}Base):\n    \"\"\"Complete {{name}} schema with all fields.\"\"\"\n    id: PyObjectId = Field(default_factory=PyObjectId, alias=\"_id\")\n    created_at: datetime = Field(default_factory=datetime.utcnow)\n    updated_at: datetime = Field(default_factory=datetime.utcnow)\n    \n    class Config:\n        populate_by_name = True\n        json_encoders = {ObjectId: str, datetime: lambda v: v.isoformat()}\n# @archeon:end models",
+      "placeholders": {
+        "name": {
+          "description": "Model name in PascalCase",
+          "transform": "pascalCase"
+        }
+      }
+    },
+    "EVT": {
+      "description": "Python async event pub/sub system",
+      "fileExtension": ".py",
+      "targetDir": "app/events",
+      "snippet": "# @archeon:file {{name}}_events.py\n# @glyph EVT:{{name}}\n\nimport asyncio\nfrom typing import Callable, Dict, List, Any\nfrom dataclasses import dataclass, field\nfrom datetime import datetime\nimport logging\n\nlogger = logging.getLogger(__name__)\n\n# @archeon:section event-types\n@dataclass\nclass Event:\n    \"\"\"Base event class.\"\"\"\n    name: str\n    payload: Dict[str, Any]\n    timestamp: datetime = field(default_factory=datetime.utcnow)\n    source: str = \"{{name}}\"\n# @archeon:end event-types\n\n# @archeon:section event-bus\nclass {{name}}EventBus:\n    \"\"\"Async event bus for {{name}} domain events.\"\"\"\n    \n    def __init__(self):\n        self._subscribers: Dict[str, List[Callable]] = {}\n        self._queue: asyncio.Queue = asyncio.Queue()\n        self._running = False\n    \n    def subscribe(self, event_name: str, handler: Callable) -> None:\n        \"\"\"Subscribe a handler to an event.\"\"\"\n        if event_name not in self._subscribers:\n            self._subscribers[event_name] = []\n        self._subscribers[event_name].append(handler)\n        logger.debug(f\"Handler subscribed to {event_name}\")\n    \n    def unsubscribe(self, event_name: str, handler: Callable) -> None:\n        \"\"\"Unsubscribe a handler from an event.\"\"\"\n        if event_name in self._subscribers:\n            self._subscribers[event_name].remove(handler)\n    \n    async def publish(self, event: Event) -> None:\n        \"\"\"Publish an event to all subscribers.\"\"\"\n        await self._queue.put(event)\n        logger.debug(f\"Event published: {event.name}\")\n    \n    async def emit(self, event_name: str, payload: Dict[str, Any]) -> None:\n        \"\"\"Convenience method to emit an event.\"\"\"\n        event = Event(name=event_name, payload=payload)\n        await self.publish(event)\n    \n    async def _process_events(self) -> None:\n        \"\"\"Process events from the queue.\"\"\"\n        while self._running:\n            try:\n                event = await asyncio.wait_for(self._queue.get(), timeout=1.0)\n                handlers = self._subscribers.get(event.name, [])\n                for handler in handlers:\n                    try:\n                        if asyncio.iscoroutinefunction(handler):\n                            await handler(event)\n                        else:\n                            handler(event)\n                    except Exception as e:\n                        logger.error(f\"Handler error for {event.name}: {e}\")\n            except asyncio.TimeoutError:\n                continue\n    \n    async def start(self) -> None:\n        \"\"\"Start the event bus.\"\"\"\n        self._running = True\n        asyncio.create_task(self._process_events())\n        logger.info(\"{{name}}EventBus started\")\n    \n    async def stop(self) -> None:\n        \"\"\"Stop the event bus.\"\"\"\n        self._running = False\n        logger.info(\"{{name}}EventBus stopped\")\n# @archeon:end event-bus\n\n# @archeon:section singleton\n# Global event bus instance\n{{name | snake}}_events = {{name}}EventBus()\n# @archeon:end singleton",
+      "placeholders": {
+        "name": {
+          "description": "Event domain name in PascalCase",
+          "transform": "pascalCase"
+        }
+      }
+    },
+    "FNC": {
+      "description": "Python utility function module",
+      "fileExtension": ".py",
+      "targetDir": "app/services",
+      "snippet": "# @archeon:file {{name}}_service.py\n# @glyph FNC:{{name}}\n\nfrom typing import Any, Dict, List, Optional, TypeVar, Generic\nfrom functools import wraps\nimport logging\nimport time\n\nlogger = logging.getLogger(__name__)\n\nT = TypeVar('T')\n\n# @archeon:section decorators\ndef timed(func):\n    \"\"\"Decorator to measure function execution time.\"\"\"\n    @wraps(func)\n    async def async_wrapper(*args, **kwargs):\n        start = time.perf_counter()\n        result = await func(*args, **kwargs)\n        elapsed = time.perf_counter() - start\n        logger.debug(f\"{func.__name__} took {elapsed:.4f}s\")\n        return result\n    \n    @wraps(func)\n    def sync_wrapper(*args, **kwargs):\n        start = time.perf_counter()\n        result = func(*args, **kwargs)\n        elapsed = time.perf_counter() - start\n        logger.debug(f\"{func.__name__} took {elapsed:.4f}s\")\n        return result\n    \n    import asyncio\n    if asyncio.iscoroutinefunction(func):\n        return async_wrapper\n    return sync_wrapper\n# @archeon:end decorators\n\n# @archeon:section functions\nclass {{name}}Service:\n    \"\"\"Service class for {{name}} operations.\"\"\"\n    \n    def __init__(self, config: Optional[Dict[str, Any]] = None):\n        self.config = config or {}\n        logger.info(f\"{{name}}Service initialized\")\n    \n    @timed\n    async def process(self, data: T) -> T:\n        \"\"\"Process data and return result.\"\"\"\n        # Implement processing logic\n        return data\n    \n    @timed\n    async def validate(self, data: Dict[str, Any]) -> bool:\n        \"\"\"Validate input data.\"\"\"\n        # Implement validation logic\n        return True\n    \n    @timed\n    async def transform(self, items: List[T]) -> List[T]:\n        \"\"\"Transform a list of items.\"\"\"\n        # Implement transformation logic\n        return items\n# @archeon:end functions",
+      "placeholders": {
+        "name": {
+          "description": "Service/function name in PascalCase",
+          "transform": "pascalCase"
+        }
+      }
+    },
+    "V": {
+      "description": "TypeScript Zod validation schema",
+      "fileExtension": ".ts",
+      "targetDir": "src/types",
+      "snippet": "// @archeon:file {{name}}.schema.ts\n// @glyph V:{{name}}\n\nimport { z } from 'zod';\n\n// @archeon:section schema\nexport const {{name}}Schema = z.object({\n  id: z.string().optional(),\n  name: z.string().min(1, 'Name is required').max(255),\n  description: z.string().max(1000).optional(),\n  createdAt: z.string().datetime().optional(),\n  updatedAt: z.string().datetime().optional(),\n});\n\nexport const {{name}}CreateSchema = {{name}}Schema.omit({ \n  id: true, \n  createdAt: true, \n  updatedAt: true \n});\n\nexport const {{name}}UpdateSchema = {{name}}Schema.partial().omit({ \n  id: true, \n  createdAt: true \n});\n// @archeon:end schema\n\n// @archeon:section types\nexport type {{name}} = z.infer<typeof {{name}}Schema>;\nexport type {{name}}Create = z.infer<typeof {{name}}CreateSchema>;\nexport type {{name}}Update = z.infer<typeof {{name}}UpdateSchema>;\n// @archeon:end types\n\n// @archeon:section validators\nexport const validate{{name}} = (data: unknown): {{name}} => {\n  return {{name}}Schema.parse(data);\n};\n\nexport const validate{{name}}Create = (data: unknown): {{name}}Create => {\n  return {{name}}CreateSchema.parse(data);\n};\n\nexport const validate{{name}}Update = (data: unknown): {{name}}Update => {\n  return {{name}}UpdateSchema.parse(data);\n};\n\nexport const safeValidate{{name}} = (data: unknown) => {\n  return {{name}}Schema.safeParse(data);\n};\n// @archeon:end validators",
+      "placeholders": {
+        "name": {
+          "description": "Schema name in PascalCase",
+          "transform": "pascalCase"
+        }
+      }
+    }
+  },
+  "config": {
+    "tailwind": {
+      "targetPath": "tailwind.config.js",
+      "content": "// @archeon:file tailwind.config.js\n// @glyph CONFIG:tailwind\n\n/** @type {import('tailwindcss').Config} */\nexport default {\n  content: [\n    './index.html',\n    './src/**/*.{js,ts,jsx,tsx}',\n  ],\n  darkMode: 'class',\n  theme: {\n    extend: {\n      colors: {\n        // @archeon:section theme-colors\n        primary: {\n          50: 'rgb(var(--color-primary-50) / <alpha-value>)',\n          100: 'rgb(var(--color-primary-100) / <alpha-value>)',\n          200: 'rgb(var(--color-primary-200) / <alpha-value>)',\n          300: 'rgb(var(--color-primary-300) / <alpha-value>)',\n          400: 'rgb(var(--color-primary-400) / <alpha-value>)',\n          500: 'rgb(var(--color-primary-500) / <alpha-value>)',\n          600: 'rgb(var(--color-primary-600) / <alpha-value>)',\n          700: 'rgb(var(--color-primary-700) / <alpha-value>)',\n          800: 'rgb(var(--color-primary-800) / <alpha-value>)',\n          900: 'rgb(var(--color-primary-900) / <alpha-value>)',\n          950: 'rgb(var(--color-primary-950) / <alpha-value>)',\n        },\n        surface: {\n          50: 'rgb(var(--color-surface-50) / <alpha-value>)',\n          100: 'rgb(var(--color-surface-100) / <alpha-value>)',\n          200: 'rgb(var(--color-surface-200) / <alpha-value>)',\n          300: 'rgb(var(--color-surface-300) / <alpha-value>)',\n          400: 'rgb(var(--color-surface-400) / <alpha-value>)',\n          500: 'rgb(var(--color-surface-500) / <alpha-value>)',\n          600: 'rgb(var(--color-surface-600) / <alpha-value>)',\n          700: 'rgb(var(--color-surface-700) / <alpha-value>)',\n          800: 'rgb(var(--color-surface-800) / <alpha-value>)',\n          900: 'rgb(var(--color-surface-900) / <alpha-value>)',\n          950: 'rgb(var(--color-surface-950) / <alpha-value>)',\n        },\n        // @archeon:end theme-colors\n      },\n    },\n  },\n  plugins: [],\n};"
+    },
+    "themeStore": {
+      "targetPath": "src/stores/themeStore.ts",
+      "content": "// @archeon:file themeStore.ts\n// @glyph STO:Theme\n\nimport { create } from 'zustand';\nimport { devtools, persist } from 'zustand/middleware';\n\n// @archeon:section types\nexport type ThemeMode = 'light' | 'dark' | 'system';\nexport type ColorTheme = 'default' | 'ocean' | 'forest' | 'sunset' | 'lavender';\n\nexport const THEMES: ThemeMode[] = ['light', 'dark', 'system'];\n\nexport const COLOR_THEMES: Record<ColorTheme, { name: string; primary: string; description: string }> = {\n  default: { name: 'Default', primary: '#3b82f6', description: 'Classic blue theme' },\n  ocean: { name: 'Ocean', primary: '#0891b2', description: 'Deep cyan waters' },\n  forest: { name: 'Forest', primary: '#059669', description: 'Natural green tones' },\n  sunset: { name: 'Sunset', primary: '#f97316', description: 'Warm orange hues' },\n  lavender: { name: 'Lavender', primary: '#8b5cf6', description: 'Soft purple vibes' },\n};\n\ninterface ThemeState {\n  mode: ThemeMode;\n  colorTheme: ColorTheme;\n  resolvedMode: 'light' | 'dark';\n}\n\ninterface ThemeActions {\n  setMode: (mode: ThemeMode) => void;\n  setColorTheme: (theme: ColorTheme) => void;\n  toggleMode: () => void;\n  initTheme: () => void;\n}\n\ntype ThemeStore = ThemeState & ThemeActions;\n// @archeon:end types\n\n// @archeon:section helpers\nconst getSystemTheme = (): 'light' | 'dark' => {\n  if (typeof window === 'undefined') return 'light';\n  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';\n};\n\nconst applyTheme = (mode: 'light' | 'dark', colorTheme: ColorTheme) => {\n  if (typeof document === 'undefined') return;\n  \n  const root = document.documentElement;\n  root.classList.remove('light', 'dark');\n  root.classList.add(mode);\n  root.setAttribute('data-theme', colorTheme);\n};\n// @archeon:end helpers\n\n// @archeon:section store\nexport const useThemeStore = create<ThemeStore>()(\n  devtools(\n    persist(\n      (set, get) => ({\n        mode: 'system',\n        colorTheme: 'default',\n        resolvedMode: getSystemTheme(),\n\n        setMode: (mode) => {\n          const resolved = mode === 'system' ? getSystemTheme() : mode;\n          set({ mode, resolvedMode: resolved }, false, 'setMode');\n          applyTheme(resolved, get().colorTheme);\n        },\n\n        setColorTheme: (colorTheme) => {\n          set({ colorTheme }, false, 'setColorTheme');\n          applyTheme(get().resolvedMode, colorTheme);\n        },\n\n        toggleMode: () => {\n          const { mode } = get();\n          const modes: ThemeMode[] = ['light', 'dark', 'system'];\n          const nextIndex = (modes.indexOf(mode) + 1) % modes.length;\n          get().setMode(modes[nextIndex]);\n        },\n\n        initTheme: () => {\n          const { mode, colorTheme } = get();\n          const resolved = mode === 'system' ? getSystemTheme() : mode;\n          set({ resolvedMode: resolved }, false, 'initTheme');\n          applyTheme(resolved, colorTheme);\n\n          // Listen for system theme changes\n          if (typeof window !== 'undefined') {\n            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {\n              if (get().mode === 'system') {\n                const newResolved = e.matches ? 'dark' : 'light';\n                set({ resolvedMode: newResolved }, false, 'systemChange');\n                applyTheme(newResolved, get().colorTheme);\n              }\n            });\n          }\n        },\n      }),\n      {\n        name: 'theme-storage',\n        partialize: (state) => ({ mode: state.mode, colorTheme: state.colorTheme }),\n      }\n    ),\n    { name: 'ThemeStore' }\n  )\n);\n// @archeon:end store"
+    },
+    "viteConfig": {
+      "targetPath": "vite.config.ts",
+      "content": "// @archeon:file vite.config.ts\n// @glyph CONFIG:vite\n\nimport { defineConfig } from 'vite';\nimport react from '@vitejs/plugin-react';\nimport path from 'path';\n\nexport default defineConfig({\n  plugins: [react()],\n  resolve: {\n    alias: {\n      '@': path.resolve(__dirname, './src'),\n      '@components': path.resolve(__dirname, './src/components'),\n      '@stores': path.resolve(__dirname, './src/stores'),\n      '@hooks': path.resolve(__dirname, './src/hooks'),\n      '@types': path.resolve(__dirname, './src/types'),\n      '@utils': path.resolve(__dirname, './src/utils'),\n    },\n  },\n  server: {\n    port: 3000,\n    proxy: {\n      '/api': {\n        target: 'http://localhost:8000',\n        changeOrigin: true,\n      },\n    },\n  },\n});"
+    }
+  },
+  "prebuilt": {
+    "ThemeToggle": {
+      "description": "Theme toggle button component with light/dark/system modes",
+      "targetPath": "src/components/ThemeToggle.tsx",
+      "content": "// @archeon:file ThemeToggle.tsx\n// @glyph CMP:ThemeToggle\n\nimport React from 'react';\nimport { useThemeStore, ThemeMode } from '@stores/themeStore';\n\n// @archeon:section icons\nconst SunIcon = () => (\n  <svg className=\"w-5 h-5\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\">\n    <path strokeLinecap=\"round\" strokeLinejoin=\"round\" strokeWidth={2} d=\"M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z\" />\n  </svg>\n);\n\nconst MoonIcon = () => (\n  <svg className=\"w-5 h-5\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\">\n    <path strokeLinecap=\"round\" strokeLinejoin=\"round\" strokeWidth={2} d=\"M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z\" />\n  </svg>\n);\n\nconst SystemIcon = () => (\n  <svg className=\"w-5 h-5\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\">\n    <path strokeLinecap=\"round\" strokeLinejoin=\"round\" strokeWidth={2} d=\"M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z\" />\n  </svg>\n);\n// @archeon:end icons\n\n// @archeon:section component\nconst themeIcons: Record<ThemeMode, React.ReactNode> = {\n  light: <SunIcon />,\n  dark: <MoonIcon />,\n  system: <SystemIcon />,\n};\n\nconst themeLabels: Record<ThemeMode, string> = {\n  light: 'Light',\n  dark: 'Dark',\n  system: 'System',\n};\n\nexport const ThemeToggle: React.FC = () => {\n  const { mode, toggleMode } = useThemeStore();\n\n  return (\n    <button\n      onClick={toggleMode}\n      className=\"inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-surface-100 dark:bg-surface-800 hover:bg-surface-200 dark:hover:bg-surface-700 transition-colors duration-200 text-surface-700 dark:text-surface-200\"\n      title={`Current: ${themeLabels[mode]}. Click to toggle.`}\n      aria-label={`Toggle theme. Current: ${themeLabels[mode]}`}\n    >\n      {themeIcons[mode]}\n      <span className=\"text-sm font-medium\">{themeLabels[mode]}</span>\n    </button>\n  );\n};\n// @archeon:end component\n\nexport default ThemeToggle;"
+    },
+    "ThemeSelector": {
+      "description": "Full theme selector with mode toggle and color theme picker",
+      "targetPath": "src/components/ThemeSelector.tsx",
+      "content": "// @archeon:file ThemeSelector.tsx\n// @glyph CMP:ThemeSelector\n\nimport React, { useState, useRef, useEffect } from 'react';\nimport { useThemeStore, ThemeMode, ColorTheme, THEMES, COLOR_THEMES } from '@stores/themeStore';\n\n// @archeon:section icons\nconst SunIcon = () => (\n  <svg className=\"w-5 h-5\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\">\n    <path strokeLinecap=\"round\" strokeLinejoin=\"round\" strokeWidth={2} d=\"M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z\" />\n  </svg>\n);\n\nconst MoonIcon = () => (\n  <svg className=\"w-5 h-5\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\">\n    <path strokeLinecap=\"round\" strokeLinejoin=\"round\" strokeWidth={2} d=\"M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z\" />\n  </svg>\n);\n\nconst SystemIcon = () => (\n  <svg className=\"w-5 h-5\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\">\n    <path strokeLinecap=\"round\" strokeLinejoin=\"round\" strokeWidth={2} d=\"M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z\" />\n  </svg>\n);\n\nconst CheckIcon = () => (\n  <svg className=\"w-4 h-4\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\">\n    <path strokeLinecap=\"round\" strokeLinejoin=\"round\" strokeWidth={2} d=\"M5 13l4 4L19 7\" />\n  </svg>\n);\n\nconst ChevronIcon = ({ open }: { open: boolean }) => (\n  <svg className={`w-4 h-4 transition-transform ${open ? 'rotate-180' : ''}`} fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\">\n    <path strokeLinecap=\"round\" strokeLinejoin=\"round\" strokeWidth={2} d=\"M19 9l-7 7-7-7\" />\n  </svg>\n);\n// @archeon:end icons\n\n// @archeon:section component\nconst themeIcons: Record<ThemeMode, React.ReactNode> = {\n  light: <SunIcon />,\n  dark: <MoonIcon />,\n  system: <SystemIcon />,\n};\n\nexport const ThemeSelector: React.FC = () => {\n  const { mode, colorTheme, setMode, setColorTheme } = useThemeStore();\n  const [isOpen, setIsOpen] = useState(false);\n  const dropdownRef = useRef<HTMLDivElement>(null);\n\n  useEffect(() => {\n    const handleClickOutside = (event: MouseEvent) => {\n      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {\n        setIsOpen(false);\n      }\n    };\n    document.addEventListener('mousedown', handleClickOutside);\n    return () => document.removeEventListener('mousedown', handleClickOutside);\n  }, []);\n\n  return (\n    <div className=\"relative\" ref={dropdownRef}>\n      <button\n        onClick={() => setIsOpen(!isOpen)}\n        className=\"inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-surface-100 dark:bg-surface-800 hover:bg-surface-200 dark:hover:bg-surface-700 transition-colors text-surface-700 dark:text-surface-200\"\n        aria-expanded={isOpen}\n        aria-haspopup=\"true\"\n      >\n        {themeIcons[mode]}\n        <span\n          className=\"w-3 h-3 rounded-full border-2 border-white dark:border-surface-900 shadow-sm\"\n          style={{ backgroundColor: COLOR_THEMES[colorTheme].primary }}\n        />\n        <ChevronIcon open={isOpen} />\n      </button>\n\n      {isOpen && (\n        <div className=\"absolute right-0 mt-2 w-64 bg-white dark:bg-surface-800 rounded-xl shadow-xl border border-surface-200 dark:border-surface-700 overflow-hidden z-50\">\n          {/* Mode Selection */}\n          <div className=\"p-3 border-b border-surface-200 dark:border-surface-700\">\n            <p className=\"text-xs font-semibold text-surface-500 dark:text-surface-400 uppercase tracking-wider mb-2\">Appearance</p>\n            <div className=\"flex gap-1\">\n              {THEMES.map((themeMode) => (\n                <button\n                  key={themeMode}\n                  onClick={() => setMode(themeMode)}\n                  className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${\n                    mode === themeMode\n                      ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'\n                      : 'hover:bg-surface-100 dark:hover:bg-surface-700 text-surface-600 dark:text-surface-300'\n                  }`}\n                >\n                  {themeIcons[themeMode]}\n                  <span className=\"capitalize\">{themeMode}</span>\n                </button>\n              ))}\n            </div>\n          </div>\n\n          {/* Color Theme Selection */}\n          <div className=\"p-3\">\n            <p className=\"text-xs font-semibold text-surface-500 dark:text-surface-400 uppercase tracking-wider mb-2\">Color Theme</p>\n            <div className=\"space-y-1\">\n              {(Object.keys(COLOR_THEMES) as ColorTheme[]).map((theme) => (\n                <button\n                  key={theme}\n                  onClick={() => setColorTheme(theme)}\n                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${\n                    colorTheme === theme\n                      ? 'bg-surface-100 dark:bg-surface-700'\n                      : 'hover:bg-surface-50 dark:hover:bg-surface-700/50'\n                  }`}\n                >\n                  <span\n                    className=\"w-5 h-5 rounded-full border-2 border-white dark:border-surface-600 shadow-sm\"\n                    style={{ backgroundColor: COLOR_THEMES[theme].primary }}\n                  />\n                  <div className=\"flex-1 text-left\">\n                    <p className=\"text-sm font-medium text-surface-800 dark:text-surface-200\">{COLOR_THEMES[theme].name}</p>\n                    <p className=\"text-xs text-surface-500 dark:text-surface-400\">{COLOR_THEMES[theme].description}</p>\n                  </div>\n                  {colorTheme === theme && (\n                    <span className=\"text-primary-500\">\n                      <CheckIcon />\n                    </span>\n                  )}\n                </button>\n              ))}\n            </div>\n          </div>\n        </div>\n      )}\n    </div>\n  );\n};\n// @archeon:end component\n\nexport default ThemeSelector;"
+    }
+  },
+  "dependencies": {
+    "frontend": {
+      "react": "^18.2.0",
+      "react-dom": "^18.2.0",
+      "zustand": "^4.5.0",
+      "zod": "^3.22.0",
+      "tailwindcss": "^3.4.0",
+      "autoprefixer": "^10.4.0",
+      "postcss": "^8.4.0",
+      "@types/react": "^18.2.0",
+      "@types/react-dom": "^18.2.0",
+      "typescript": "^5.3.0",
+      "vite": "^5.0.0",
+      "@vitejs/plugin-react": "^4.2.0"
+    },
+    "backend": {
+      "fastapi": ">=0.109.0",
+      "uvicorn": ">=0.27.0",
+      "motor": ">=3.3.0",
+      "pydantic": ">=2.5.0",
+      "python-dotenv": ">=1.0.0"
+    }
+  }
+}

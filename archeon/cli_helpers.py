@@ -3,13 +3,21 @@ CLI helper functions for project initialization and setup.
 
 This module contains all the utility functions used by the main CLI
 to set up new Archeon projects, copy templates, and generate documentation.
+
+Supports JSON-based architecture shapes (.shape.json files) which define:
+- Glyph snippets and placeholders
+- Directory structures
+- Framework configurations
+- Dependencies
 """
 
 import shutil
+import json
 from pathlib import Path
 from rich import print as rprint
 
 from archeon.cli_templates import ORCHESTRATOR_README_TEMPLATE, AI_README_TEMPLATE
+from archeon.orchestrator.SHP_shape import get_loader, list_architectures, load_architecture
 
 
 def get_package_templates_dir() -> Path:
@@ -17,12 +25,96 @@ def get_package_templates_dir() -> Path:
     return Path(__file__).parent / "templates"
 
 
-def copy_templates(archeon_dir: Path, frontend: str, backend: str):
-    """Copy reference templates to the project's archeon/templates folder."""
+def get_architectures_dir() -> Path:
+    """Get the path to the architectures directory with .shape.json files."""
+    return Path(__file__).parent / "architectures"
+
+
+def get_shape_id(frontend: str, backend: str) -> str:
+    """Map frontend/backend combo to shape ID."""
+    # Normalize frontend
+    if frontend.lower() in ("vue", "vue3"):
+        frontend = "vue3"
+    
+    shape_map = {
+        ("vue3", "fastapi"): "vue3-fastapi",
+        ("react", "fastapi"): "react-fastapi",
+        ("react", "express"): "react-express",
+        ("vue3", "express"): "vue3-express",
+    }
+    
+    return shape_map.get((frontend.lower(), backend.lower()), "vue3-fastapi")
+
+
+def copy_shape_to_project(archeon_dir: Path, shape_id: str):
+    """Copy the architecture shape JSON to the project's archeon directory."""
+    src_shape = get_architectures_dir() / f"{shape_id}.shape.json"
+    dst_shape = archeon_dir / f"{shape_id}.shape.json"
+    
+    if src_shape.exists() and not dst_shape.exists():
+        shutil.copy2(src_shape, dst_shape)
+    
+    return dst_shape
+
+
+def copy_templates(archeon_dir: Path, frontend: str, backend: str, arch: str = None):
+    """Copy reference templates to the project's archeon/templates folder.
+    
+    Uses JSON-based shapes (.shape.json) as the primary source.
+    Falls back to file-based templates if shape not found.
+    """
     pkg_templates = get_package_templates_dir()
     target_templates = archeon_dir / "templates"
     
-    # Map frontend/backend to template files
+    # Determine shape ID
+    shape_id = arch if arch else get_shape_id(frontend, backend)
+    shape = load_architecture(shape_id)
+    
+    if shape:
+        # Copy the shape file to the project
+        copy_shape_to_project(archeon_dir, shape_id)
+        
+        # Write glyph snippets as template files for reference
+        for glyph_name, glyph_shape in shape.glyphs.items():
+            glyph_dir = target_templates / glyph_name
+            glyph_dir.mkdir(parents=True, exist_ok=True)
+            
+            # Write snippet as template file
+            ext = glyph_shape.output_extension
+            template_file = glyph_dir / f"template{ext}"
+            if not template_file.exists():
+                template_file.write_text(glyph_shape.snippet)
+        
+        # Write config files from shape (supports both "path" and "targetPath" keys)
+        for config_name, config_data in shape.config.items():
+            if isinstance(config_data, dict) and "content" in config_data:
+                path_key = "targetPath" if "targetPath" in config_data else "path"
+                if path_key in config_data:
+                    config_path = archeon_dir.parent / config_data[path_key]
+                    # Don't add client/ prefix if path already starts with client/
+                    if not str(config_data[path_key]).startswith("client/"):
+                        config_path = archeon_dir.parent / "client" / config_data[path_key]
+                    config_path.parent.mkdir(parents=True, exist_ok=True)
+                    if not config_path.exists():
+                        config_path.write_text(config_data["content"])
+        
+        # Write prebuilt components from shape (supports both "path" and "targetPath" keys)
+        if hasattr(shape, 'prebuilt') and shape.prebuilt:
+            for component_name, component_data in shape.prebuilt.items():
+                if isinstance(component_data, dict) and "content" in component_data:
+                    path_key = "targetPath" if "targetPath" in component_data else "path"
+                    if path_key in component_data:
+                        component_path = archeon_dir.parent / component_data[path_key]
+                        # Don't add client/ prefix if path already starts with client/
+                        if not str(component_data[path_key]).startswith("client/"):
+                            component_path = archeon_dir.parent / "client" / component_data[path_key]
+                        component_path.parent.mkdir(parents=True, exist_ok=True)
+                        if not component_path.exists():
+                            component_path.write_text(component_data["content"])
+        
+        return shape_id
+    
+    # Fallback: use legacy file-based templates
     frontend_map = {
         "react": {"CMP": "react.tsx", "STO": "zustand.js"},
         "vue": {"CMP": "vue.vue", "STO": "pinia.js"},
@@ -31,31 +123,27 @@ def copy_templates(archeon_dir: Path, frontend: str, backend: str):
     
     backend_map = {
         "fastapi": {"API": "fastapi.py", "MDL": "mongo.py", "EVT": "pubsub.py", "FNC": "python.py"},
-        "express": {"API": "fastapi.py", "MDL": "mongo.py", "EVT": "pubsub.py", "FNC": "python.py"},  # TODO: add express templates
+        "express": {"API": "fastapi.py", "MDL": "mongo.py", "EVT": "pubsub.py", "FNC": "python.py"},
     }
     
-    # Theme store map (per framework)
     theme_store_map = {
         "react": "theme-zustand.js",
         "vue": "theme-pinia.js",
         "vue3": "theme-pinia.js",
     }
     
-    # Copy frontend templates
     for glyph, filename in frontend_map.get(frontend, frontend_map["react"]).items():
         src = pkg_templates / glyph / filename
         dst = target_templates / glyph / filename
         if src.exists() and not dst.exists():
             shutil.copy2(src, dst)
     
-    # Copy theme store template
     theme_store_file = theme_store_map.get(frontend, "theme-zustand.js")
     src = pkg_templates / "STO" / theme_store_file
     dst = target_templates / "STO" / theme_store_file
     if src.exists() and not dst.exists():
         shutil.copy2(src, dst)
     
-    # Copy backend templates  
     for glyph, filename in backend_map.get(backend, backend_map["fastapi"]).items():
         src = pkg_templates / glyph / filename
         dst = target_templates / glyph / filename
@@ -72,6 +160,8 @@ def copy_templates(archeon_dir: Path, frontend: str, backend: str):
                 dst = target_config_dir / config_file.name
                 if not dst.exists():
                     shutil.copy2(config_file, dst)
+    
+    return None
 
 
 def create_orchestrator_readme(archeon_dir: Path):

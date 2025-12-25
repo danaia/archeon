@@ -1,0 +1,268 @@
+{
+  "meta": {
+    "id": "vue3-fastapi",
+    "name": "Vue 3 + FastAPI",
+    "version": "1.0.0",
+    "description": "Full-stack architecture with Vue 3 Composition API frontend and FastAPI Python backend",
+    "tags": ["fullstack", "spa", "python", "vue", "mongodb"]
+  },
+  "stack": {
+    "frontend": {
+      "framework": "vue3",
+      "language": "typescript",
+      "stateManagement": "pinia",
+      "styling": "tailwind",
+      "buildTool": "vite"
+    },
+    "backend": {
+      "framework": "fastapi",
+      "language": "python",
+      "database": "mongodb",
+      "orm": "motor"
+    }
+  },
+  "directories": {
+    "root": ["client", "server", "archeon"],
+    "frontend": {
+      "components": "client/src/components",
+      "stores": "client/src/stores",
+      "views": "client/src/views",
+      "composables": "client/src/composables"
+    },
+    "backend": {
+      "api": "server/src/api",
+      "models": "server/src/models",
+      "services": "server/src/services",
+      "events": "server/src/events"
+    }
+  },
+  "glyphs": {
+    "CMP": {
+      "layer": "frontend",
+      "output": {
+        "directory": "components",
+        "extension": ".vue",
+        "naming": "PascalCase"
+      },
+      "sections": ["imports", "props_and_state", "handlers", "render"],
+      "snippet": "<!-- @archeon:file -->\n<!-- @glyph {GLYPH_QUALIFIED_NAME} -->\n<!-- @intent {COMPONENT_INTENT} -->\n<!-- @chain {CHAIN_REFERENCE} -->\n\n<script setup>\n// @archeon:section imports\n// External dependencies and composables\nimport { ref, computed, onMounted, watch } from 'vue';\nimport { useThemeStore } from '@/stores/themeStore';\n{STORE_IMPORT}\n{IMPORTS}\n// @archeon:endsection\n\n// @archeon:section props_and_state\n// Reactive inputs and local UI state\nconst props = defineProps({\n{PROPS_DEFINITION}\n});\n\nconst emit = defineEmits({EMITS_DEFINITION});\n\n// Theme support\nconst themeStore = useThemeStore();\nconst { isDark, resolvedTheme } = themeStore;\n\n{STATE_REFS}\n{COMPUTED}\n// @archeon:endsection\n\n// @archeon:section handlers\n// Event handlers and business logic\n{HANDLERS}\n{LIFECYCLE}\n// @archeon:endsection\n</script>\n\n<template>\n  <!-- @archeon:section render -->\n  <!-- Component template structure -->\n  <div \n    class=\"{TAILWIND_CLASSES}\"\n    data-testid=\"{COMPONENT_NAME_KEBAB}\"\n  >\n{RENDER_CONTENT}\n  </div>\n  <!-- @archeon:endsection -->\n</template>",
+      "placeholders": {
+        "GLYPH_QUALIFIED_NAME": { "description": "Full glyph name (e.g., CMP:LoginForm)", "required": true },
+        "COMPONENT_INTENT": { "description": "One-line description of component purpose", "required": true },
+        "CHAIN_REFERENCE": { "description": "Chain this component belongs to", "required": true },
+        "STORE_IMPORT": { "description": "Pinia store imports", "default": "" },
+        "IMPORTS": { "description": "Additional imports", "default": "" },
+        "PROPS_DEFINITION": { "description": "Vue props definition", "default": "" },
+        "EMITS_DEFINITION": { "description": "Vue emits definition", "default": "[]" },
+        "STATE_REFS": { "description": "Reactive state refs", "default": "" },
+        "COMPUTED": { "description": "Computed properties", "default": "" },
+        "HANDLERS": { "description": "Event handler functions", "default": "" },
+        "LIFECYCLE": { "description": "Lifecycle hooks (onMounted, etc)", "default": "" },
+        "TAILWIND_CLASSES": { "description": "Tailwind CSS classes for root element", "default": "" },
+        "COMPONENT_NAME_KEBAB": { "description": "Component name in kebab-case for test ID", "required": true },
+        "RENDER_CONTENT": { "description": "Template content", "required": true }
+      }
+    },
+    "STO": {
+      "layer": "frontend",
+      "output": {
+        "directory": "stores",
+        "extension": ".js",
+        "naming": "camelCase"
+      },
+      "sections": ["imports", "state", "selectors", "actions"],
+      "snippet": "// @archeon:file\n// @glyph {GLYPH_QUALIFIED_NAME}\n// @intent {STORE_INTENT}\n// @chain {CHAIN_REFERENCE}\n\n// @archeon:section imports\n// External dependencies\nimport { defineStore } from 'pinia'\nimport { ref, computed } from 'vue'\nimport axios from 'axios'\n{IMPORTS}\n// @archeon:endsection\n\nexport const use{STORE_NAME}Store = defineStore('{STORE_ID}', () => {\n// @archeon:section state\n// Reactive state refs\n{STATE_REFS}\n// @archeon:endsection\n\n// @archeon:section selectors\n// Computed getters\n{GETTERS}\n// @archeon:endsection\n\n// @archeon:section actions\n// State mutations and async operations\n{ACTIONS}\n\n  function $reset() {\n{RESET_ACTION}\n  }\n// @archeon:endsection\n\n  return {\n{STATE_RETURN}\n{GETTERS_RETURN}\n{ACTIONS_RETURN}\n    $reset\n  }\n})",
+      "placeholders": {
+        "GLYPH_QUALIFIED_NAME": { "description": "Full glyph name (e.g., STO:Auth)", "required": true },
+        "STORE_INTENT": { "description": "One-line description of store purpose", "required": true },
+        "CHAIN_REFERENCE": { "description": "Chain this store belongs to", "required": true },
+        "IMPORTS": { "description": "Additional imports", "default": "" },
+        "STORE_NAME": { "description": "Store name in PascalCase", "required": true },
+        "STORE_ID": { "description": "Store ID in camelCase", "required": true },
+        "STATE_REFS": { "description": "Reactive state definitions", "default": "" },
+        "GETTERS": { "description": "Computed getters", "default": "" },
+        "ACTIONS": { "description": "Action functions", "default": "" },
+        "RESET_ACTION": { "description": "Reset state logic", "default": "" },
+        "STATE_RETURN": { "description": "State refs to return", "default": "" },
+        "GETTERS_RETURN": { "description": "Getters to return", "default": "" },
+        "ACTIONS_RETURN": { "description": "Actions to return", "default": "" }
+      }
+    },
+    "API": {
+      "layer": "backend",
+      "output": {
+        "directory": "api",
+        "extension": ".py",
+        "naming": "snake_case"
+      },
+      "sections": ["imports", "models", "endpoint", "helpers"],
+      "snippet": "# @archeon:file\n# @glyph {GLYPH_QUALIFIED_NAME}\n# @intent {ENDPOINT_INTENT}\n# @chain {CHAIN_REFERENCE}\n\n# @archeon:section imports\n# External dependencies and internal modules\nfrom fastapi import APIRouter, HTTPException, Depends\nfrom pydantic import BaseModel\n{IMPORTS}\n# @archeon:endsection\n\nrouter = APIRouter(prefix=\"{ROUTE_PREFIX}\", tags=[\"{TAG}\"])\n\n# @archeon:section models\n# Request/response Pydantic models\n\nclass {REQUEST_MODEL}(BaseModel):\n{REQUEST_FIELDS}\n\n\nclass {RESPONSE_MODEL}(BaseModel):\n{RESPONSE_FIELDS}\n\n\nclass {ERROR_MODEL}(BaseModel):\n    detail: str\n    code: str\n# @archeon:endsection\n\n# @archeon:section endpoint\n# {METHOD} {ROUTE} endpoint handler\n\n@router.{METHOD}(\"{ROUTE}\")\nasync def {HANDLER_NAME}(\n{PARAMETERS}\n) -> {RESPONSE_MODEL}:\n    \"\"\"\n    {DOCSTRING}\n    \"\"\"\n{HANDLER_BODY}\n# @archeon:endsection",
+      "placeholders": {
+        "GLYPH_QUALIFIED_NAME": { "description": "Full glyph name (e.g., API:POST/auth)", "required": true },
+        "ENDPOINT_INTENT": { "description": "One-line description of endpoint purpose", "required": true },
+        "CHAIN_REFERENCE": { "description": "Chain this endpoint belongs to", "required": true },
+        "IMPORTS": { "description": "Additional imports", "default": "" },
+        "ROUTE_PREFIX": { "description": "Router prefix path", "required": true },
+        "TAG": { "description": "OpenAPI tag for grouping", "required": true },
+        "REQUEST_MODEL": { "description": "Request model class name", "required": true },
+        "REQUEST_FIELDS": { "description": "Request model fields", "default": "    pass" },
+        "RESPONSE_MODEL": { "description": "Response model class name", "required": true },
+        "RESPONSE_FIELDS": { "description": "Response model fields", "default": "    pass" },
+        "ERROR_MODEL": { "description": "Error model class name", "default": "ErrorResponse" },
+        "METHOD": { "description": "HTTP method (get, post, put, delete)", "required": true },
+        "ROUTE": { "description": "Route path", "required": true },
+        "HANDLER_NAME": { "description": "Handler function name", "required": true },
+        "PARAMETERS": { "description": "Function parameters", "default": "" },
+        "DOCSTRING": { "description": "Endpoint documentation", "required": true },
+        "HANDLER_BODY": { "description": "Handler implementation", "required": true }
+      }
+    },
+    "MDL": {
+      "layer": "backend",
+      "output": {
+        "directory": "models",
+        "extension": ".py",
+        "naming": "snake_case"
+      },
+      "sections": ["imports", "schema", "methods", "indexes"],
+      "snippet": "# @archeon:file\n# @glyph {GLYPH_QUALIFIED_NAME}\n# @intent {MODEL_INTENT}\n# @chain {CHAIN_REFERENCE}\n\n# @archeon:section imports\n# External dependencies and type imports\nfrom typing import Optional, List, Any\nfrom datetime import datetime\nfrom pydantic import BaseModel, Field, ConfigDict\nfrom bson import ObjectId\nfrom motor.motor_asyncio import AsyncIOMotorCollection\n{IMPORTS}\n# @archeon:endsection\n\n\n# @archeon:section schema\n# API schemas and request/response models\n\nclass {MODEL_NAME}Create(BaseModel):\n    \"\"\"Request schema for creating a {ENTITY}.\"\"\"\n{CREATE_FIELDS}\n\n\nclass {MODEL_NAME}Update(BaseModel):\n    \"\"\"Request schema for updating a {ENTITY}.\"\"\"\n{UPDATE_FIELDS}\n\n\nclass {MODEL_NAME}Response(BaseModel):\n    \"\"\"Response schema for {ENTITY}.\"\"\"\n    model_config = ConfigDict(from_attributes=True)\n    \n    id: str\n{RESPONSE_FIELDS}\n    created_at: Optional[datetime] = None\n    updated_at: Optional[datetime] = None\n\n\nclass {MODEL_NAME}ListResponse(BaseModel):\n    \"\"\"Response schema for list of {ENTITY}s.\"\"\"\n    items: List[{MODEL_NAME}Response]\n    total: int\n# @archeon:endsection\n\n\n# @archeon:section methods\n# Document model with serialization methods\n\nclass {MODEL_NAME}:\n    \"\"\"MongoDB document model for {ENTITY}.\"\"\"\n    \n    collection_name = \"{COLLECTION_NAME}\"\n    \n    def __init__(\n        self,\n{INIT_FIELDS}\n        _id: Optional[ObjectId] = None,\n        created_at: Optional[datetime] = None,\n        updated_at: Optional[datetime] = None,\n    ):\n{FIELD_ASSIGNMENTS}\n        self._id = _id\n        self.created_at = created_at or datetime.utcnow()\n        self.updated_at = updated_at\n    \n    def to_dict(self) -> dict:\n        \"\"\"Convert to dictionary for MongoDB.\"\"\"\n        return {\n            \"_id\": self._id,\n{TO_DICT_FIELDS}\n            \"created_at\": self.created_at,\n            \"updated_at\": self.updated_at,\n        }\n    \n    def to_response(self) -> {MODEL_NAME}Response:\n        \"\"\"Convert to API response schema.\"\"\"\n        return {MODEL_NAME}Response(\n            id=str(self._id),\n{TO_RESPONSE_FIELDS}\n            created_at=self.created_at,\n            updated_at=self.updated_at,\n        )\n    \n    @classmethod\n    def from_dict(cls, data: dict) -> \"{MODEL_NAME}\":\n        \"\"\"Create instance from MongoDB document.\"\"\"\n        return cls(\n{FROM_DICT_FIELDS}\n            _id=data.get(\"_id\"),\n            created_at=data.get(\"created_at\"),\n            updated_at=data.get(\"updated_at\"),\n        )\n    \n    @classmethod\n    def from_create(cls, data: {MODEL_NAME}Create) -> \"{MODEL_NAME}\":\n        \"\"\"Create instance from API request.\"\"\"\n        return cls(\n{FROM_CREATE_FIELDS}\n        )\n# @archeon:endsection",
+      "placeholders": {
+        "GLYPH_QUALIFIED_NAME": { "description": "Full glyph name (e.g., MDL:user)", "required": true },
+        "MODEL_INTENT": { "description": "One-line description of model purpose", "required": true },
+        "CHAIN_REFERENCE": { "description": "Chain this model belongs to", "required": true },
+        "IMPORTS": { "description": "Additional imports", "default": "" },
+        "MODEL_NAME": { "description": "Model class name in PascalCase", "required": true },
+        "ENTITY": { "description": "Entity name for documentation", "required": true },
+        "COLLECTION_NAME": { "description": "MongoDB collection name", "required": true },
+        "CREATE_FIELDS": { "description": "Create schema fields", "default": "    pass" },
+        "UPDATE_FIELDS": { "description": "Update schema fields", "default": "    pass" },
+        "RESPONSE_FIELDS": { "description": "Response schema fields", "default": "" },
+        "INIT_FIELDS": { "description": "Constructor parameters", "default": "" },
+        "FIELD_ASSIGNMENTS": { "description": "Field assignments in constructor", "default": "" },
+        "TO_DICT_FIELDS": { "description": "Fields for to_dict method", "default": "" },
+        "TO_RESPONSE_FIELDS": { "description": "Fields for to_response method", "default": "" },
+        "FROM_DICT_FIELDS": { "description": "Fields for from_dict method", "default": "" },
+        "FROM_CREATE_FIELDS": { "description": "Fields for from_create method", "default": "" }
+      }
+    },
+    "EVT": {
+      "layer": "shared",
+      "output": {
+        "directory": "events",
+        "extension": ".py",
+        "naming": "snake_case"
+      },
+      "sections": ["imports", "channels", "handlers"],
+      "snippet": "# @archeon:file\n# @glyph {GLYPH_QUALIFIED_NAME}\n# @intent {EVENT_INTENT}\n# @chain {CHAIN_REFERENCE}\n\n# @archeon:section imports\n# External dependencies and type imports\nfrom typing import Callable, Any\nfrom dataclasses import dataclass, field\n{IMPORTS}\n# @archeon:endsection\n\n\n# @archeon:section channels\n# Event payload definitions\n\n@dataclass\nclass {EVENT_NAME}Event:\n    \"\"\"Event payload for {EVENT_NAME}.\"\"\"\n{EVENT_FIELDS}\n# @archeon:endsection\n\n\n# @archeon:section handlers\n# Event emitter and subscription handling\n\nclass {EVENT_NAME}Emitter:\n    \"\"\"Event emitter for {EVENT_NAME}.\"\"\"\n    \n    def __init__(self):\n        self._listeners: list[Callable[[{EVENT_NAME}Event], None]] = []\n    \n    def subscribe(self, callback: Callable[[{EVENT_NAME}Event], None]) -> Callable[[], None]:\n        \"\"\"Subscribe to this event. Returns unsubscribe function.\"\"\"\n        self._listeners.append(callback)\n        return lambda: self._listeners.remove(callback)\n    \n    def emit(self, event: {EVENT_NAME}Event) -> None:\n        \"\"\"Emit event to all listeners.\"\"\"\n        for listener in self._listeners:\n            listener(event)\n    \n    def clear(self) -> None:\n        \"\"\"Remove all listeners.\"\"\"\n        self._listeners.clear()\n\n\n# Singleton instance\n{EVENT_NAME_LOWER}_emitter = {EVENT_NAME}Emitter()\n# @archeon:endsection",
+      "placeholders": {
+        "GLYPH_QUALIFIED_NAME": { "description": "Full glyph name (e.g., EVT:UserCreated)", "required": true },
+        "EVENT_INTENT": { "description": "One-line description of event purpose", "required": true },
+        "CHAIN_REFERENCE": { "description": "Chain this event belongs to", "required": true },
+        "IMPORTS": { "description": "Additional imports", "default": "" },
+        "EVENT_NAME": { "description": "Event name in PascalCase", "required": true },
+        "EVENT_NAME_LOWER": { "description": "Event name in snake_case", "required": true },
+        "EVENT_FIELDS": { "description": "Event payload fields", "default": "    pass" }
+      }
+    },
+    "FNC": {
+      "layer": "shared",
+      "output": {
+        "directory": "services",
+        "extension": ".py",
+        "naming": "snake_case"
+      },
+      "sections": ["imports", "implementation", "helpers"],
+      "snippet": "# @archeon:file\n# @glyph {GLYPH_QUALIFIED_NAME}\n# @intent {FUNCTION_INTENT}\n# @chain {CHAIN_REFERENCE}\n\n# @archeon:section imports\n# External dependencies and type imports\nfrom typing import Any\n{IMPORTS}\n# @archeon:endsection\n\n\n# @archeon:section implementation\n# Primary function implementation\n\ndef {FUNCTION_NAME}({PARAMETERS}) -> {RETURN_TYPE}:\n    \"\"\"\n    {DOCSTRING}\n    \n    Args:\n{ARGS_DOC}\n    \n    Returns:\n        {RETURN_DOC}\n    \"\"\"\n{FUNCTION_BODY}\n# @archeon:endsection",
+      "placeholders": {
+        "GLYPH_QUALIFIED_NAME": { "description": "Full glyph name (e.g., FNC:auth.hashPassword)", "required": true },
+        "FUNCTION_INTENT": { "description": "One-line description of function purpose", "required": true },
+        "CHAIN_REFERENCE": { "description": "Chain this function belongs to", "required": true },
+        "IMPORTS": { "description": "Additional imports", "default": "" },
+        "FUNCTION_NAME": { "description": "Function name in snake_case", "required": true },
+        "PARAMETERS": { "description": "Function parameters with types", "default": "" },
+        "RETURN_TYPE": { "description": "Return type annotation", "default": "None" },
+        "DOCSTRING": { "description": "Function description", "required": true },
+        "ARGS_DOC": { "description": "Arguments documentation", "default": "        None" },
+        "RETURN_DOC": { "description": "Return value documentation", "default": "None" },
+        "FUNCTION_BODY": { "description": "Function implementation", "required": true }
+      }
+    },
+    "V": {
+      "layer": "frontend",
+      "output": {
+        "directory": "views",
+        "extension": ".vue",
+        "naming": "PascalCase"
+      },
+      "sections": ["imports", "props_and_state", "handlers", "render"],
+      "snippet": "<!-- @archeon:file -->\n<!-- @glyph {GLYPH_QUALIFIED_NAME} -->\n<!-- @intent {VIEW_INTENT} -->\n<!-- @chain {CHAIN_REFERENCE} -->\n\n<script setup>\n// @archeon:section imports\nimport { ref, computed, onMounted } from 'vue';\nimport { useRoute, useRouter } from 'vue-router';\nimport { useThemeStore } from '@/stores/themeStore';\n{IMPORTS}\n// @archeon:endsection\n\n// @archeon:section props_and_state\nconst route = useRoute();\nconst router = useRouter();\nconst themeStore = useThemeStore();\n\n{STATE_REFS}\n{COMPUTED}\n// @archeon:endsection\n\n// @archeon:section handlers\n{HANDLERS}\n{LIFECYCLE}\n// @archeon:endsection\n</script>\n\n<template>\n  <!-- @archeon:section render -->\n  <main class=\"{TAILWIND_CLASSES}\">\n{RENDER_CONTENT}\n  </main>\n  <!-- @archeon:endsection -->\n</template>",
+      "placeholders": {
+        "GLYPH_QUALIFIED_NAME": { "description": "Full glyph name (e.g., V:Dashboard)", "required": true },
+        "VIEW_INTENT": { "description": "One-line description of view/page purpose", "required": true },
+        "CHAIN_REFERENCE": { "description": "Chain this view belongs to", "required": true },
+        "IMPORTS": { "description": "Component and store imports", "default": "" },
+        "STATE_REFS": { "description": "Reactive state definitions", "default": "" },
+        "COMPUTED": { "description": "Computed properties", "default": "" },
+        "HANDLERS": { "description": "Event handlers and methods", "default": "" },
+        "LIFECYCLE": { "description": "Lifecycle hooks", "default": "" },
+        "TAILWIND_CLASSES": { "description": "Page container classes", "default": "min-h-screen p-4" },
+        "RENDER_CONTENT": { "description": "Page template content", "required": true }
+      }
+    }
+  },
+  "config": {
+    "tailwind": {
+      "path": "client/tailwind.config.js",
+      "content": "/** @type {import('tailwindcss').Config} */\nexport default {\n  content: ['./index.html', './src/**/*.{vue,js,ts,jsx,tsx}'],\n  darkMode: 'class',\n  theme: {\n    extend: {\n      colors: {\n        primary: 'rgb(var(--color-primary) / <alpha-value>)',\n        surface: 'rgb(var(--color-surface) / <alpha-value>)',\n        border: 'rgb(var(--color-border) / <alpha-value>)',\n      },\n    },\n  },\n  plugins: [],\n}"
+    },
+    "themeStore": {
+      "path": "client/src/stores/themeStore.js",
+      "content": "// @archeon:file\n// @glyph STO:Theme\n// @intent Theme state management with light/dark/system modes and color themes\n// @chain @v1 TSK:toggle_theme => CMP:ThemeToggle => STO:Theme => OUT:theme_changed\n\n// @archeon:section imports\nimport { defineStore } from 'pinia';\nimport { ref, computed, watch } from 'vue';\n// @archeon:endsection\n\n// @archeon:section state\nexport const THEMES = {\n  LIGHT: 'light',\n  DARK: 'dark',\n  SYSTEM: 'system',\n};\n\nexport const COLOR_THEMES = {\n  BLUE: 'blue',\n  PURPLE: 'purple',\n  GREEN: 'green',\n};\n\nconst COLOR_THEME_CLASSES = {\n  [COLOR_THEMES.BLUE]: 'theme-ocean',\n  [COLOR_THEMES.PURPLE]: 'theme-royal',\n  [COLOR_THEMES.GREEN]: 'theme-forest',\n};\n// @archeon:endsection\n\n// @archeon:section helpers\nconst getSystemTheme = () => {\n  if (typeof window === 'undefined') return THEMES.LIGHT;\n  return window.matchMedia('(prefers-color-scheme: dark)').matches ? THEMES.DARK : THEMES.LIGHT;\n};\n\nconst applyMode = (resolvedTheme) => {\n  if (typeof document === 'undefined') return;\n  const root = document.documentElement;\n  root.classList.remove('light', 'dark');\n  root.classList.add(resolvedTheme);\n  root.style.colorScheme = resolvedTheme;\n};\n\nconst applyColorTheme = (colorTheme) => {\n  if (typeof document === 'undefined') return;\n  const root = document.documentElement;\n  Object.values(COLOR_THEME_CLASSES).forEach(cls => root.classList.remove(cls));\n  const themeClass = COLOR_THEME_CLASSES[colorTheme] || COLOR_THEME_CLASSES[COLOR_THEMES.BLUE];\n  root.classList.add(themeClass);\n};\n\nconst loadPersistedTheme = () => {\n  if (typeof localStorage === 'undefined') return THEMES.SYSTEM;\n  return localStorage.getItem('archeon-theme') || THEMES.SYSTEM;\n};\n\nconst loadPersistedColorTheme = () => {\n  if (typeof localStorage === 'undefined') return COLOR_THEMES.BLUE;\n  return localStorage.getItem('archeon-color-theme') || COLOR_THEMES.BLUE;\n};\n// @archeon:endsection\n\n// @archeon:section actions\nexport const useThemeStore = defineStore('theme', () => {\n  const theme = ref(loadPersistedTheme());\n  const resolvedTheme = ref(theme.value === THEMES.SYSTEM ? getSystemTheme() : theme.value);\n  const colorTheme = ref(loadPersistedColorTheme());\n\n  const isDark = computed(() => resolvedTheme.value === THEMES.DARK);\n  const isLight = computed(() => resolvedTheme.value === THEMES.LIGHT);\n  const isSystem = computed(() => theme.value === THEMES.SYSTEM);\n\n  function setTheme(newTheme) {\n    theme.value = newTheme;\n    resolvedTheme.value = newTheme === THEMES.SYSTEM ? getSystemTheme() : newTheme;\n    localStorage.setItem('archeon-theme', newTheme);\n    applyMode(resolvedTheme.value);\n  }\n\n  function toggleTheme() {\n    const newTheme = resolvedTheme.value === THEMES.DARK ? THEMES.LIGHT : THEMES.DARK;\n    setTheme(newTheme);\n  }\n\n  function setColorTheme(newColorTheme) {\n    colorTheme.value = newColorTheme;\n    localStorage.setItem('archeon-color-theme', newColorTheme);\n    applyColorTheme(newColorTheme);\n  }\n\n  function initTheme() {\n    applyMode(resolvedTheme.value);\n    applyColorTheme(colorTheme.value);\n    if (typeof window !== 'undefined') {\n      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {\n        if (theme.value === THEMES.SYSTEM) {\n          resolvedTheme.value = e.matches ? THEMES.DARK : THEMES.LIGHT;\n          applyMode(resolvedTheme.value);\n        }\n      });\n    }\n  }\n\n  watch(theme, (newTheme) => {\n    resolvedTheme.value = newTheme === THEMES.SYSTEM ? getSystemTheme() : newTheme;\n    applyMode(resolvedTheme.value);\n  });\n\n  return { theme, resolvedTheme, colorTheme, isDark, isLight, isSystem, setTheme, toggleTheme, setColorTheme, initTheme };\n});\n// @archeon:endsection\n\nexport default useThemeStore;"
+    }
+  },
+  "prebuilt": {
+    "ThemeToggle": {
+      "glyph": "CMP:ThemeToggle",
+      "path": "client/src/components/ThemeToggle.vue",
+      "intent": "Dark/light mode toggle button with icon switching",
+      "content": "<!-- @archeon:file -->\n<!-- @glyph CMP:ThemeToggle -->\n<!-- @intent Dark/light mode toggle button with icon switching -->\n<!-- @chain @v1 TSK:toggle_theme => CMP:ThemeToggle => STO:Theme => OUT:theme_changed -->\n\n<script setup>\n// @archeon:section imports\nimport { useThemeStore, THEMES } from '@/stores/themeStore';\n// @archeon:endsection\n\n// @archeon:section props_and_state\ndefineProps({\n  showLabel: { type: Boolean, default: false },\n});\n\nconst themeStore = useThemeStore();\n// @archeon:endsection\n</script>\n\n<!-- @archeon:section render -->\n<template>\n  <div class=\"flex items-center gap-2\">\n    <button\n      type=\"button\"\n      class=\"btn-ghost p-2 rounded-md\"\n      :aria-label=\"`Switch to ${themeStore.isDark ? 'light' : 'dark'} mode`\"\n      @click=\"themeStore.toggleTheme()\"\n    >\n      <svg v-if=\"themeStore.isDark\" class=\"h-5 w-5 text-yellow-400\" fill=\"currentColor\" viewBox=\"0 0 20 20\">\n        <path fill-rule=\"evenodd\" d=\"M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z\" clip-rule=\"evenodd\" />\n      </svg>\n      <svg v-else class=\"h-5 w-5 text-content-secondary\" fill=\"currentColor\" viewBox=\"0 0 20 20\">\n        <path d=\"M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z\" />\n      </svg>\n    </button>\n    <span v-if=\"showLabel\" class=\"text-sm text-content-secondary\">{{ themeStore.isDark ? 'Dark' : 'Light' }}</span>\n  </div>\n</template>\n<!-- @archeon:endsection -->"
+    },
+    "ThemeSelector": {
+      "glyph": "CMP:ThemeSelector",
+      "path": "client/src/components/ThemeSelector.vue",
+      "intent": "Dropdown selector for light/dark/system theme",
+      "content": "<!-- @archeon:file -->\n<!-- @glyph CMP:ThemeSelector -->\n<!-- @intent Dropdown selector for light/dark/system theme -->\n<!-- @chain @v1 TSK:select_theme => CMP:ThemeSelector => STO:Theme => OUT:theme_changed -->\n\n<script setup>\n// @archeon:section imports\nimport { ref, onMounted, onUnmounted } from 'vue';\nimport { useThemeStore, THEMES } from '@/stores/themeStore';\n// @archeon:endsection\n\n// @archeon:section props_and_state\nconst themeStore = useThemeStore();\nconst isOpen = ref(false);\nconst dropdownRef = ref(null);\n\nconst options = [\n  { value: THEMES.LIGHT, label: 'Light', icon: '☀️' },\n  { value: THEMES.DARK, label: 'Dark', icon: '🌙' },\n  { value: THEMES.SYSTEM, label: 'System', icon: '💻' },\n];\n\nconst currentOption = () => options.find(o => o.value === themeStore.theme);\n// @archeon:endsection\n\n// @archeon:section handlers\nfunction handleSelect(value) {\n  themeStore.setTheme(value);\n  isOpen.value = false;\n}\n\nfunction handleClickOutside(event) {\n  if (dropdownRef.value && !dropdownRef.value.contains(event.target)) {\n    isOpen.value = false;\n  }\n}\n\nonMounted(() => document.addEventListener('click', handleClickOutside));\nonUnmounted(() => document.removeEventListener('click', handleClickOutside));\n// @archeon:endsection\n</script>\n\n<!-- @archeon:section render -->\n<template>\n  <div ref=\"dropdownRef\" class=\"relative inline-block\">\n    <button type=\"button\" class=\"btn-outline flex items-center gap-2\" @click=\"isOpen = !isOpen\">\n      <span>{{ currentOption()?.icon }}</span>\n      <span>{{ currentOption()?.label }}</span>\n      <svg class=\"h-4 w-4\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\">\n        <path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M19 9l-7 7-7-7\" />\n      </svg>\n    </button>\n    <Transition enter-active-class=\"transition ease-out duration-100\" enter-from-class=\"transform opacity-0 scale-95\" enter-to-class=\"transform opacity-100 scale-100\" leave-active-class=\"transition ease-in duration-75\" leave-from-class=\"transform opacity-100 scale-100\" leave-to-class=\"transform opacity-0 scale-95\">\n      <div v-if=\"isOpen\" class=\"absolute right-0 mt-2 w-40 bg-surface rounded-md shadow-lg border border-border z-50\">\n        <button v-for=\"option in options\" :key=\"option.value\" type=\"button\" class=\"w-full px-4 py-2 text-left text-sm flex items-center gap-2 hover:bg-surface-raised first:rounded-t-md last:rounded-b-md\" :class=\"[themeStore.theme === option.value ? 'bg-primary-50 text-primary-600 dark:bg-primary-950 dark:text-primary-400' : 'text-content']\" @click=\"handleSelect(option.value)\">\n          <span>{{ option.icon }}</span>\n          <span>{{ option.label }}</span>\n          <svg v-if=\"themeStore.theme === option.value\" class=\"h-4 w-4 ml-auto\" fill=\"currentColor\" viewBox=\"0 0 20 20\"><path fill-rule=\"evenodd\" d=\"M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z\" clip-rule=\"evenodd\" /></svg>\n        </button>\n      </div>\n    </Transition>\n  </div>\n</template>\n<!-- @archeon:endsection -->"
+    }
+  },
+  "dependencies": {
+    "frontend": {
+      "dependencies": {
+        "vue": "^3.4.0",
+        "pinia": "^2.1.0",
+        "vue-router": "^4.2.0",
+        "axios": "^1.6.0"
+      },
+      "devDependencies": {
+        "vite": "^5.0.0",
+        "@vitejs/plugin-vue": "^5.0.0",
+        "tailwindcss": "^3.4.0",
+        "autoprefixer": "^10.4.0",
+        "postcss": "^8.4.0"
+      }
+    },
+    "backend": {
+      "dependencies": {
+        "fastapi": ">=0.109.0",
+        "uvicorn": ">=0.27.0",
+        "pydantic": ">=2.5.0",
+        "motor": ">=3.3.0",
+        "python-dotenv": ">=1.0.0"
+      },
+      "devDependencies": {
+        "pytest": ">=7.4.0",
+        "pytest-asyncio": ">=0.23.0",
+        "httpx": ">=0.26.0"
+      }
+    }
+  }
+}

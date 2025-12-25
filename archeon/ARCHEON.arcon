@@ -3,6 +3,41 @@
 # Project: Archeon
 
 # ============================================================================
+# ARCHITECTURE SHAPE SYSTEM
+# ============================================================================
+# Archeon uses JSON-based "shapes" (.shape.json) to define complete architectures.
+# Each shape contains glyph snippets, directory structures, and configurations.
+#
+# SHAPE STRUCTURE:
+# ```json
+# {
+#   "meta": { "id": "vue3-fastapi", "name": "Vue 3 + FastAPI", "version": "1.0" },
+#   "stack": { "frontend": {...}, "backend": {...} },
+#   "directories": { "frontend": {...}, "backend": {...} },
+#   "glyphs": {
+#     "CMP": { "layer": "frontend", "snippet": "...", "placeholders": {...} },
+#     "STO": { "layer": "frontend", "snippet": "...", "placeholders": {...} },
+#     "API": { "layer": "backend", "snippet": "...", "placeholders": {...} }
+#   },
+#   "config": { "tailwind": {...}, "themeStore": {...} },
+#   "dependencies": { "frontend": {...}, "backend": {...} }
+# }
+# ```
+#
+# CLI USAGE:
+# - `arc shapes` - List available architecture shapes
+# - `arc init --arch vue3-fastapi` - Initialize with specific shape
+# - `arc init -f vue3 -b fastapi` - Auto-maps to vue3-fastapi shape
+#
+# SHAPE LOCATIONS:
+# - Built-in: archeon/architectures/*.shape.json
+# - Project: archeon/<shape-id>.shape.json (copied on init)
+#
+# EXTENDING SHAPES:
+# Create new .shape.json files in archeon/architectures/ with unique "meta.id"
+# ============================================================================
+
+# ============================================================================
 # SEMANTIC SECTION SYSTEM
 # ============================================================================
 # Archeon uses comment-based semantic bracketing for AI-native code navigation.
@@ -82,6 +117,12 @@
 # === ORCHESTRATOR LAYER (Deterministic) ===
 ORC:main :: PRS:glyph :: PRS:intent :: VAL:chain :: VAL:boundary :: VAL:version :: SPW:agent :: TST:e2e :: TST:error
 GRF:domain :: ORC:main
+
+# === SHAPE LOADER LAYER ===
+# SHP loads architecture shapes from JSON files
+# Provides glyph snippets, directory mappings, and configurations
+SHP:loader :: ORC:main
+SHP:loader :: SPW:agent
 
 # === CONTEXT MANAGEMENT (Small Model Optimization) ===
 # CTX manages context budgets to keep payloads within 60K tokens for 30B models

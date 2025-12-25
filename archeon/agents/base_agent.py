@@ -3,6 +3,7 @@ base_agent.py - Abstract Base Agent
 
 Defines the contract all agents must follow.
 Includes semantic section injection for AI-native code navigation.
+Supports JSON-based architecture shapes for snippet loading.
 """
 
 from abc import ABC, abstractmethod
@@ -17,6 +18,7 @@ from archeon.orchestrator.SCN_scanner import (
     format_endsection_comment,
     get_comment_prefix,
 )
+from archeon.orchestrator.SHP_shape import get_loader, load_architecture
 
 
 class BaseAgent(ABC):
@@ -81,8 +83,37 @@ class BaseAgent(ABC):
         """
         pass
 
-    def load_template(self, framework: str) -> Optional[str]:
-        """Load template file from templates directory."""
+    def load_template(self, framework: str, shape_id: str = None) -> Optional[str]:
+        """Load template from shape or templates directory.
+        
+        Args:
+            framework: Target framework (react, vue3, fastapi, etc.)
+            shape_id: Optional shape ID to load snippet from
+            
+        Returns:
+            Template string with placeholders
+        """
+        # Try shape-based loading first
+        if shape_id:
+            loader = get_loader()
+            snippet = loader.get_glyph_snippet(shape_id, self.prefix)
+            if snippet:
+                return snippet
+        
+        # Try common shape IDs based on framework
+        shape_map = {
+            "vue3": "vue3-fastapi",
+            "react": "react-fastapi",
+            "fastapi": "vue3-fastapi",
+        }
+        
+        if framework in shape_map:
+            loader = get_loader()
+            snippet = loader.get_glyph_snippet(shape_map[framework], self.prefix)
+            if snippet:
+                return snippet
+        
+        # Fallback to file-based templates
         template_dir = self.templates_dir / self.prefix
         
         # Try framework-specific template
@@ -90,8 +121,25 @@ class BaseAgent(ABC):
             template_path = template_dir / f"{framework}{ext}"
             if template_path.exists():
                 return template_path.read_text()
+        
+        # Try generic template file
+        template_file = template_dir / f"template{self._get_ext_for_framework(framework)}"
+        if template_file.exists():
+            return template_file.read_text()
 
         return None
+    
+    def _get_ext_for_framework(self, framework: str) -> str:
+        """Get file extension for framework."""
+        ext_map = {
+            "vue3": ".vue",
+            "vue": ".vue",
+            "react": ".tsx",
+            "fastapi": ".py",
+            "python": ".py",
+            "express": ".js",
+        }
+        return ext_map.get(framework, ".txt")
 
     def fill_template(self, template: str, placeholders: dict[str, str]) -> str:
         """Replace placeholders in template with values."""

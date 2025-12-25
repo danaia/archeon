@@ -1,0 +1,173 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "archeon-architecture-schema",
+  "title": "Archeon Architecture Template",
+  "description": "Schema for defining modular architecture templates with glyphs, snippets, and directory structures",
+  "type": "object",
+  "required": ["meta", "stack", "glyphs", "directories"],
+  "properties": {
+    "meta": {
+      "type": "object",
+      "description": "Architecture metadata",
+      "required": ["id", "name", "version"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for this architecture (e.g., vue-python, react-nextjs)"
+        },
+        "name": {
+          "type": "string",
+          "description": "Human-readable name"
+        },
+        "version": {
+          "type": "string",
+          "description": "Semantic version of this architecture template"
+        },
+        "description": {
+          "type": "string",
+          "description": "Brief description of the stack and use cases"
+        },
+        "tags": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Searchable tags (e.g., fullstack, spa, ssr)"
+        },
+        "extends": {
+          "type": "string",
+          "description": "Base architecture ID to inherit from"
+        }
+      }
+    },
+    "stack": {
+      "type": "object",
+      "description": "Technology stack configuration",
+      "required": ["frontend", "backend"],
+      "properties": {
+        "frontend": {
+          "type": "object",
+          "properties": {
+            "framework": { "type": "string" },
+            "language": { "type": "string" },
+            "stateManagement": { "type": "string" },
+            "styling": { "type": "string" },
+            "buildTool": { "type": "string" }
+          }
+        },
+        "backend": {
+          "type": "object",
+          "properties": {
+            "framework": { "type": "string" },
+            "language": { "type": "string" },
+            "database": { "type": "string" },
+            "orm": { "type": "string" }
+          }
+        },
+        "shared": {
+          "type": "object",
+          "properties": {
+            "packageManager": { "type": "string" },
+            "monorepo": { "type": "boolean" }
+          }
+        }
+      }
+    },
+    "directories": {
+      "type": "object",
+      "description": "Project directory structure mapping",
+      "properties": {
+        "root": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Root-level directories to create"
+        },
+        "frontend": {
+          "type": "object",
+          "additionalProperties": { "type": "string" },
+          "description": "Frontend directory mappings (e.g., components -> src/components)"
+        },
+        "backend": {
+          "type": "object",
+          "additionalProperties": { "type": "string" },
+          "description": "Backend directory mappings (e.g., api -> server/routes)"
+        }
+      }
+    },
+    "glyphs": {
+      "type": "object",
+      "description": "Glyph-to-snippet mappings",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["layer", "output", "snippet"],
+        "properties": {
+          "layer": {
+            "type": "string",
+            "enum": ["frontend", "backend", "shared"],
+            "description": "Which layer this glyph belongs to"
+          },
+          "output": {
+            "type": "object",
+            "properties": {
+              "directory": { "type": "string" },
+              "extension": { "type": "string" },
+              "naming": {
+                "type": "string",
+                "enum": ["PascalCase", "camelCase", "kebab-case", "snake_case"]
+              }
+            }
+          },
+          "sections": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Standard @archeon:section names for this glyph"
+          },
+          "snippet": {
+            "type": "string",
+            "description": "Code template with {PLACEHOLDERS}"
+          },
+          "placeholders": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "description": { "type": "string" },
+                "default": { "type": "string" },
+                "required": { "type": "boolean" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "config": {
+      "type": "object",
+      "description": "Configuration file templates",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "path": { "type": "string" },
+          "content": { "type": "string" }
+        }
+      }
+    },
+    "dependencies": {
+      "type": "object",
+      "description": "Package dependencies per layer",
+      "properties": {
+        "frontend": {
+          "type": "object",
+          "properties": {
+            "dependencies": { "type": "object" },
+            "devDependencies": { "type": "object" }
+          }
+        },
+        "backend": {
+          "type": "object",
+          "properties": {
+            "dependencies": { "type": "object" },
+            "devDependencies": { "type": "object" }
+          }
+        }
+      }
+    }
+  }
+}

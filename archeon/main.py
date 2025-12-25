@@ -47,6 +47,9 @@ from archeon.cli_helpers import (
     create_orchestrator_readme,
     create_ai_readme,
     copy_templates,
+    get_shape_id,
+    list_architectures,
+    load_architecture,
 )
 
 app = typer.Typer(
@@ -92,28 +95,49 @@ def get_arcon_path() -> Path:
 def init(
     path: Optional[str] = typer.Argument(None, help="Directory to initialize"),
     monorepo: bool = typer.Option(True, "--monorepo/--single", help="Create client/server separation"),
-    frontend: str = typer.Option("react", "--frontend", "-f", help="Frontend framework (react/vue/vue3)"),
+    frontend: str = typer.Option("vue3", "--frontend", "-f", help="Frontend framework (react/vue/vue3)"),
     backend: str = typer.Option("fastapi", "--backend", "-b", help="Backend framework (fastapi, express)"),
+    arch: Optional[str] = typer.Option(None, "--arch", "-a", help="Architecture shape ID (e.g., vue3-fastapi). Overrides frontend/backend."),
 ):
     """Initialize a new Archeon project with client/server structure.
     
-    Frontend options:
-    - react: React (default)
-    - vue3: Vue 3
-    - vue: Vue 2
+    Uses JSON-based architecture shapes (.shape.json) to define the stack.
+    
+    Examples:
+        arc init                           # Vue 3 + FastAPI (default)
+        arc init --arch vue3-fastapi       # Explicit shape selection
+        arc init -f react -b fastapi       # React + FastAPI
+        
+    Run 'arc shapes' to list available architecture shapes.
     """
     target = Path(path) if path else Path.cwd()
     archeon_dir = target / "archeon"
     
-    # Normalize frontend option
-    if frontend.lower() in ("vue", "vue3"):
-        frontend = "vue3"
+    # Determine shape from arch option or frontend/backend combo
+    if arch:
+        shape_id = arch
+        shape = load_architecture(shape_id)
+        if shape:
+            # Extract frontend/backend from shape stack (handles both nested dict and simple string)
+            fe = shape.stack.get("frontend", "vue3")
+            be = shape.stack.get("backend", "fastapi")
+            frontend = fe.get("framework", fe) if isinstance(fe, dict) else fe
+            backend = be.get("framework", be) if isinstance(be, dict) else be
+        else:
+            rprint(f"[red]✗[/red] Unknown architecture shape: {arch}")
+            rprint(f"  Run [cyan]arc shapes[/cyan] to list available shapes.")
+            raise typer.Exit(1)
+    else:
+        # Normalize frontend option
+        if frontend.lower() in ("vue", "vue3"):
+            frontend = "vue3"
+        shape_id = get_shape_id(frontend, backend)
     
     # Create base archeon directories
     create_base_directories(archeon_dir)
     
-    # Copy reference templates from the archeon package
-    copy_templates(archeon_dir, frontend, backend)
+    # Copy reference templates from the archeon package (uses shapes)
+    used_shape = copy_templates(archeon_dir, frontend, backend, arch=shape_id)
     
     # Create orchestrator README for AI reference
     create_orchestrator_readme(archeon_dir)
@@ -148,10 +172,13 @@ def init(
     create_gitignore(target)
     
     rprint(f"[green]✓[/green] Initialized Archeon project at [bold]{archeon_dir}[/bold]")
+    rprint(f"  Architecture shape: [cyan]{shape_id}[/cyan]")
     rprint(f"  Created {DEFAULT_ARCON}")
     rprint(f"  Created ARCHEON.index.json (semantic index)")
     rprint(f"  Created .archeonrc")
-    rprint(f"  Copied {frontend}/{backend} templates to archeon/templates/")
+    if used_shape:
+        rprint(f"  Copied [cyan]{shape_id}.shape.json[/cyan] (architecture definition)")
+    rprint(f"  Created templates from shape ({frontend}/{backend})")
     rprint(f"  Created orchestrator/README.md (glyph reference)")
     rprint(f"  Created AI_README.md (provisioning guide)")
     
@@ -172,6 +199,63 @@ def init(
     rprint(f"  [cyan]arc parse \"NED:login => CMP:LoginForm => API:POST/auth => OUT:dashboard\"[/cyan]")
     
     rprint(f"\n  [bold]Tip:[/bold] Run [cyan]arc ai-setup[/cyan] to configure IDE AI assistants")
+
+
+@app.command("shapes")
+def shapes_cmd(
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Show detailed shape information"),
+):
+    """List available architecture shapes.
+    
+    Architecture shapes define complete project stacks including:
+    - Glyph snippets (CMP, STO, API, MDL, etc.)
+    - Directory structures
+    - Framework configurations
+    - Dependencies
+    
+    Examples:
+        arc shapes           # List all shapes
+        arc shapes -v        # Show detailed info
+        arc init --arch vue3-fastapi  # Use a specific shape
+    """
+    from archeon.orchestrator.SHP_shape import list_architectures, load_architecture
+    
+    available = list_architectures()
+    
+    if not available:
+        rprint("[yellow]No architecture shapes found.[/yellow]")
+        rprint("  Shapes should be in archeon/architectures/*.shape.json")
+        return
+    
+    rprint(f"\n[bold]Available Architecture Shapes[/bold]\n")
+    
+    table = Table(show_header=True, header_style="bold cyan")
+    table.add_column("ID", style="green")
+    table.add_column("Name")
+    table.add_column("Description")
+    table.add_column("Tags", style="dim")
+    
+    for shape_info in available:
+        tags = ", ".join(shape_info.get("tags", []))
+        table.add_row(
+            shape_info["id"],
+            shape_info["name"],
+            shape_info.get("description", "")[:50],
+            tags
+        )
+    
+    console.print(table)
+    
+    if verbose:
+        rprint(f"\n[bold]Shape Details[/bold]")
+        for shape_info in available:
+            shape = load_architecture(shape_info["id"])
+            if shape:
+                rprint(f"\n[cyan]{shape.id}[/cyan] - {shape.name} v{shape.version}")
+                rprint(f"  Stack: {shape.stack.get('frontend', {}).get('framework', 'N/A')} + {shape.stack.get('backend', {}).get('framework', 'N/A')}")
+                rprint(f"  Glyphs: {', '.join(shape.glyphs.keys())}")
+    
+    rprint(f"\n[dim]Use: arc init --arch <shape-id>[/dim]")
 
 
 @app.command("ai-setup")

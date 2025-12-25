@@ -199,6 +199,7 @@ arc gen
 - [Chain Syntax](Chain-Syntax) — Composition rules
 - [Natural Language Intent](Natural-Language-Intent) — Plain English → chains
 - [Knowledge Graph](Knowledge-Graph) — The `.arcon` file
+- [Architecture Shapes](Architecture-Shapes) — JSON-based stack blueprints
 
 ### Reference
 - [CLI Commands](CLI-Commands) — Command reference
