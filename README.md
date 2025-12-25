@@ -1,8 +1,124 @@
 # Archeon
 
-> Glyph-based architecture notation system for AI-orchestrated software development.
+> **The missing architecture layer for vibecoding.**
 
-Archeon provides a hyper-compressed, human-readable **intermediate representation (IR)** that serves as both documentation and executable specification. It's a **constraint layer** that any LLM can understand, preventing hallucinations and architectural drift.
+You're chatting with AI, building features in minutes. It's magic — until your codebase becomes a haunted house of inconsistent patterns, orphaned components, and APIs that don't match your frontend.
+
+**Archeon fixes this.**
+
+It's not another framework. It's not prompt engineering. It's a **constraint system** that sits between your intent and your code — ensuring every feature you build has a clear start, middle, and end.
+
+---
+
+## The Problem with Pure Vibecoding
+
+| What Happens | Why It Hurts |
+|-------------|--------------|
+| AI creates a form but forgets the API | Half-built features |
+| Each session, AI invents new patterns | Inconsistent architecture |
+| Context window fills with irrelevant code | Model gets confused |
+| "Make login work" → 47 different implementations | Technical debt from day 1 |
+| No one knows what connects to what | Refactoring becomes archaeology |
+
+You're not dumb. The AI isn't broken. **There's just no shared language for architecture.**
+
+---
+
+## What Archeon Actually Is
+
+A simple notation (glyphs) + a file that remembers your architecture (`.arcon`) + validation that catches mistakes before code exists.
+
+```
+NED:login => CMP:LoginForm => STO:Auth => API:POST/auth => OUT:dashboard
+```
+
+That's a complete feature. User need → UI → State → API → Outcome. Every feature must follow this pattern: **start with a need, end with something the user sees.**
+
+- `NED` = User need (the "why")
+- `CMP` = Component (the UI)
+- `STO` = Store (client state)
+- `API` = Endpoint (server call)
+- `OUT` = Outcome (what the user sees)
+
+If you try to write `NED:login => CMP:LoginForm` with no outcome? **Rejected.** Before any code is generated.
+
+---
+
+## Why This Works
+
+### For the AI
+- **Smaller context**: Instead of reading your entire codebase, the AI reads a ~12KB file with clear rules
+- **Bounded choices**: Can't hallucinate patterns that don't exist in the glyph system
+- **Explicit relationships**: Knows exactly what connects to what
+
+### For You
+- **Architecture that persists**: The `.arcon` file survives between sessions
+- **Validation before generation**: Bad ideas get rejected before becoming bad code
+- **Swappable stacks**: Same architecture, different templates (React, Vue, Angular — your choice)
+
+### For Small Models
+- **Qwen 30B, Mistral, local LLMs**: They work because the problem space is constrained
+- **Less reasoning required**: The hard architectural decisions are already made
+- **Consistent output**: Same notation → same structure → predictable code
+
+---
+
+## The Workflow (It's Just Chat)
+
+```
+You: "User registers with email and password, then sees their dashboard"
+
+AI: Proposed chain:
+    NED:register => CMP:RegisterForm => STO:Auth 
+        => API:POST/register => MDL:user => OUT:redirect('/dashboard')
+    
+    Shall I proceed?
+
+You: Yes
+
+AI: ✓ Generated RegisterForm.vue
+    ✓ Generated AuthStore.js  
+    ✓ Generated register.py
+    ✓ Updated ARCHEON.arcon
+    
+    Done.
+```
+
+No CLI gymnastics. No memorizing commands. **Just describe what you want.**
+
+---
+
+## Quick Start
+
+```bash
+# Install
+pip install archeon
+
+# Create project with your preferred stack
+arc init --arch vue3-fastapi    # Vue 3 + FastAPI + MongoDB
+arc init --arch react-fastapi   # React + FastAPI + MongoDB
+
+# Set up your IDE
+arc ai-setup --cursor    # or --windsurf, --copilot, --vscode
+
+# Start chatting with your AI
+```
+
+That's it. Your AI now understands glyphs, validates chains, and generates architecturally consistent code.
+
+---
+
+## What Makes This Different
+
+| Other Tools | Archeon |
+|-------------|---------|
+| Prompt templates | **Structural constraints** |
+| One-shot scaffolding | **Persistent architecture** |
+| Framework-specific | **Stack-agnostic shapes** |
+| Trust the AI | **Validate before generate** |
+| Bigger models = better | **Small models work fine** |
+
+---
 
 ## The Easiest Way: IDE Chat
 
