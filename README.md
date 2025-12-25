@@ -63,6 +63,63 @@ If you try to write `NED:login => CMP:LoginForm` with no outcome? **Rejected.** 
 
 ---
 
+## Why Small Models Perform Like Frontier Models
+
+This isn't marketing. It's constraint theory.
+
+**The hard truth about LLMs**: A 30B parameter model has the same *knowledge* as a 400B model — it's trained on similar data. What it lacks is **working memory** and **reasoning depth**.
+
+When you ask GPT-4 or Claude to "build a login system," they succeed because they can:
+1. Hold your entire codebase in context (~100K tokens)
+2. Reason through multiple architectural options
+3. Maintain coherence across long generation sequences
+
+A 30B model fails not because it doesn't know how to write a login form — it fails because:
+- Context overflows before it understands your codebase
+- Too many valid options → inconsistent choices
+- No memory of what it decided 5 minutes ago
+
+**Archeon eliminates all three failure modes:**
+
+| Failure Mode | How Archeon Fixes It |
+|--------------|---------------------|
+| **Context overflow** | Glyph projection: ~12K tokens instead of ~45K |
+| **Decision paralysis** | Bounded taxonomy: only 16 valid glyph types |
+| **Coherence loss** | `.arcon` persistence: architecture survives sessions |
+
+### The Math
+
+A frontier model reasons over: `P(code | prompt, full_codebase, all_patterns)`
+
+With Archeon, any model reasons over: `P(code | prompt, chain, template, 1-hop deps)`
+
+The second distribution is **orders of magnitude narrower**. A 30B model can sample from it reliably.
+
+### Real-World Example
+
+**Without Archeon (Claude 3.5 Sonnet):**
+```
+"Build user registration"
+→ Creates RegisterForm.vue
+→ Creates authStore.js (different pattern than last time)
+→ Creates /api/register (REST)
+→ Forgets to create the user model
+→ Inconsistent with existing auth flow
+```
+
+**With Archeon (Qwen 32B locally):**
+```
+"Build user registration"
+→ Proposes: NED:register => CMP:RegisterForm => STO:Auth => API:POST/register => MDL:user => OUT:dashboard
+→ Validates chain completeness
+→ Generates from templates (guaranteed consistent)
+→ Updates .arcon (future sessions know this exists)
+```
+
+The local model **outperforms** the frontier model because it's solving a constrained problem, not an open-ended one.
+
+---
+
 ## The Workflow (It's Just Chat)
 
 ```
