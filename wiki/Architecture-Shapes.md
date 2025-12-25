@@ -2,6 +2,32 @@
 
 Architecture Shapes are JSON-based blueprints that define complete technology stacks for Archeon projects. They contain glyph templates, configuration files, prebuilt components, and dependency specifications.
 
+---
+
+## Quick Start
+
+```bash
+# 1. List available shapes
+arc shapes
+
+# 2. Create a new project with a shape
+arc init --arch vue3-fastapi
+
+# 3. That's it! Your project structure:
+#    client/     → Vue 3 frontend with ThemeToggle, ThemeSelector
+#    server/     → FastAPI backend ready for API, models, events
+#    archeon/    → Knowledge graph + shape definition
+```
+
+**Available Shapes:**
+
+| Shape | Command | Stack |
+|-------|---------|-------|
+| Vue 3 + FastAPI | `arc init --arch vue3-fastapi` | Vue 3, Pinia, TailwindCSS, FastAPI, MongoDB |
+| React + FastAPI | `arc init --arch react-fastapi` | React, Zustand, TailwindCSS, FastAPI, MongoDB |
+
+---
+
 ## Overview
 
 ```
