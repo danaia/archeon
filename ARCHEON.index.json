@@ -1,0 +1,433 @@
+{
+  "version": "1.0",
+  "project": "Archeon",
+  "glyphs": {
+    "API:Db": {
+      "file": "archeon/templates/_server/db.py",
+      "glyph": "API",
+      "qualified_name": "API:Db",
+      "chain": null,
+      "chains": []
+    },
+    "API:HeadlessServer": {
+      "file": "archeon/server/headless_server.py",
+      "glyph": "API",
+      "qualified_name": "API:HeadlessServer",
+      "chain": null,
+      "chains": []
+    },
+    "API:POST/login": {
+      "file": "archeon/cli_templates.py",
+      "glyph": "API",
+      "qualified_name": "API:POST/login",
+      "chain": null,
+      "chains": [],
+      "endpoint": {
+        "method": "POST",
+        "path": "/login",
+        "handler": "login",
+        "request_model": "LoginRequest",
+        "response_model": null
+      }
+    },
+    "API:TestLegend": {
+      "file": "archeon/tests/test_legend.py",
+      "glyph": "API",
+      "qualified_name": "API:TestLegend",
+      "chain": null,
+      "chains": []
+    },
+    "API:TestParser": {
+      "file": "archeon/tests/test_parser.py",
+      "glyph": "API",
+      "qualified_name": "API:TestParser",
+      "chain": null,
+      "chains": []
+    },
+    "API:TknTokens": {
+      "file": "archeon/orchestrator/TKN_tokens.py",
+      "glyph": "API",
+      "qualified_name": "API:TknTokens",
+      "chain": null,
+      "chains": []
+    },
+    "API:Token-transformer": {
+      "file": "archeon/templates/_config/token-transformer.js",
+      "glyph": "API",
+      "qualified_name": "API:Token-transformer",
+      "chain": null,
+      "chains": []
+    },
+    "API:Tokens": {
+      "file": "client/src/tokens/tokens.js",
+      "glyph": "API",
+      "qualified_name": "API:Tokens",
+      "chain": null,
+      "chains": []
+    },
+    "API:TstRunner": {
+      "file": "archeon/orchestrator/TST_runner.py",
+      "glyph": "API",
+      "qualified_name": "API:TstRunner",
+      "chain": null,
+      "chains": []
+    },
+    "CMP:CliHelpers": {
+      "file": "archeon/cli_helpers.py",
+      "glyph": "CMP",
+      "qualified_name": "CMP:CliHelpers",
+      "chain": "@v1 CMP:CliHelpers",
+      "chains": [
+        "@v1 CMP:CliHelpers"
+      ]
+    },
+    "CMP:IdxClassifier": {
+      "file": "archeon/orchestrator/IDX_classifier.py",
+      "glyph": "CMP",
+      "qualified_name": "CMP:IdxClassifier",
+      "chain": "@v1 CMP:IdxClassifier",
+      "chains": [
+        "@v1 CMP:IdxClassifier"
+      ]
+    },
+    "CMP:TestScanner": {
+      "file": "archeon/tests/test_scanner.py",
+      "glyph": "CMP",
+      "qualified_name": "CMP:TestScanner",
+      "chain": "@v1 CMP:TestScanner",
+      "chains": [
+        "@v1 CMP:TestScanner"
+      ]
+    },
+    "CMP:Themetoggle": {
+      "file": "archeon/templates/CMP/ThemeToggle.tsx",
+      "glyph": "CMP",
+      "qualified_name": "CMP:Themetoggle",
+      "chain": "@v1 CMP:Themetoggle",
+      "chains": [
+        "@v1 CMP:Themetoggle"
+      ]
+    },
+    "CMP:Vue": {
+      "file": "archeon/templates/CMP/vue.vue",
+      "glyph": "CMP",
+      "qualified_name": "CMP:Vue",
+      "chain": "@v1 CMP:Vue",
+      "chains": [
+        "@v1 CMP:Vue",
+        "@v1 CMP:Vue3"
+      ]
+    },
+    "CMP:Vue3": {
+      "file": "archeon/templates/CMP/vue3.vue",
+      "glyph": "CMP",
+      "qualified_name": "CMP:Vue3",
+      "chain": "@v1 CMP:Vue3",
+      "chains": [
+        "@v1 CMP:Vue3"
+      ]
+    },
+    "EVT:CmpAgent": {
+      "file": "archeon/agents/CMP_agent.py",
+      "glyph": "EVT",
+      "qualified_name": "EVT:CmpAgent",
+      "chain": null,
+      "chains": []
+    },
+    "EVT:EvtAgent": {
+      "file": "archeon/agents/EVT_agent.py",
+      "glyph": "EVT",
+      "qualified_name": "EVT:EvtAgent",
+      "chain": null,
+      "chains": []
+    },
+    "EVT:Main": {
+      "file": "archeon/main.py",
+      "glyph": "EVT",
+      "qualified_name": "EVT:Main",
+      "chain": null,
+      "chains": []
+    },
+    "EVT:Pubsub": {
+      "file": "archeon/templates/EVT/pubsub.py",
+      "glyph": "EVT",
+      "qualified_name": "EVT:Pubsub",
+      "chain": null,
+      "chains": []
+    },
+    "EVT:Theme-zustand": {
+      "file": "archeon/templates/STO/theme-zustand.js",
+      "glyph": "EVT",
+      "qualified_name": "EVT:Theme-zustand",
+      "chain": null,
+      "chains": []
+    },
+    "EVT:Themeselector": {
+      "file": "archeon/templates/CMP/ThemeSelector.vue",
+      "glyph": "EVT",
+      "qualified_name": "EVT:Themeselector",
+      "chain": null,
+      "chains": []
+    },
+    "FNC:ApiAgent": {
+      "file": "archeon/agents/API_agent.py",
+      "glyph": "FNC",
+      "qualified_name": "FNC:ApiAgent",
+      "chain": null,
+      "chains": []
+    },
+    "FNC:CtxContext": {
+      "file": "archeon/orchestrator/CTX_context.py",
+      "glyph": "FNC",
+      "qualified_name": "FNC:CtxContext",
+      "chain": null,
+      "chains": []
+    },
+    "FNC:Fastapi": {
+      "file": "archeon/templates/API/fastapi.py",
+      "glyph": "FNC",
+      "qualified_name": "FNC:Fastapi",
+      "chain": null,
+      "chains": []
+    },
+    "FNC:FncAgent": {
+      "file": "archeon/agents/FNC_agent.py",
+      "glyph": "FNC",
+      "qualified_name": "FNC:FncAgent",
+      "chain": null,
+      "chains": []
+    },
+    "FNC:GrfExporter": {
+      "file": "archeon/orchestrator/GRF_exporter.py",
+      "glyph": "FNC",
+      "qualified_name": "FNC:GrfExporter",
+      "chain": null,
+      "chains": []
+    },
+    "FNC:GrfGraph": {
+      "file": "archeon/orchestrator/GRF_graph.py",
+      "glyph": "FNC",
+      "qualified_name": "FNC:GrfGraph",
+      "chain": null,
+      "chains": []
+    },
+    "FNC:HedExecutor": {
+      "file": "archeon/orchestrator/HED_executor.py",
+      "glyph": "FNC",
+      "qualified_name": "FNC:HedExecutor",
+      "chain": null,
+      "chains": []
+    },
+    "FNC:IdxIndex": {
+      "file": "archeon/orchestrator/IDX_index.py",
+      "glyph": "FNC",
+      "qualified_name": "FNC:IdxIndex",
+      "chain": null,
+      "chains": []
+    },
+    "FNC:IdxInferrer": {
+      "file": "archeon/orchestrator/IDX_inferrer.py",
+      "glyph": "FNC",
+      "qualified_name": "FNC:IdxInferrer",
+      "chain": null,
+      "chains": []
+    },
+    "FNC:IdxOrchestrator": {
+      "file": "archeon/orchestrator/IDX_orchestrator.py",
+      "glyph": "FNC",
+      "qualified_name": "FNC:IdxOrchestrator",
+      "chain": null,
+      "chains": []
+    },
+    "FNC:Init": {
+      "file": "archeon/config/__init__.py",
+      "glyph": "FNC",
+      "qualified_name": "FNC:Init",
+      "chain": null,
+      "chains": []
+    },
+    "FNC:IntIntent": {
+      "file": "archeon/orchestrator/INT_intent.py",
+      "glyph": "FNC",
+      "qualified_name": "FNC:IntIntent",
+      "chain": null,
+      "chains": []
+    },
+    "FNC:Legend": {
+      "file": "archeon/config/legend.py",
+      "glyph": "FNC",
+      "qualified_name": "FNC:Legend",
+      "chain": null,
+      "chains": []
+    },
+    "FNC:Main": {
+      "file": "archeon/__main__.py",
+      "glyph": "FNC",
+      "qualified_name": "FNC:Main",
+      "chain": null,
+      "chains": []
+    },
+    "FNC:MdlAgent": {
+      "file": "archeon/agents/MDL_agent.py",
+      "glyph": "FNC",
+      "qualified_name": "FNC:MdlAgent",
+      "chain": null,
+      "chains": []
+    },
+    "FNC:MicMicro": {
+      "file": "archeon/orchestrator/MIC_micro.py",
+      "glyph": "FNC",
+      "qualified_name": "FNC:MicMicro",
+      "chain": null,
+      "chains": []
+    },
+    "FNC:PrsParser": {
+      "file": "archeon/orchestrator/PRS_parser.py",
+      "glyph": "FNC",
+      "qualified_name": "FNC:PrsParser",
+      "chain": null,
+      "chains": []
+    },
+    "FNC:Python": {
+      "file": "archeon/templates/FNC/python.py",
+      "glyph": "FNC",
+      "qualified_name": "FNC:Python",
+      "chain": null,
+      "chains": []
+    },
+    "FNC:React": {
+      "file": "archeon/templates/CMP/react.tsx",
+      "glyph": "FNC",
+      "qualified_name": "FNC:React",
+      "chain": null,
+      "chains": []
+    },
+    "FNC:ScnScanner": {
+      "file": "archeon/orchestrator/SCN_scanner.py",
+      "glyph": "FNC",
+      "qualified_name": "FNC:ScnScanner",
+      "chain": null,
+      "chains": []
+    },
+    "FNC:ShpShape": {
+      "file": "archeon/orchestrator/SHP_shape.py",
+      "glyph": "FNC",
+      "qualified_name": "FNC:ShpShape",
+      "chain": null,
+      "chains": []
+    },
+    "FNC:SpwSpawner": {
+      "file": "archeon/orchestrator/SPW_spawner.py",
+      "glyph": "FNC",
+      "qualified_name": "FNC:SpwSpawner",
+      "chain": null,
+      "chains": []
+    },
+    "FNC:StoAgent": {
+      "file": "archeon/agents/STO_agent.py",
+      "glyph": "FNC",
+      "qualified_name": "FNC:StoAgent",
+      "chain": null,
+      "chains": []
+    },
+    "FNC:Tailwind.config": {
+      "file": "archeon/templates/_config/tailwind.config.js",
+      "glyph": "FNC",
+      "qualified_name": "FNC:Tailwind.config",
+      "chain": null,
+      "chains": []
+    },
+    "FNC:TestValidator": {
+      "file": "archeon/tests/test_validator.py",
+      "glyph": "FNC",
+      "qualified_name": "FNC:TestValidator",
+      "chain": null,
+      "chains": []
+    },
+    "FNC:Theme": {
+      "file": "archeon/templates/_config/theme.css",
+      "glyph": "FNC",
+      "qualified_name": "FNC:Theme",
+      "chain": null,
+      "chains": []
+    },
+    "FNC:Theme-presets": {
+      "file": "archeon/templates/_config/theme-presets.css",
+      "glyph": "FNC",
+      "qualified_name": "FNC:Theme-presets",
+      "chain": null,
+      "chains": []
+    },
+    "FNC:Tokens": {
+      "file": "client/src/tokens/tokens.css",
+      "glyph": "FNC",
+      "qualified_name": "FNC:Tokens",
+      "chain": null,
+      "chains": []
+    },
+    "FNC:Tokens.semantic": {
+      "file": "client/src/tokens/tokens.semantic.css",
+      "glyph": "FNC",
+      "qualified_name": "FNC:Tokens.semantic",
+      "chain": null,
+      "chains": []
+    },
+    "FNC:Tokens.tailwind": {
+      "file": "client/src/tokens/tokens.tailwind.js",
+      "glyph": "FNC",
+      "qualified_name": "FNC:Tokens.tailwind",
+      "chain": null,
+      "chains": []
+    },
+    "FNC:Tracer": {
+      "file": "archeon/utils/tracer.py",
+      "glyph": "FNC",
+      "qualified_name": "FNC:Tracer",
+      "chain": null,
+      "chains": []
+    },
+    "FNC:ValValidator": {
+      "file": "archeon/orchestrator/VAL_validator.py",
+      "glyph": "FNC",
+      "qualified_name": "FNC:ValValidator",
+      "chain": null,
+      "chains": []
+    },
+    "MDL:BaseAgent": {
+      "file": "archeon/agents/base_agent.py",
+      "glyph": "MDL",
+      "qualified_name": "MDL:BaseAgent",
+      "chain": null,
+      "chains": []
+    },
+    "MDL:Mongo": {
+      "file": "archeon/templates/MDL/mongo.py",
+      "glyph": "MDL",
+      "qualified_name": "MDL:Mongo",
+      "chain": null,
+      "chains": []
+    },
+    "STO:Pinia": {
+      "file": "archeon/templates/STO/pinia.js",
+      "glyph": "STO",
+      "qualified_name": "STO:Pinia",
+      "chain": null,
+      "chains": []
+    },
+    "STO:Theme-pinia": {
+      "file": "archeon/templates/STO/theme-pinia.js",
+      "glyph": "STO",
+      "qualified_name": "STO:Theme-pinia",
+      "chain": null,
+      "chains": []
+    },
+    "STO:Zustand": {
+      "file": "archeon/templates/STO/zustand.js",
+      "glyph": "STO",
+      "qualified_name": "STO:Zustand",
+      "chain": null,
+      "chains": []
+    }
+  },
+  "data_flows": []
+}

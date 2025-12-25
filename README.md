@@ -2,13 +2,29 @@
 
 > **The missing architecture layer for vibecoding.**
 
-🖥️ **[ArcheonGUI](https://github.com/danaia/archeonGUI)** — Companion app to visualize your architecture
+🖥️ **[ArcheonGUI](https://github.com/danaia/archeonGUI)** — Visualize your architecture as an interactive graph
 
 You're chatting with AI, building features in minutes. It's magic — until your codebase becomes a haunted house of inconsistent patterns, orphaned components, and APIs that don't match your frontend.
 
 **Archeon fixes this.**
 
 It's not another framework. It's not prompt engineering. It's a **constraint system** that sits between your intent and your code — ensuring every feature you build has a clear start, middle, and end.
+
+---
+
+## 🖥️ Visualize Your Architecture
+
+**[ArcheonGUI](https://github.com/danaia/archeonGUI)** is a companion desktop app that brings your architecture to life:
+
+- **Interactive graph visualization** — See your entire architecture as a node graph
+- **Real-time updates** — Changes to `.arcon` appear instantly
+- **Chain exploration** — Click any glyph to see its connections
+- **Export diagrams** — Share architecture visuals with your team
+
+```bash
+# After running arc index code, open in GUI
+# Download from: https://github.com/danaia/archeonGUI
+```
 
 ---
 
@@ -35,22 +51,48 @@ arc init --arch react-fastapi --cursor    # With Cursor rules
 - `vue3-fastapi` — Vue 3 + Pinia + FastAPI + MongoDB
 - `react-fastapi` — React + Zustand + FastAPI + MongoDB
 
-### Option 2: Add Archeon to an Existing Codebase
+### Option 2: Add Archeon to an Existing Codebase (⭐ One Command!)
 
-Already have a project? Just set up the AI rules:
+**Already have a project?** One command does everything:
 
 ```bash
 cd your-existing-project
 
-# Generate AI rules for your IDE
-arc ai-setup --cursor      # Creates .cursorrules
-arc ai-setup --copilot     # Creates .github/copilot-instructions.md
-arc ai-setup --windsurf    # Creates .windsurfrules
-arc ai-setup --cline       # Creates .clinerules for Claude Dev
-arc ai-setup               # All IDEs at once
+arc index code
+```
 
-# Initialize the knowledge graph
-arc init --single          # Creates archeon/ARCHEON.arcon without scaffolding
+That's it. This single command:
+1. ✅ Scans your entire codebase
+2. ✅ Classifies files to glyphs (CMP, API, STO, MDL, etc.)
+3. ✅ Creates `archeon/ARCHEON.index.json` with the full map
+4. ✅ Generates `archeon/ARCHEON.arcon` knowledge graph
+5. ✅ Creates AI rules for **all IDEs** (Cursor, Copilot, Windsurf, Cline, Aider, VS Code)
+
+```
+$ arc index code
+
+╭───────────────────────────────────────────────────────╮
+│ ⭐ Archeon One-Command Setup                          │
+╰───────────────────────────────────────────────────────╯
+
+✓ Created archeon/ directory
+✓ Indexed 47 files
+    Glyphs: API:8, CMP:12, STO:4, MDL:6, FNC:15, V:2
+✓ Generated ARCHEON.arcon with 5 chains
+
+📝 Generating IDE configurations...
+  ✓ .cursorrules
+  ✓ .windsurfrules
+  ✓ .clinerules
+  ✓ .github/copilot-instructions.md
+  ✓ .aider.conf.yml
+  ✓ .vscode/settings.json
+
+╭──────────────────────────────────────────────────────╮
+│ ✅ Archeon setup complete!                           │
+│                                                      │
+│ Your AI assistant now understands your architecture! │
+╰──────────────────────────────────────────────────────╯
 ```
 
 ### Start Building
@@ -75,6 +117,10 @@ AI: ✓ Generated RegisterForm.vue
 ```
 
 That's it. Your AI now understands glyphs, validates chains, and generates architecturally consistent code.
+
+### Bonus: Visualize It
+
+After setup, open your project in **[ArcheonGUI](https://github.com/danaia/archeonGUI)** to see your entire architecture as an interactive graph. Watch your codebase come to life!
 
 ---
 

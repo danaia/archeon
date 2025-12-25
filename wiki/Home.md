@@ -235,7 +235,64 @@ These failures are eliminated by construction.
 
 ---
 
-## Architecture Shapes
+## ⭐ For Existing Codebases: One Command Setup
+
+**Already have a project?** One command makes it Archeon-ready:
+
+```bash
+cd your-existing-project
+arc index code
+```
+
+This single command does everything:
+
+| Step | What It Does |
+|------|--------------|
+| 1 | Scans your entire codebase |
+| 2 | Auto-detects tech stack (Vue, React, FastAPI, etc.) |
+| 3 | Classifies every file to a glyph type |
+| 4 | Creates `archeon/ARCHEON.index.json` |
+| 5 | Generates `archeon/ARCHEON.arcon` knowledge graph |
+| 6 | Creates AI rules for **all IDEs** |
+
+```
+$ arc index code
+
+╭───────────────────────────────────────────────────────╮
+│ ⭐ Archeon One-Command Setup                          │
+╰───────────────────────────────────────────────────────╯
+
+✓ Created archeon/ directory
+✓ Indexed 47 files
+    Glyphs: API:8, CMP:12, STO:4, MDL:6, FNC:15, V:2
+✓ Generated ARCHEON.arcon with 5 chains
+
+📝 Generating IDE configurations...
+  ✓ .cursorrules
+  ✓ .windsurfrules
+  ✓ .clinerules
+  ✓ .github/copilot-instructions.md
+  ✓ .aider.conf.yml
+  ✓ .vscode/settings.json
+
+╭──────────────────────────────────────────────────────╮
+│ ✅ Archeon setup complete!                           │
+│                                                      │
+│ Your AI assistant now understands your architecture! │
+╰──────────────────────────────────────────────────────╯
+```
+
+**That's it.** Your AI can now:
+- See your entire architecture in one file
+- Understand which files are components, stores, APIs, models
+- Propose architecturally consistent changes
+- Never hallucinate random patterns
+
+👉 [CLI Commands – index code](CLI-Commands#index-code)
+
+---
+
+## Architecture Shapes (New Projects)
 
 Shapes are JSON blueprints that define your entire stack — templates, configs, dependencies — in one file.
 

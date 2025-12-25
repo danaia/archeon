@@ -464,21 +464,119 @@ arc index [COMMAND]
 ```
 
 **Commands:**
+- `code` - ⭐ **One-command setup** - Creates archeon/, index, arcon, and all IDE rules
 - `build` - Build index from @archeon:section markers
-- `check` - Check index consistency
+- `infer` - Auto-index arbitrary codebase by detecting file types
+- `show` - Display the current index
+- `scan` - Scan a single file for sections
+- `check` - Check index consistency / find files missing headers
+- `inject` - Add @archeon:file header to an existing file
 - `clean` - Remove orphaned entries
+
+---
+
+#### `arc index code`
+
+**⭐ The easiest way to add Archeon to an existing codebase.**
+
+One command does everything:
+
+```bash
+cd your-existing-project
+arc index code
+```
+
+**What it does:**
+
+1. Creates `archeon/` directory
+2. Scans and classifies all files to glyphs (CMP, API, STO, MDL, FNC, EVT, V)
+3. Auto-detects tech stack from `package.json`, `pyproject.toml`
+4. Generates `archeon/ARCHEON.index.json` with file-to-glyph mappings
+5. Generates `archeon/ARCHEON.arcon` knowledge graph with inferred chains
+6. Creates AI rules for **all IDEs**:
+   - `.cursorrules` (Cursor)
+   - `.windsurfrules` (Windsurf)
+   - `.clinerules` (Cline/Claude Dev)
+   - `.github/copilot-instructions.md` (GitHub Copilot)
+   - `.aider.conf.yml` (Aider)
+   - `.vscode/settings.json` (VS Code)
+
+**Example output:**
+
+```
+$ arc index code
+
+╭───────────────────────────────────────────────────────╮
+│ ⭐ Archeon One-Command Setup                          │
+╰───────────────────────────────────────────────────────╯
+
+✓ Created archeon/ directory
+✓ Indexed 47 files
+    Glyphs: API:8, CMP:12, STO:4, MDL:6, FNC:15, V:2
+✓ Generated ARCHEON.arcon with 5 chains
+
+📝 Generating IDE configurations...
+  ✓ .cursorrules
+  ✓ .windsurfrules
+  ✓ .clinerules
+  ✓ .github/copilot-instructions.md
+  ✓ .aider.conf.yml
+  ✓ .vscode/settings.json
+
+╭──────────────────────────────────────────────────────╮
+│ ✅ Archeon setup complete!                           │
+│                                                      │
+│ Your AI assistant now understands your architecture! │
+╰──────────────────────────────────────────────────────╯
+```
+
+**Options:**
+- `--path, -p` - Directory to index (default: current directory)
+
+---
+
+#### `arc index infer`
+
+Auto-detect and classify files in an arbitrary codebase without Archeon headers.
+
+```bash
+arc index infer [--path <directory>] [--output <file>]
+```
+
+**What it does:**
+- Scans files and classifies by path patterns and code signatures
+- Detects tech stack from `package.json`, `pyproject.toml`
+- Generates `ARCHEON.index.json` with inferred glyphs
+- Does NOT modify source files
+
+**Options:**
+- `--path, -p` - Directory to scan (default: current directory)
+- `--output, -o` - Output file path
+
+---
+
+#### Other index commands
 
 **Examples:**
 
 ```bash
-# Rebuild index
+# Rebuild index from annotated files
 arc index build
 
-# Check for issues
+# Check for files missing @archeon:file headers
 arc index check
 
-# Clean orphaned entries
-arc index clean
+# Show the current index
+arc index show
+
+# Show a specific glyph
+arc index show --glyph CMP:LoginForm
+
+# Scan a single file
+arc index scan --path src/components/LoginForm.vue
+
+# Inject header into existing file
+arc index inject --path src/App.vue --glyph CMP:App --intent "Root application component"
 ```
 
 ---

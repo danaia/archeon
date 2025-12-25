@@ -1778,7 +1778,7 @@ def serve(
 
 @app.command()
 def index(
-    action: str = typer.Argument("build", help="Action: build, show, scan, check, inject"),
+    action: str = typer.Argument("build", help="Action: build, show, scan, check, inject, infer, code"),
     path: Optional[str] = typer.Option(None, "--path", "-p", help="Directory or file to scan"),
     output: Optional[str] = typer.Option(None, "--output", "-o", help="Output file path"),
     glyph: Optional[str] = typer.Option(None, "--glyph", "-g", help="Glyph for show/inject"),
@@ -1798,6 +1798,8 @@ def index(
     - scan: Scan a single file for sections
     - check: Find files that are missing @archeon:file headers
     - inject: Add @archeon:file header to an existing file
+    - infer: Auto-index arbitrary codebase by detecting file types and relationships
+    - code: ⭐ One-command setup - creates archeon/, index, arcon, and all IDE rules
     """
     from archeon.orchestrator.IDX_index import (
         IndexBuilder,
@@ -1906,6 +1908,345 @@ def index(
             rprint(f"\n[bold]To add headers, use:[/bold]")
             rprint(f"  [cyan]arc index inject --path <file> --glyph <GLYPH> --intent '<intent>' --chain '<chain>'[/cyan]")
     
+    elif action == "infer":
+        # Auto-infer glyphs from arbitrary codebase
+        from archeon.orchestrator.IDX_orchestrator import IndexOrchestrator
+        
+        infer_path = Path(path) if path else Path.cwd()
+        if not infer_path.exists():
+            rprint(f"[red]✗[/red] Path not found: {infer_path}")
+            raise typer.Exit(1)
+        
+        rprint(f"[cyan]🔍 Indexing codebase: {infer_path}[/cyan]\n")
+        
+        try:
+            orchestrator = IndexOrchestrator(
+                str(infer_path),
+                output_file=output
+            )
+            index = orchestrator.run(verbose=True)
+            
+            # Show statistics
+            stats = orchestrator.get_stats()
+            rprint(f"\n[green]✓[/green] Indexing complete!")
+            rprint(f"\n[bold]Tech Stack Detected:[/bold]")
+            rprint(f"  Frontend: {stats['tech_stack']['frontend'] or '(not detected)'}")
+            rprint(f"  Backend: {stats['tech_stack']['backend'] or '(not detected)'}")
+            rprint(f"\n[bold]Glyph Coverage:[/bold]")
+            
+            coverage = stats.get('glyph_coverage', {})
+            if coverage:
+                for glyph in sorted(coverage.keys()):
+                    count = coverage[glyph]
+                    rprint(f"  {glyph}: {count} file{'s' if count != 1 else ''}")
+            
+            rprint(f"\n[cyan]Index written to: {stats['output_file']}[/cyan]")
+            
+        except Exception as e:
+            rprint(f"[red]✗[/red] Error during indexing: {e}")
+            import traceback
+            rprint(f"[dim]{traceback.format_exc()}[/dim]")
+            raise typer.Exit(1)
+    
+    elif action == "code":
+        # ⭐ ONE-COMMAND SETUP: Prep entire codebase for Archeon
+        from archeon.orchestrator.IDX_orchestrator import IndexOrchestrator
+        
+        project_root = Path(path) if path else Path.cwd()
+        if not project_root.exists():
+            rprint(f"[red]✗[/red] Path not found: {project_root}")
+            raise typer.Exit(1)
+        
+        project_name = project_root.name
+        
+        rprint(Panel.fit(
+            "[bold cyan]⭐ Archeon One-Command Setup[/bold cyan]\n\n"
+            "This will prepare your existing codebase for Archeon:\n"
+            "  1. Create archeon/ directory\n"
+            "  2. Scan & classify all files to glyphs\n"
+            "  3. Generate ARCHEON.index.json\n"
+            "  4. Generate ARCHEON.arcon knowledge graph\n"
+            "  5. Create AI rules for all IDEs\n",
+            border_style="cyan"
+        ))
+        
+        try:
+            # Step 1: Create archeon directory
+            archeon_dir = project_root / "archeon"
+            archeon_dir.mkdir(exist_ok=True)
+            rprint(f"\n[green]✓[/green] Created [bold]archeon/[/bold] directory")
+            
+            # Step 2 & 3: Run the index inference
+            rprint(f"\n[cyan]🔍 Scanning codebase...[/cyan]")
+            orchestrator = IndexOrchestrator(
+                str(project_root),
+                output_file=str(archeon_dir / "ARCHEON.index.json")
+            )
+            index = orchestrator.run(verbose=False)
+            
+            stats = orchestrator.get_stats()
+            coverage = stats.get('glyph_coverage', {})
+            total_files = stats.get('total_files', 0)
+            
+            rprint(f"[green]✓[/green] Indexed [bold]{total_files}[/bold] files")
+            if coverage:
+                glyph_summary = ", ".join(f"{g}:{c}" for g, c in sorted(coverage.items()))
+                rprint(f"    Glyphs: {glyph_summary}")
+            
+            # Step 4: Generate ARCHEON.arcon from inferred chains
+            arcon_path = archeon_dir / "ARCHEON.arcon"
+            
+            # Get structural chains from imports
+            structural_chains = orchestrator.inferrer.infer_chains()
+            
+            # Get data flow chains (STO -> API connections)
+            data_flow_chains = orchestrator.data_flow_analyzer.get_data_flow_chains()
+            
+            # Build arcon content
+            frontend_fw = stats['tech_stack'].get('frontend') or 'unknown'
+            backend_fw = stats['tech_stack'].get('backend') or 'unknown'
+            state_mgmt = stats['tech_stack'].get('state_management') or 'unknown'
+            
+            arcon_content = f'''# Archeon Knowledge Graph
+# Version: 2.0
+# Project: {project_name}
+# Generated by: arc index code
+
+# === DETECTED STACK ===
+# Frontend: {frontend_fw}
+# Backend: {backend_fw}
+# State Management: {state_mgmt}
+
+# === ORCHESTRATOR LAYER ===
+ORC:main :: PRS:glyph :: VAL:chain :: SPW:agent :: TST:e2e
+GRF:domain :: ORC:main
+
+# === AGENT CHAINS ===
+# Add chains using: arc parse "<chain>"
+
+'''
+            
+            # Group glyphs by type for intelligent chain generation
+            api_glyphs = {}
+            store_glyphs = {}
+            component_glyphs = {}
+            model_glyphs = {}
+            function_glyphs = {}
+            view_glyphs = {}
+            
+            for qualified_name, glyph_info in index.glyphs.items():
+                # Extract glyph type from qualified_name (e.g., "API:GET/" -> "API")
+                glyph_type = qualified_name.split(':')[0] if ':' in qualified_name else ''
+                if glyph_type == 'API':
+                    api_glyphs[qualified_name] = glyph_info
+                elif glyph_type == 'STO':
+                    store_glyphs[qualified_name] = glyph_info
+                elif glyph_type == 'CMP':
+                    component_glyphs[qualified_name] = glyph_info
+                elif glyph_type == 'MDL':
+                    model_glyphs[qualified_name] = glyph_info
+                elif glyph_type == 'FNC':
+                    function_glyphs[qualified_name] = glyph_info
+                elif glyph_type == 'V':
+                    view_glyphs[qualified_name] = glyph_info
+            
+            # Generate proper chains from data flow analysis
+            chains_generated = []
+            
+            # Build chains from Store -> API connections
+            if orchestrator.data_flow_analyzer.data_flows:
+                arcon_content += "# Detected API Flows\n"
+                
+                # Group by store
+                store_flows = {}
+                for flow in orchestrator.data_flow_analyzer.data_flows:
+                    store = flow.source_glyph
+                    if store not in store_flows:
+                        store_flows[store] = []
+                    store_flows[store].append(flow)
+                
+                for store_name, flows in store_flows.items():
+                    for flow in flows:
+                        # Extract operation name from API path
+                        api_path = flow.target_glyph.replace('API:', '')
+                        method_path = api_path.split('/')
+                        operation = method_path[-1] if len(method_path) > 1 else 'action'
+                        
+                        # Determine outcome based on method
+                        if 'POST' in flow.target_glyph:
+                            outcome = 'success'
+                            errors = ['validation.invalid', 'server.error']
+                        elif 'PUT' in flow.target_glyph or 'PATCH' in flow.target_glyph:
+                            outcome = 'updated'
+                            errors = ['notFound', 'validation.invalid', 'server.error']
+                        elif 'DELETE' in flow.target_glyph:
+                            outcome = 'deleted'
+                            errors = ['notFound', 'server.error']
+                        else:  # GET
+                            outcome = 'loaded'
+                            errors = ['notFound', 'server.error']
+                        
+                        # Build full chain with error paths
+                        chain = f"@v1 NED:{operation} => {store_name} => {flow.target_glyph}"
+                        arcon_content += f"{chain}\n"
+                        for err in errors:
+                            arcon_content += f"    -> ERR:{err}\n"
+                        arcon_content += f"    => OUT:{outcome}\n"
+                        arcon_content += "\n"
+                        chains_generated.append(chain)
+            
+            # Generate standalone API chains for endpoints not connected to stores
+            orphan_apis = [api for api in api_glyphs.keys() 
+                          if not any(flow.target_glyph == api for flow in orchestrator.data_flow_analyzer.data_flows)]
+            
+            if orphan_apis:
+                arcon_content += "# Standalone API Endpoints\n"
+                for api_name in orphan_apis:
+                    api_info = api_glyphs[api_name]
+                    endpoint = api_info.get('endpoint', {})
+                    method = endpoint.get('method', 'GET')
+                    path = endpoint.get('path', '/')
+                    operation = path.split('/')[-1] if path != '/' else 'root'
+                    
+                    if method == 'POST':
+                        chain = f"@v1 NED:{operation} => {api_name}\n    -> ERR:validation.invalid\n    -> ERR:server.error\n    => OUT:created\n"
+                    elif method in ('PUT', 'PATCH'):
+                        chain = f"@v1 NED:{operation} => {api_name}\n    -> ERR:notFound\n    -> ERR:server.error\n    => OUT:updated\n"
+                    elif method == 'DELETE':
+                        chain = f"@v1 NED:{operation} => {api_name}\n    -> ERR:notFound\n    -> ERR:server.error\n    => OUT:deleted\n"
+                    else:  # GET
+                        chain = f"@v1 NED:{operation} => {api_name}\n    -> ERR:notFound\n    => OUT:loaded\n"
+                    
+                    arcon_content += chain
+                    arcon_content += "\n"
+                    chains_generated.append(api_name)
+            
+            # Add component definitions
+            if component_glyphs:
+                arcon_content += "# Components\n"
+                for cmp_name in sorted(component_glyphs.keys()):
+                    arcon_content += f"@v1 {cmp_name}\n"
+                    chains_generated.append(cmp_name)
+                arcon_content += "\n"
+            
+            # Add view definitions
+            if view_glyphs:
+                arcon_content += "# Views\n"
+                for v_name in sorted(view_glyphs.keys()):
+                    arcon_content += f"@v1 {v_name}\n"
+                    chains_generated.append(v_name)
+                arcon_content += "\n"
+            
+            # Add store definitions with their model connections
+            if store_glyphs:
+                arcon_content += "# Stores\n"
+                for sto_name in sorted(store_glyphs.keys()):
+                    arcon_content += f"@v1 {sto_name}\n"
+                    chains_generated.append(sto_name)
+                arcon_content += "\n"
+            
+            # Add model definitions
+            if model_glyphs:
+                arcon_content += "# Models\n"
+                for mdl_name in sorted(model_glyphs.keys()):
+                    arcon_content += f"@v1 {mdl_name}\n"
+                    chains_generated.append(mdl_name)
+                arcon_content += "\n"
+            
+            # Add function definitions
+            if function_glyphs:
+                arcon_content += "# Functions\n"
+                for fnc_name in sorted(function_glyphs.keys()):
+                    arcon_content += f"@v1 {fnc_name}\n"
+                    chains_generated.append(fnc_name)
+                arcon_content += "\n"
+            
+            if not chains_generated:
+                arcon_content += "# No glyphs detected yet.\n"
+                arcon_content += "# Add chains using: arc parse \"NED:feature => CMP:Component => OUT:result\"\n"
+            
+            arcon_path.write_text(arcon_content)
+            all_chains = chains_generated
+            rprint(f"[green]✓[/green] Generated [bold]ARCHEON.arcon[/bold] with {len(all_chains)} chains")
+            
+            # Step 5: Generate ALL IDE rules
+            rprint(f"\n[cyan]📝 Generating IDE configurations...[/cyan]")
+            
+            # Load shared AI rules
+            rules_file = Path(__file__).parent / "templates" / "_config" / "ai-rules.md"
+            if rules_file.exists():
+                archeon_rules = rules_file.read_text()
+            else:
+                archeon_rules = "# Archeon AI Rules\n\nSee archeon/ARCHEON.arcon for architecture.\n"
+            
+            # Cursor
+            cursor_dir = project_root / ".cursor"
+            cursor_dir.mkdir(exist_ok=True)
+            (project_root / ".cursorrules").write_text(f"# Archeon Project Rules for Cursor\n\n{archeon_rules}\n")
+            rprint(f"  [green]✓[/green] .cursorrules")
+            
+            # Windsurf
+            (project_root / ".windsurfrules").write_text(f"# Archeon Project Rules for Windsurf\n\n{archeon_rules}\n")
+            rprint(f"  [green]✓[/green] .windsurfrules")
+            
+            # Cline
+            (project_root / ".clinerules").write_text(f"# Archeon Project Rules for Cline\n\n{archeon_rules}\n")
+            rprint(f"  [green]✓[/green] .clinerules")
+            
+            # GitHub Copilot
+            github_dir = project_root / ".github"
+            github_dir.mkdir(exist_ok=True)
+            (github_dir / "copilot-instructions.md").write_text(f"# Archeon Project Rules for GitHub Copilot\n\n{archeon_rules}\n")
+            rprint(f"  [green]✓[/green] .github/copilot-instructions.md")
+            
+            # Aider
+            (project_root / ".aider.conf.yml").write_text(f'''# Archeon configuration for Aider
+read:
+  - archeon/ARCHEON.arcon
+  - archeon/ARCHEON.index.json
+''')
+            rprint(f"  [green]✓[/green] .aider.conf.yml")
+            
+            # VS Code settings
+            vscode_dir = project_root / ".vscode"
+            vscode_dir.mkdir(exist_ok=True)
+            import json
+            vscode_settings_path = vscode_dir / "settings.json"
+            vscode_settings = {}
+            if vscode_settings_path.exists():
+                try:
+                    vscode_settings = json.loads(vscode_settings_path.read_text())
+                except:
+                    pass
+            vscode_settings["files.associations"] = vscode_settings.get("files.associations", {})
+            vscode_settings["files.associations"]["*.arcon"] = "markdown"
+            vscode_settings_path.write_text(json.dumps(vscode_settings, indent=2))
+            rprint(f"  [green]✓[/green] .vscode/settings.json")
+            
+            # Final summary
+            data_flow_count = len(orchestrator.data_flow_analyzer.data_flows)
+            rprint(Panel.fit(
+                f"[bold green]✅ Archeon setup complete![/bold green]\n\n"
+                f"[bold]Project:[/bold] {project_name}\n"
+                f"[bold]Files indexed:[/bold] {total_files}\n"
+                f"[bold]Chains detected:[/bold] {len(all_chains)} ({len(structural_chains)} structural, {len(data_flow_chains)} data flow)\n"
+                f"[bold]Data flows:[/bold] {data_flow_count} (Store → API connections)\n\n"
+                f"[bold]Created:[/bold]\n"
+                f"  • archeon/ARCHEON.arcon\n"
+                f"  • archeon/ARCHEON.index.json\n"
+                f"  • .cursorrules, .windsurfrules, .clinerules\n"
+                f"  • .github/copilot-instructions.md\n"
+                f"  • .aider.conf.yml, .vscode/settings.json\n\n"
+                f"[dim]Your AI assistant now understands your architecture![/dim]",
+                border_style="green"
+            ))
+            
+        except Exception as e:
+            rprint(f"[red]✗[/red] Error during setup: {e}")
+            import traceback
+            rprint(f"[dim]{traceback.format_exc()}[/dim]")
+            raise typer.Exit(1)
+    
     elif action == "inject":
         # Inject header into a file
         if not path:
@@ -1937,7 +2278,7 @@ def index(
     
     else:
         rprint(f"[red]✗[/red] Unknown action: {action}")
-        rprint(f"  Available actions: build, show, scan, check, inject")
+        rprint(f"  Available actions: build, show, scan, check, inject, infer, code")
         raise typer.Exit(1)
 
 

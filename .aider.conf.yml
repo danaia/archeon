@@ -1,0 +1,4 @@
+# Archeon configuration for Aider
+read:
+  - archeon/ARCHEON.arcon
+  - archeon/ARCHEON.index.json
