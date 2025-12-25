@@ -238,7 +238,8 @@ Archeon works by generating **IDE-specific rule files** that teach your AI assis
 ```bash
 # 1. Install Archeon
 git clone git@github.com:danaia/archeon.git
-pip install -e ./archeon
+cd archeon        # Important: install from the project root, not archeon/archeon/
+pip install -e .
 
 # 2. Initialize your project (with optional --copilot flag)
 mkdir my-app && cd my-app
@@ -246,7 +247,7 @@ arc init --arch vue3-fastapi --copilot   # Creates project + Copilot rules in on
 
 # Or generate IDE rules separately with ai-setup
 arc ai-setup --cursor      # For Cursor → creates .cursorrules
-arc ai-setup --windsurf    # For Windsurf → creates .windsurfrules  
+arc ai-setup --windsurf    # For Windsurf → creates .windsurfrules
 arc ai-setup --copilot     # For GitHub Copilot → creates .github/copilot-instructions.md
 arc ai-setup --cline       # For Cline/Claude Dev → creates .clinerules
 arc ai-setup --vscode      # For VS Code → creates .vscode/settings.json
@@ -267,7 +268,7 @@ AI: I'll create this Archeon chain:
         => API:POST/register => MDL:user.create => OUT:redirect('/dashboard')
 
     Confidence: HIGH
-    
+
     Suggested error paths:
       → API:POST/register -> ERR:validation.emailTaken
       → API:POST/register -> ERR:validation.invalidEmail
@@ -281,7 +282,7 @@ AI: ✓ Added chain to archeon/ARCHEON.arcon
     ✓ Generated STO:Auth → client/src/stores/AuthStore.js
     ✓ Generated API:POST/register → server/src/api/routes/register.py
     ✓ Generated MDL:user → server/src/models/user.py
-    
+
     Done! Registration flow is ready.
 ```
 
@@ -294,20 +295,20 @@ You: "Add profile editing"
 
 AI: Proposed chain:
     @v1 NED:editProfile => CMP:ProfileForm => OUT:result
-    
+
     Confidence: MEDIUM - no API or storage detected
 
 You: "Save to database through API"
 
 AI: Updated chain:
-    @v1 NED:editProfile => CMP:ProfileForm 
+    @v1 NED:editProfile => CMP:ProfileForm
         => API:PUT/profile => MDL:user.update => OUT:toast('Profile saved')
 
 You: "Also add image upload for avatar"
 
 AI: Final chain:
     @v1 NED:editProfile => V:ProfilePage @ CMP:ProfileForm, CMP:AvatarUpload
-        => TSK:submit => API:PUT/profile => MDL:user.update 
+        => TSK:submit => API:PUT/profile => MDL:user.update
         => OUT:toast('Profile saved')
 
     Implementing now...
@@ -317,14 +318,14 @@ AI: Final chain:
 
 Archeon is **rule-based** — it generates IDE-specific configuration files that constrain your AI assistant to the glyph taxonomy:
 
-| IDE | Command | Creates | What It Does |
-|-----|---------|---------|--------------|
-| **Cursor** | `arc ai-setup --cursor` | `.cursorrules` | AI reads + writes to ARCHEON.arcon |
-| **Windsurf** | `arc ai-setup --windsurf` | `.windsurfrules` | Cascade AI follows the graph |
-| **VS Code + Copilot** | `arc ai-setup --copilot` | `.github/copilot-instructions.md` | Copilot Chat understands glyphs |
-| **Cline/Claude Dev** | `arc ai-setup --cline` | `.clinerules` | Claude writes chains first |
-| **Aider** | `arc ai-setup --aider` | `.aider.conf.yml` | Auto-loads graph context |
-| **All at once** | `arc ai-setup` | All of the above | Full setup |
+| IDE                   | Command                   | Creates                           | What It Does                       |
+| --------------------- | ------------------------- | --------------------------------- | ---------------------------------- |
+| **Cursor**            | `arc ai-setup --cursor`   | `.cursorrules`                    | AI reads + writes to ARCHEON.arcon |
+| **Windsurf**          | `arc ai-setup --windsurf` | `.windsurfrules`                  | Cascade AI follows the graph       |
+| **VS Code + Copilot** | `arc ai-setup --copilot`  | `.github/copilot-instructions.md` | Copilot Chat understands glyphs    |
+| **Cline/Claude Dev**  | `arc ai-setup --cline`    | `.clinerules`                     | Claude writes chains first         |
+| **Aider**             | `arc ai-setup --aider`    | `.aider.conf.yml`                 | Auto-loads graph context           |
+| **All at once**       | `arc ai-setup`            | All of the above                  | Full setup                         |
 
 ---
 
@@ -333,7 +334,7 @@ Archeon is **rule-based** — it generates IDE-specific configuration files that
 ```
 Without Archeon:  "AI, build me a login"  → Random architecture every time
 
-With Archeon:     "AI, build me a login"  
+With Archeon:     "AI, build me a login"
                   → AI writes: NED:login => CMP:LoginForm => API:POST/auth => OUT:dashboard
                   → Same structure, any model, always
 ```
@@ -344,39 +345,39 @@ With Archeon:     "AI, build me a login"
 
 ### Measured Impact
 
-| Metric | Traditional AI | Archeon |
-|--------|---------------|---------|
-| Structural drift | 60% of features | **0%** |
-| Missing outcomes | 42% incomplete | **0%** |
-| Time to valid code | ~35 min | **~10 min** |
-| Structural rework | 60% | **~1-2%** |
-| Weekly refactor overhead | 3+ hrs | **<10 min** |
+| Metric                   | Traditional AI  | Archeon     |
+| ------------------------ | --------------- | ----------- |
+| Structural drift         | 60% of features | **0%**      |
+| Missing outcomes         | 42% incomplete  | **0%**      |
+| Time to valid code       | ~35 min         | **~10 min** |
+| Structural rework        | 60%             | **~1-2%**   |
+| Weekly refactor overhead | 3+ hrs          | **<10 min** |
 
 ---
 
 ## Glyph Notation
 
-| Prefix | Name | Layer | Description |
-|--------|------|-------|-------------|
-| `NED:` | Need | Meta | User intent/motivation |
-| `TSK:` | Task | Meta | User action |
-| `CMP:` | Component | Client | UI component (React/Vue) |
-| `STO:` | Store | Client | State management (Zustand/Pinia) |
-| `API:` | API | Server | HTTP endpoint |
-| `MDL:` | Model | Server | Database model |
-| `EVT:` | Event | Server | Event handler |
-| `FNC:` | Function | Shared | Utility function |
-| `OUT:` | Output | Meta | Success outcome |
-| `ERR:` | Error | Meta | Failure path |
+| Prefix | Name      | Layer  | Description                      |
+| ------ | --------- | ------ | -------------------------------- |
+| `NED:` | Need      | Meta   | User intent/motivation           |
+| `TSK:` | Task      | Meta   | User action                      |
+| `CMP:` | Component | Client | UI component (React/Vue)         |
+| `STO:` | Store     | Client | State management (Zustand/Pinia) |
+| `API:` | API       | Server | HTTP endpoint                    |
+| `MDL:` | Model     | Server | Database model                   |
+| `EVT:` | Event     | Server | Event handler                    |
+| `FNC:` | Function  | Shared | Utility function                 |
+| `OUT:` | Output    | Meta   | Success outcome                  |
+| `ERR:` | Error     | Meta   | Failure path                     |
 
 ## Edge Types
 
-| Operator | Type | Description |
-|----------|------|-------------|
-| `=>` | Structural | Data flow (no cycles) |
-| `~>` | Reactive | Subscriptions (cycles OK) |
-| `->` | Control | Branching/conditionals |
-| `::` | Containment | Parent-child grouping |
+| Operator | Type        | Description               |
+| -------- | ----------- | ------------------------- |
+| `=>`     | Structural  | Data flow (no cycles)     |
+| `~>`     | Reactive    | Subscriptions (cycles OK) |
+| `->`     | Control     | Branching/conditionals    |
+| `::`     | Containment | Parent-child grouping     |
 
 ---
 
@@ -456,15 +457,15 @@ $ arc gen
 
 ### When to Use CLI vs IDE Chat
 
-| Use Case | Recommendation |
-|----------|----------------|
-| Daily feature development | IDE Chat |
-| Exploring ideas | IDE Chat |
-| Processing requirements docs | CLI: `arc i --file` |
-| CI/CD pipeline validation | CLI: `arc validate` |
-| Scripted batch operations | CLI |
-| Debugging chain parsing | CLI: `arc parse --dry-run` |
-| Architecture audits | CLI: `arc audit` |
+| Use Case                     | Recommendation             |
+| ---------------------------- | -------------------------- |
+| Daily feature development    | IDE Chat                   |
+| Exploring ideas              | IDE Chat                   |
+| Processing requirements docs | CLI: `arc i --file`        |
+| CI/CD pipeline validation    | CLI: `arc validate`        |
+| Scripted batch operations    | CLI                        |
+| Debugging chain parsing      | CLI: `arc parse --dry-run` |
+| Architecture audits          | CLI: `arc audit`           |
 
 ---
 
@@ -493,16 +494,19 @@ my-app/
 For complete guides, see the [wiki documentation](https://github.com/danaia/archeon/wiki):
 
 ### Getting Started
+
 - [Installation](https://github.com/danaia/archeon/wiki/Installation) — Install via pip
 - [Quick Start](https://github.com/danaia/archeon/wiki/Quick-Start) — First project in 5 minutes
 
 ### Core Concepts
+
 - [Glyph Reference](https://github.com/danaia/archeon/wiki/Glyph-Reference) — All 16 glyph types
 - [Chain Syntax](https://github.com/danaia/archeon/wiki/Chain-Syntax) — Composition rules and validation
 - [Natural Language Intent](https://github.com/danaia/archeon/wiki/Natural-Language-Intent) — Plain English → chains
 - [Knowledge Graph](https://github.com/danaia/archeon/wiki/Knowledge-Graph) — The `.arcon` file explained
 
 ### Reference
+
 - [CLI Commands](https://github.com/danaia/archeon/wiki/CLI-Commands) — Complete command reference
 - [Templates](https://github.com/danaia/archeon/wiki/Templates) — Template customization
 - [Architecture](https://github.com/danaia/archeon/wiki/Architecture) — System design and mechanisms
@@ -521,14 +525,14 @@ arc ai-setup
 
 This generates configuration files for every major AI-powered IDE:
 
-| IDE | Config File | What It Does |
-|-----|------------|--------------|
-| Cursor | `.cursorrules` | AI reads + writes to ARCHEON.arcon |
-| GitHub Copilot | `.github/copilot-instructions.md` | Copilot Chat understands glyphs |
-| Windsurf | `.windsurfrules` | Cascade AI follows the graph |
-| Cline/Claude Dev | `.clinerules` | Claude writes chains first |
-| Aider | `.aider.conf.yml` | Auto-loads graph context |
-| VS Code | `.vscode/settings.json` | Syntax highlighting for .arcon |
+| IDE              | Config File                       | What It Does                       |
+| ---------------- | --------------------------------- | ---------------------------------- |
+| Cursor           | `.cursorrules`                    | AI reads + writes to ARCHEON.arcon |
+| GitHub Copilot   | `.github/copilot-instructions.md` | Copilot Chat understands glyphs    |
+| Windsurf         | `.windsurfrules`                  | Cascade AI follows the graph       |
+| Cline/Claude Dev | `.clinerules`                     | Claude writes chains first         |
+| Aider            | `.aider.conf.yml`                 | Auto-loads graph context           |
+| VS Code          | `.vscode/settings.json`           | Syntax highlighting for .arcon     |
 
 ### Selective Setup
 
@@ -540,9 +544,10 @@ arc ai-setup --no-aider            # All except Aider
 
 ### What Happens When You Ask for a Feature
 
-When you tell your IDE's AI: *"Create a user registration feature"*
+When you tell your IDE's AI: _"Create a user registration feature"_
 
 The AI will:
+
 1. **Read** `archeon/ARCHEON.arcon` to understand existing architecture
 2. **Write** a new chain: `@v1 NED:register => CMP:RegisterForm => STO:Auth => API:POST/auth/register => MDL:user => OUT:success`
 3. **Implement** each component following that chain exactly
@@ -555,7 +560,7 @@ No hallucinations. No random patterns. Just clean, consistent architecture.
 "Create a shopping cart feature"
 → AI adds chain to ARCHEON.arcon, then implements
 
-"Add a password reset flow to the architecture"  
+"Add a password reset flow to the architecture"
 → AI writes the chain first, asks for approval, then codes
 
 "What chains are defined in this project?"
@@ -570,7 +575,7 @@ No hallucinations. No random patterns. Just clean, consistent architecture.
 **Your AI assistant is now constrained by your architecture**, not its imagination. It can only compose within the glyph taxonomy. This means:
 
 - ✅ Consistent patterns across your entire codebase
-- ✅ No architectural drift between sessions  
+- ✅ No architectural drift between sessions
 - ✅ Switch AI models mid-project — the graph remains
 - ✅ Human stays in control — AI proposes, you approve
 

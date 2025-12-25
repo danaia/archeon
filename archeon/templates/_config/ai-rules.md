@@ -3,6 +3,7 @@
 ## 🚨 BEFORE ANY CODING: READ THESE FILES
 
 **ALWAYS read these files FIRST before generating any code:**
+
 1. `archeon/ARCHEON.arcon` — existing glyph chains (the architecture)
 2. `archeon/ARCHEON.index.json` — file/section mappings
 
@@ -14,13 +15,13 @@
 
 **EVERY file creation/modification MUST follow these steps IN ORDER:**
 
-| Step | Action | File |
-|------|--------|------|
-| 0 | **READ existing chains** | `archeon/ARCHEON.arcon` |
-| 1 | Add/update glyph chain | `archeon/ARCHEON.arcon` |
-| 2 | Write code with headers | Your code file |
-| 3 | Update index | `archeon/ARCHEON.index.json` |
-| 4 | Validate | Run `arc validate` |
+| Step | Action                   | File                         |
+| ---- | ------------------------ | ---------------------------- |
+| 0    | **READ existing chains** | `archeon/ARCHEON.arcon`      |
+| 1    | Add/update glyph chain   | `archeon/ARCHEON.arcon`      |
+| 2    | Write code with headers  | Your code file               |
+| 3    | Update index             | `archeon/ARCHEON.index.json` |
+| 4    | Validate                 | Run `arc validate`           |
 
 **NEVER skip steps 0, 1, 3, or 4. Code without reading = architecture drift.**
 
@@ -29,6 +30,7 @@
 ## Step 1: Add Glyph Chain to ARCHEON.arcon
 
 Add under `# === AGENT CHAINS ===`:
+
 ```
 # Feature description
 @v1 NED:feature => CMP:Component => STO:Store => API:POST/path => OUT:success
@@ -37,6 +39,16 @@ Add under `# === AGENT CHAINS ===`:
 **Glyphs:** `NED:` need | `CMP:` component | `STO:` store | `API:` endpoint | `MDL:` model | `FNC:` function | `EVT:` event | `OUT:` success | `ERR:` error
 
 **Edges:** `=>` flow | `~>` reactive | `->` branch | `::` contains
+
+**⚠️ API ENDPOINTS MUST HAVE ERROR PATHS:**
+Every API glyph REQUIRES error handling. Add within the main chain:
+
+```
+@v1 NED:login => CMP:LoginForm => API:POST/auth/login
+    -> ERR:auth.invalidCredentials
+    -> ERR:server.error
+    => OUT:dashboard
+```
 
 ---
 
@@ -52,6 +64,7 @@ Add under `# === AGENT CHAINS ===`:
 ```
 
 **Wrap sections:**
+
 ```python
 # @archeon:section imports
 from fastapi import APIRouter
@@ -70,6 +83,7 @@ def login(): ...
 **⚠️ THIS IS THE STEP AI OFTEN FORGETS. DO NOT SKIP.**
 
 Add entry for EVERY new file:
+
 ```json
 "API:POST/auth/login": {
   "file": "server/src/api/routes/auth.py",
@@ -80,6 +94,7 @@ Add entry for EVERY new file:
 ```
 
 **Triggers for index update:**
+
 - New file created → add glyph entry
 - New section added → add to sections array
 - File moved → update file path
@@ -105,13 +120,43 @@ arc validate
 | FNC | imports, implementation, helpers |
 
 **Commands:**
+
 - `arc parse "chain"` - Add chain
 - `arc validate` - Check architecture
 - `arc index build` - Rebuild index from headers
 
 **Rules:**
+
 1. Read `ARCHEON.arcon` before coding
 2. Chains start with `NED:`/`TSK:`, end with `OUT:`/`ERR:`
 3. Use PascalCase: `CMP:LoginForm`, `STO:AuthStore`
 4. APIs use METHOD/path: `API:POST/auth/login`
 5. Version increments: `@v1` → `@v2` when modifying
+6. **EVERY API MUST have error paths** - use `-> ERR:` branches
+7. Use unique error names: `ERR:auth.invalid`, `ERR:server.timeout` (avoid duplicates)
+8. **Always run `arc validate` after changes** - fix ALL errors and warnings
+
+## ✅ Perfect Validation Checklist
+
+**API Error Path Requirements:**
+
+- [ ] Every `API:` glyph has at least one `-> ERR:` branch
+- [ ] Error glyphs use unique, descriptive names (no `ERR:server_error` duplicates)
+- [ ] Error paths are in the SAME chain as the API, not separate chains
+
+**Common API Error Patterns:**
+
+```
+API:POST/auth/login -> ERR:auth.invalidCredentials -> ERR:server.timeout
+API:GET/data -> ERR:auth.unauthorized -> ERR:server.notFound
+API:PUT/profile -> ERR:validation.invalid -> ERR:server.conflict
+```
+
+**Validation Must Show:**
+
+```bash
+✓ Validation passed
+  Chains: X, Glyphs: Y
+```
+
+NOT warnings like `WARN:api.noErrorPath`

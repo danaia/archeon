@@ -71,201 +71,16 @@ Bad architecture gets caught **before** it becomes bad code. Not during review. 
 
 ---
 
-## Why This Empowers Developers
+## Why This Exists (Measured Impact)
 
-You're not fighting the AI anymore. You're not re-explaining your architecture every session. You're not fixing drift.
-
-You describe what you want. The AI proposes a chain. You approve. Code appears — **and it fits.**
-
-```
-You: "User uploads a profile picture"
-
-AI: Proposed chain:
-    NED:uploadAvatar => CMP:AvatarUpload => API:POST/avatar 
-        => MDL:user.avatar => OUT:toast('Avatar updated')
-    
-    Shall I proceed?
-
-You: Yes
-```
-
-That's the whole workflow. Describe → Validate → Generate → Ship.
-
----
-
-## Why This Empowers AI
-
-Small models (Qwen 30B, Mistral, local LLMs) fail at coding because:
-
-1. **Too much context**: They can't hold your entire codebase in memory
-2. **Too many options**: They hallucinate patterns that don't exist
-3. **No persistence**: Each session starts from zero
-
-Archeon fixes all three:
-
-| Problem | Archeon Solution |
-|---------|------------------|
-| Context overload | Glyph projection (~12K tokens vs ~45K) |
-| Pattern hallucination | Bounded glyph taxonomy |
-| Session amnesia | `.arcon` file persistence |
-
-**You didn't make the model smarter. You made the problem smaller.**
-
----
-
-## Why Local Models Can Match Frontier Models
-
-This is not hype. This is constraint theory applied to language models.
-
-### The Real Difference Between Models
-
-A 30B parameter model (Qwen, Mistral, Llama) has **the same knowledge** as GPT-4 or Claude. They're trained on similar data. The difference is:
-
-| Capability | Frontier (400B+) | Local (30B) |
-|-----------|------------------|-------------|
-| Knowledge | ✅ Same training data | ✅ Same training data |
-| Context window | 100K-200K tokens | 8K-32K tokens |
-| Reasoning depth | Deep multi-step | Shallow, loses coherence |
-| Working memory | Excellent | Limited |
-
-When you ask Claude to "build a login system," it succeeds because it can hold your **entire codebase** in context and reason through **all possible architectures** to pick a coherent one.
-
-A 30B model fails **not because it doesn't know how** — it fails because:
-- Your codebase exceeds its context window
-- It can't evaluate all architectural options
-- It forgets what pattern it used 3 files ago
-
-### How Archeon Changes the Game
-
-Archeon doesn't make the model smarter. It **constrains the problem space** so a smaller model can solve it.
-
-```
-                    WITHOUT ARCHEON
-    ┌─────────────────────────────────────────────────┐
-    │                                                 │
-    │    Infinite architectural possibilities         │
-    │    ~45K tokens of context required              │
-    │    Multi-step reasoning across files            │
-    │    Pattern coherence over long sequences        │
-    │                                                 │
-    │    → Requires frontier-class reasoning          │
-    │                                                 │
-    └─────────────────────────────────────────────────┘
-
-                     WITH ARCHEON
-    ┌─────────────────────────────────────────────────┐
-    │                                                 │
-    │    16 glyphs (bounded taxonomy)                 │
-    │    ~12K tokens (chain + template + deps)        │
-    │    Single-step: fill template from chain        │
-    │    Coherence guaranteed by .arcon               │
-    │                                                 │
-    │    → Any model can do this                      │
-    │                                                 │
-    └─────────────────────────────────────────────────┘
-```
-
-### The Mathematics
-
-**Frontier model reasoning:**
-```
-P(code | prompt, entire_codebase, all_possible_patterns)
-```
-This distribution is enormous. Sampling requires massive working memory.
-
-**Archeon-constrained reasoning:**
-```
-P(code | prompt, validated_chain, template, one_hop_dependencies)
-```
-This distribution is **orders of magnitude narrower**. A 30B model samples from it reliably.
-
-### Concrete Example
-
-**Task:** "Add user profile editing"
-
-**Without Archeon — GPT-4:**
-```
-✓ Creates ProfileForm.vue (new pattern)
-✓ Creates profileStore.js (different from authStore pattern)
-✓ Creates PUT /api/profile (inconsistent with POST /auth)
-✗ Forgets to update user model
-✗ No connection to existing auth flow
-→ Works, but creates technical debt
-```
-
-**With Archeon — Qwen 32B (local):**
-```
-→ Reads .arcon: understands existing auth flow
-→ Proposes: NED:editProfile => CMP:ProfileForm => STO:Auth => API:PUT/profile => MDL:user => OUT:toast
-→ Validates: chain complete, reuses existing STO:Auth
-→ Generates from template (consistent patterns)
-→ Updates .arcon (future sessions aware)
-✓ Architecturally consistent
-✓ Zero hallucinated patterns
-```
-
-**The local model produces better architecture** because it's solving a constrained problem, not improvising.
-
-### Why This Matters
-
-- **Privacy**: Your code never leaves your machine
-- **Cost**: $0 per token vs $0.01-0.06 per 1K tokens
-- **Speed**: No API latency
-- **Availability**: Works offline, no rate limits
-
-And with Archeon, **quality is equivalent** for architectural tasks.
-
----
-
-## Quick Start
-
-```bash
-# Install
-pip install archeon
-
-# Create project
-arc init --arch vue3-fastapi
-
-# Set up your IDE
-arc ai-setup --cursor  # or --windsurf, --copilot, --vscode
-
-# Chat with your AI
-"Build user registration with email verification"
-```
-
----
-
-## Measured Impact
-
-| Metric | Without Archeon | With Archeon |
-|--------|----------------|--------------|
-| Structural drift | 60% of features | **0%** |
-| Missing outcomes | 42% incomplete | **0%** |
-| Context tokens | ~45K | **~12K** |
-| Time to valid code | ~35 min | **~10 min** |
-| Structural rework | 60% | **~1-2%** |
-
-These aren't estimates. They're from 200+ generated features.
-
----
-
-## What Archeon Does NOT Do
-
-Let's be clear:
-
-- ❌ Won't write optimal algorithms
-- ❌ Won't replace code review
-- ❌ Won't catch runtime bugs
-- ❌ Won't make bad UX good
-- ❌ Won't remove the need for human judgment
-
-**Archeon solves architecture. That's it.** But architecture is the thing that makes everything else possible.
-
----
-
-## The One-Line Insight
-
-> **Archeon doesn't make models smarter. It makes the problem smaller, the rules explicit, and the failure modes impossible.**
+| Metric | Traditional AI | Archeon | Mechanism |
+|--------|---------------|---------|-----------|
+| **Structural drift** | 60% of features | **0%** | Rejected at parse-time |
+| **Missing outcomes** | 42% incomplete | **0%** | NED→OUT invariant enforced |
+| **Reasoning context** | ~45K tokens | ~12K tokens | Glyph projection |
+| **Time to valid code** | ~35 min | ~10 min | Validate before generate |
+| **Structural rework** | 60% | **~1-2%** | Invalid chains rejected |
+| **Refactor overhead** | 3+ hrs/week | <10 min | Persistent architecture |
 
 ---
 
@@ -276,7 +91,7 @@ sequenceDiagram
     participant You as You (IDE Chat)
     participant AI as IDE AI
     participant Arc as ARCHEON.arcon
-    
+
     You->>AI: "Build user login with email"
     AI->>Arc: Read architectural rules
     Arc->>AI: Glyph taxonomy + constraints
@@ -285,7 +100,117 @@ sequenceDiagram
     AI->>You: ✓ Generate all components<br/>✓ Update .arcon<br/>✓ Architecturally consistent
 ```
 
-**No CLI commands. No prompt gymnastics. Just chat.**
+**No CLI commands. No prompt gymnastics. Just chat with your IDE AI (Cursor, Windsurf, VS Code).**
+
+---
+
+## The Mechanisms
+
+### HCI Enforcement at Parse-Time
+
+```text
+❌ NED:login => CMP:LoginForm
+   REJECTED — no observable outcome
+
+✅ NED:login => CMP:LoginForm => OUT:redirect('/dashboard')
+   VALID
+```
+
+Archeon enforces a strict **NED → OUT (or ERR)** invariant.
+If a feature does not terminate in user-visible feedback, it is rejected *before* code generation.
+
+This is not linting. It is a **structural requirement**.
+
+👉 [Architecture – HCI-First](Architecture#hci-first-architecture)
+
+---
+
+### Context Reduction (Why Small Models Work)
+
+Instead of loading entire repositories, Archeon performs **glyph-based context projection**:
+
+| Traditional AI Context | Archeon Context |
+|----------------------|-----------------|
+| Components: ~15K tokens | Chain + metadata: ~2K tokens |
+| API routes: ~10K tokens | Template: ~6K tokens |
+| Stores: ~8K tokens | 1-hop deps only: ~4K tokens |
+| Docs/examples: ~12K tokens | |
+| **Total: ~45K tokens** | **Total: ~12K tokens** |
+
+The model doesn't reason over *less information* — it reasons over **only the information that matters**.
+
+👉 [Architecture – Context Projection](Architecture#context-projection)
+
+---
+
+### Faster Iteration (Validate Before Generate)
+
+**Traditional workflow:**
+Describe → Generate → Review → ❌ Find violation → Refactor → Re-review (~35 min)
+
+**Archeon workflow:**
+Describe → **Validate chain** → Approve → Generate correct code (~10 min)
+
+Failures are caught at the **architecture level**, not during review.
+
+👉 [Chain Syntax – Validation](Chain-Syntax#validation)
+
+---
+
+### Reduced Rework (Measured)
+
+Invalid architectural changes cannot be committed to the graph.
+
+**Observed internally:**
+- 200+ generated features
+- 2–3 required rework (human-approved invalid chains)
+- **~1.25% structural rework rate**
+
+Most rework disappears because mistakes are rejected *before* they become code.
+
+👉 [Knowledge Graph – Validation](Knowledge-Graph#graph-validation)
+
+---
+
+### Persistence (Why Drift Doesn't Accumulate)
+
+The `.arcon` file persists architecture across sessions.
+
+| Traditional AI | Archeon |
+|---------------|---------|
+| Each session renegotiates structure | Rules live in `.arcon` |
+| Inconsistencies accumulate | AI reads once |
+| ~3+ hours/week fixing drift | <10 min/week overhead |
+
+Architecture becomes **memory**, not suggestion.
+
+👉 [Knowledge Graph – Persistence](Knowledge-Graph#primary-workflow-ide-ai-assistants)
+
+---
+
+## What Archeon Does NOT Solve
+
+To be clear about boundaries:
+
+- ❌ Does **not** guarantee optimal algorithms
+- ❌ Does **not** replace code review
+- ❌ Does **not** prevent bad UX decisions
+- ❌ Does **not** remove human judgment
+- ❌ Does **not** catch runtime bugs or security issues
+
+This is intentional.
+
+---
+
+## What Archeon Does Solve
+
+- ✅ Structural architectural drift
+- ✅ Missing user outcomes
+- ✅ Layer boundary violations
+- ✅ Context bloat for small models
+- ✅ Session-to-session inconsistency
+
+These failures are eliminated by construction.
 
 ---
 
@@ -301,8 +226,8 @@ sequenceDiagram
 | `ERR` | Meta | Error state |
 | `CMP` | Frontend | UI component |
 | `STO` | Frontend | Client state |
-| `FNC` | Shared | Function |
-| `EVT` | Shared | Event handler |
+| `FNC` | Backend | Function |
+| `EVT` | Backend | Event handler |
 | `API` | Backend | HTTP endpoint |
 | `MDL` | Backend | Data model |
 
@@ -315,27 +240,30 @@ sequenceDiagram
 Shapes are JSON blueprints that define your entire stack — templates, configs, dependencies — in one file.
 
 ```bash
-arc init --arch vue3-fastapi    # Vue 3 + Pinia + FastAPI
-arc init --arch react-fastapi   # React + Zustand + FastAPI
+# Install
+pip install -e .
+
+# Initialize project
+arc init --frontend vue3 --backend fastapi
+
+# Define feature (or just ask your IDE AI)
+arc i "User wants to login with email and password"
+
+# Review proposed chain, approve with 'a', then generate
+arc gen
 ```
-
-Each shape includes:
-- Glyph templates for each framework
-- Prebuilt components (ThemeToggle, ThemeSelector)
-- TailwindCSS configuration
-- Full dependency list
-
-👉 [Architecture Shapes](Architecture-Shapes)
 
 ---
 
 ## 📚 Documentation
 
 ### Getting Started
+
 - [Installation](Installation) — Install via pip
 - [Quick Start](Quick-Start) — First project in 5 minutes
 
 ### Core Concepts
+
 - [Glyph Reference](Glyph-Reference) — All 16 glyph types
 - [Chain Syntax](Chain-Syntax) — Composition rules
 - [Natural Language Intent](Natural-Language-Intent) — Plain English → chains
@@ -343,6 +271,7 @@ Each shape includes:
 - [Architecture Shapes](Architecture-Shapes) — JSON-based stack blueprints
 
 ### Reference
+
 - [CLI Commands](CLI-Commands) — Command reference
 - [Templates](Templates) — Template customization
 - [Architecture](Architecture) — System design
