@@ -10,6 +10,72 @@ It's not another framework. It's not prompt engineering. It's a **constraint sys
 
 ---
 
+## Quick Start
+
+### Option 1: Start Fresh with Architecture Shapes
+
+Use pre-built architecture shapes to scaffold a complete project:
+
+```bash
+# Install Archeon
+pip install archeon
+
+# Create a new project with a shape template
+arc init --arch vue3-fastapi              # Vue 3 + FastAPI + MongoDB
+arc init --arch react-fastapi             # React + FastAPI + MongoDB
+
+# Add AI rules for your IDE
+arc init --arch vue3-fastapi --copilot    # With GitHub Copilot rules
+arc init --arch react-fastapi --cursor    # With Cursor rules
+```
+
+**Available shapes:**
+- `vue3-fastapi` — Vue 3 + Pinia + FastAPI + MongoDB
+- `react-fastapi` — React + Zustand + FastAPI + MongoDB
+
+### Option 2: Add Archeon to an Existing Codebase
+
+Already have a project? Just set up the AI rules:
+
+```bash
+cd your-existing-project
+
+# Generate AI rules for your IDE
+arc ai-setup --cursor      # Creates .cursorrules
+arc ai-setup --copilot     # Creates .github/copilot-instructions.md
+arc ai-setup --windsurf    # Creates .windsurfrules
+arc ai-setup --cline       # Creates .clinerules for Claude Dev
+arc ai-setup               # All IDEs at once
+
+# Initialize the knowledge graph
+arc init --single          # Creates archeon/ARCHEON.arcon without scaffolding
+```
+
+### Start Building
+
+Now just chat with your AI:
+
+```
+You: "User registers with email and password, then sees their dashboard"
+
+AI: Proposed chain:
+    NED:register => CMP:RegisterForm => STO:Auth 
+        => API:POST/register => MDL:user => OUT:redirect('/dashboard')
+    
+    Shall I proceed?
+
+You: Yes
+
+AI: ✓ Generated RegisterForm.vue
+    ✓ Generated AuthStore.js  
+    ✓ Generated register.py
+    ✓ Updated ARCHEON.arcon
+```
+
+That's it. Your AI now understands glyphs, validates chains, and generates architecturally consistent code.
+
+---
+
 ## The Problem with Pure Vibecoding
 
 | What Happens | Why It Hurts |
@@ -142,27 +208,6 @@ AI: ✓ Generated RegisterForm.vue
 ```
 
 No CLI gymnastics. No memorizing commands. **Just describe what you want.**
-
----
-
-## Quick Start
-
-```bash
-# Install
-pip install archeon
-
-# Create project with your preferred stack
-arc init --arch vue3-fastapi              # Vue 3 + FastAPI + MongoDB
-arc init --arch react-fastapi             # React + FastAPI + MongoDB
-arc init --arch react-fastapi --copilot   # With GitHub Copilot rules
-
-# Or set up IDE rules separately
-arc ai-setup --cursor    # or --windsurf, --copilot, --vscode
-
-# Start chatting with your AI
-```
-
-That's it. Your AI now understands glyphs, validates chains, and generates architecturally consistent code.
 
 ---
 
