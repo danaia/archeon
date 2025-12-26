@@ -50,17 +50,16 @@ cd archeon
 pip install -e .
 ```
 
-### 2️⃣ Set Up Your Project (New or Existing)
+### 2️⃣ Set Up Your Project
 
-**For new projects:**
+**New project:**
 ```bash
 arc init --arch vue3-fastapi
 cd my-app && npm run dev
 ```
 
-**For existing projects:**
+**Existing project:**
 ```bash
-cd your-project
 arc ai-setup
 ```
 
