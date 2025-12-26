@@ -37,6 +37,13 @@ You're chatting with AI, building features in minutes. But without structure, yo
 ## Get Started in 60 Seconds
 
 ### 1️⃣ Install Archeon
+
+**Option A: Direct pip install (fastest)**
+```bash
+pip install git+https://github.com/danaia/archeon.git
+```
+
+**Option B: Clone and install locally**
 ```bash
 git clone git@github.com:danaia/archeon.git
 cd archeon
