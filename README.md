@@ -38,7 +38,9 @@ You're chatting with AI, building features in minutes. But without structure, yo
 
 ### New Project
 ```bash
-pip install archeon
+git clone git@github.com:danaia/archeon.git
+cd archeon
+pip install -e .
 arc init --arch vue3-fastapi --copilot    # Full stack + Copilot setup
 cd my-app && npm run dev
 ```
@@ -53,13 +55,9 @@ Now just chat with your AI:
 ```
 You: "User registers with email and password, then sees their dashboard"
 
-AI: Proposed chain:
+AI: Chain added:
     @v1 NED:register => CMP:RegisterForm => STO:Auth
         => API:POST/register => MDL:user => OUT:dashboard
-
-    Shall I proceed?
-
-You: Yes
 
 AI: ✓ Generated RegisterForm.vue
     ✓ Generated AuthStore.js
@@ -279,20 +277,14 @@ Open your IDE and describe what you want in natural language:
 ```
 You: "User wants to register with email and password, then see their dashboard"
 
-AI: I'll create this Archeon chain:
+AI: Adding chain to ARCHEON.arcon:
 
     @v1 NED:register => TSK:submit => CMP:RegisterForm => STO:Auth
         => API:POST/register => MDL:user.create => OUT:redirect('/dashboard')
 
-    Confidence: HIGH
-
-    Suggested error paths:
+    Detected error paths:
       → API:POST/register -> ERR:validation.emailTaken
       → API:POST/register -> ERR:validation.invalidEmail
-
-    Shall I proceed?
-
-You: Yes
 
 AI: ✓ Added chain to archeon/ARCHEON.arcon
     ✓ Generated CMP:RegisterForm → client/src/components/RegisterForm.vue
@@ -578,7 +570,7 @@ No hallucinations. No random patterns. Just clean, consistent architecture.
 → AI adds chain to ARCHEON.arcon, then implements
 
 "Add a password reset flow to the architecture"
-→ AI writes the chain first, asks for approval, then codes
+→ AI updates the chain and implements the code
 
 "What chains are defined in this project?"
 → AI reads and summarizes ARCHEON.arcon
@@ -594,7 +586,7 @@ No hallucinations. No random patterns. Just clean, consistent architecture.
 - ✅ Consistent patterns across your entire codebase
 - ✅ No architectural drift between sessions
 - ✅ Switch AI models mid-project — the graph remains
-- ✅ Human stays in control — AI proposes, you approve
+- ✅ Human stays in control — architecture is enforced by default
 
 ### Cline Extra Setup
 
@@ -619,29 +611,7 @@ For Cline (Claude Dev), you can also add the graph to always-included context:
 
 ---
 
-```bash
-# Clone and install
-git clone git@github.com:danaia/archeon.git
-pip install -e ./archeon
 
-# Verify installation
-arc --version
-
-# Uninstall
-pip uninstall archeon
-```
-
-## Development
-
-```bash
-# Clone and install with dev dependencies
-git clone <repo>
-cd Archeon
-pip install -e ".[dev]"
-
-# Run tests
-pytest archeon/tests/ -v
-```
 
 ## License
 
