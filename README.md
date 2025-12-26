@@ -36,85 +36,109 @@ You're chatting with AI, building features in minutes. But without structure, yo
 
 ## Get Started in 60 Seconds
 
-### New Project
+### 1️⃣ Install Archeon
 ```bash
 git clone git@github.com:danaia/archeon.git
 cd archeon
 pip install -e .
-arc init --arch vue3-fastapi --copilot    # Full stack + Copilot setup
+```
+
+### 2️⃣ Set Up Your Project (New or Existing)
+
+**For new projects:**
+```bash
+arc init --arch vue3-fastapi
 cd my-app && npm run dev
 ```
 
-### Existing Project
+**For existing projects:**
 ```bash
 cd your-project
-arc index code                             # One command discovers & documents everything
+arc ai-setup
 ```
 
-Now just chat with your AI:
+### 3️⃣ Open Your IDE and Chat
+
+Pick your IDE, then use this natural language prompt:
+
 ```
+"Initialize this project with Archeon"
+```
+
+**Your AI assistant will:**
+- ✅ Read your project structure (or scaffold a new one)
+- ✅ Generate `archeon/ARCHEON.arcon` knowledge graph
+- ✅ Create IDE-specific rule files for your AI
+- ✅ Be ready to build features with you
+
+**What happens next:**
+```
+You (in IDE chat): "Initialize this project with Archeon"
+
+AI: ✓ Created archeon/ARCHEON.arcon
+    ✓ Generated IDE rules for your setup
+    ✓ Ready to build features
+
 You: "User registers with email and password, then sees their dashboard"
 
-AI: Chain added:
+AI: Adding chain:
     @v1 NED:register => CMP:RegisterForm => STO:Auth
         => API:POST/register => MDL:user => OUT:dashboard
 
-AI: ✓ Generated RegisterForm.vue
-    ✓ Generated AuthStore.js
-    ✓ Generated register.py
-    ✓ Updated ARCHEON.arcon
+    ✓ Generated RegisterForm
+    ✓ Generated AuthStore
+    ✓ Generated register.py endpoint
+    Done!
 ```
 
 Your AI now understands your architecture, validates every feature before generating code, and maintains consistency across sessions.
 
-## Quickstart: Setting Up Your Framework
+## Quickstart: Choose Your IDE
 
-### 1. Create a New Project from Scratch
-Archeon supports multiple architecture shapes that define complete frontend/backend stacks:
+The fastest way to get Archeon working is to set up your IDE's AI rules. This works with **any project** (new or existing) and requires **no terminal commands after setup**.
 
-```bash
-arc init --arch vue3-fastapi       # Use vue3-fastapi shape
-arc init --arch react-fastapi      # Use react-fastapi shape
-arc init --arch vue3-fastapi --copilot  # With GitHub Copilot rules
-arc init --arch react-fastapi --copilot --cline  # Multiple IDE rules
-```
+### Available IDE Rules
 
-These commands create complete projects with:
-- ✅ Frontend (Vue 3 or React) with TypeScript and Tailwind CSS
-- ✅ Backend (FastAPI Python) with MongoDB database integration  
-- ✅ Complete directory structure and package configurations
-- ✅ Pre-configured state management (Pinia for Vue, Zustand for React)
-- ✅ IDE-specific rules for AI assistants (Copilot, Windsurf, Cline)
+When you run `arc ai-setup`, Archeon generates rule files for your IDE:
 
-### 2. Scan an Existing Repository
-For existing codebases, Archeon can automatically discover and document your architecture:
+| IDE / Tool          | Rule File                         | What It Does                           |
+| ------------------- | --------------------------------- | -------------------------------------- |
+| **Cursor**          | `.cursorrules`                    | AI reads & writes glyph chains         |
+| **Windsurf**        | `.windsurfrules`                  | Cascade follows your architecture      |
+| **VS Code + Copilot** | `.github/copilot-instructions.md` | Copilot understands the glyph system   |
+| **Cline/Claude Dev** | `.clinerules`                     | Claude writes chains before coding     |
+| **Aider**           | `.aider.conf.yml`                 | Auto-includes graph context            |
+
+### One Command: `arc ai-setup`
 
 ```bash
-cd your-existing-project
-arc index code
+# Your project (new or existing)
+cd my-project
+
+# Generate rule files for your IDE
+arc ai-setup
+
+# That's it! Now open your IDE and ask:
+# "Initialize this project with Archeon"
 ```
 
-This one-command setup performs these 5 steps:
-1. Creates `archeon/` directory structure
-2. Scans & classifies all files to glyphs  
-3. Generates `ARCHEON.index.json`
-4. Generates `ARCHEON.arcon` knowledge graph
-5. Creates AI rules for all IDEs
-
-You can then open the scanned project in ArcheonGUI to visualize your architecture.
-
-### 3. List Available Architectures
-See what architecture shapes are available:
+### Selective Setup
 
 ```bash
-arc shapes
-arc shapes -v                      # Detailed information
+arc ai-setup --cursor              # Only Cursor
+arc ai-setup --copilot             # Only GitHub Copilot
+arc ai-setup --windsurf --cline    # Windsurf + Cline only
 ```
 
-This shows all supported full-stack combinations like:
-- `vue3-fastapi` - Vue 3 frontend with FastAPI backend  
-- `react-fastapi` - React frontend with FastAPI backend
-- And others for different framework combinations
+### Then Build Features
+
+Open your IDE chat and describe what you need:
+
+```
+"User registers with email and password, then sees their dashboard"
+```
+
+Your AI will propose a glyph chain and implement it. No hallucinations. Consistent architecture every time.
 
 
 ---
@@ -522,75 +546,31 @@ For complete guides, see the [wiki documentation](https://github.com/danaia/arch
 
 ---
 
-## IDE AI Integration Deep Dive
+## IDE AI Integration
 
-**This is where Archeon really shines.** With a single command, your IDE's AI assistant becomes architecture-aware. It won't just read your knowledge graph — it can **write glyph chains directly**.
+**Your IDE's AI becomes architecture-aware.** After running `arc ai-setup`, your AI assistant can read your glyph chains and implement features consistently.
 
-### One Command Setup
+### What Your AI Does Next
 
-```bash
-arc ai-setup
-```
-
-This generates configuration files for every major AI-powered IDE:
-
-| IDE              | Config File                       | What It Does                       |
-| ---------------- | --------------------------------- | ---------------------------------- |
-| Cursor           | `.cursorrules`                    | AI reads + writes to ARCHEON.arcon |
-| GitHub Copilot   | `.github/copilot-instructions.md` | Copilot Chat understands glyphs    |
-| Windsurf         | `.windsurfrules`                  | Cascade AI follows the graph       |
-| Cline/Claude Dev | `.clinerules`                     | Claude writes chains first         |
-| Aider            | `.aider.conf.yml`                 | Auto-loads graph context           |
-| VS Code          | `.vscode/settings.json`           | Syntax highlighting for .arcon     |
-
-### Selective Setup
-
-```bash
-arc ai-setup --cursor              # Only Cursor
-arc ai-setup --vscode --copilot    # VS Code + Copilot only
-arc ai-setup --no-aider            # All except Aider
-```
-
-### What Happens When You Ask for a Feature
-
-When you tell your IDE's AI: _"Create a user registration feature"_
-
-The AI will:
-
-1. **Read** `archeon/ARCHEON.arcon` to understand existing architecture
-2. **Write** a new chain: `@v1 NED:register => CMP:RegisterForm => STO:Auth => API:POST/auth/register => MDL:user => OUT:success`
-3. **Implement** each component following that chain exactly
-
-No hallucinations. No random patterns. Just clean, consistent architecture.
-
-### Example Prompts That Work
+Simply ask in IDE chat:
 
 ```
-"Create a shopping cart feature"
-→ AI adds chain to ARCHEON.arcon, then implements
-
-"Add a password reset flow to the architecture"
-→ AI updates the chain and implements the code
-
+"Initialize this project with Archeon"
+"Create a user registration feature"
+"Add a password reset flow"
 "What chains are defined in this project?"
-→ AI reads and summarizes ARCHEON.arcon
-
-"Implement CMP:LoginForm following the knowledge graph"
-→ AI finds the chain, generates the component
 ```
 
-### The Magic
+Your AI will:
+1. **Read** `archeon/ARCHEON.arcon` to understand your architecture
+2. **Write** glyph chains for new features
+3. **Implement** components following those chains exactly
 
-**Your AI assistant is now constrained by your architecture**, not its imagination. It can only compose within the glyph taxonomy. This means:
+No hallucinations. Consistent patterns. Persistent across sessions.
 
-- ✅ Consistent patterns across your entire codebase
-- ✅ No architectural drift between sessions
-- ✅ Switch AI models mid-project — the graph remains
-- ✅ Human stays in control — architecture is enforced by default
+### Advanced: Cline Custom Instructions
 
-### Cline Extra Setup
-
-For Cline (Claude Dev), you can also add the graph to always-included context:
+For Cline (Claude Dev), add to IDE settings for extra context:
 
 1. Open Cline panel → Settings ⚙️
 2. In **"Custom Instructions"**, add:
@@ -607,7 +587,7 @@ For Cline (Claude Dev), you can also add the graph to always-included context:
 
 **Persistent across change** — New team member? New AI model? Existing requirements document? The architecture survives and guides them.
 
-**For existing codebases** — `arc index code` will scan your project and build the knowledge graph. You may need to adjust or refactor some pieces to fit the glyph taxonomy, but you'll end up with a clear, documented architecture that persists.
+**For existing codebases** — Use `arc ai-setup` to scan your project and generate the knowledge graph. You may need to adjust some pieces to fit the glyph taxonomy, but you'll end up with a clear, documented architecture that persists.
 
 ---
 
