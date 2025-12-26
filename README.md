@@ -58,6 +58,18 @@ arc init --arch vue3-fastapi
 cd my-app && npm run dev
 ```
 
+**Then set up IDE rules (generates all IDEs by default):**
+```bash
+arc ai-setup
+```
+
+**Or specify IDE rules during init:**
+```bash
+arc init --arch vue3-fastapi --cursor          # For Cursor only
+arc init --arch vue3-fastapi --copilot         # For GitHub Copilot only
+arc init --arch vue3-fastapi --windsurf --cline  # Multiple IDEs
+```
+
 **Existing project:**
 ```bash
 arc ai-setup

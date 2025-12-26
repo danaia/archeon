@@ -179,10 +179,18 @@ def init(
     # Create .gitignore
     create_gitignore(target)
     
-    # Generate IDE rule files if any flags are set
+    # Generate IDE rule files
+    # Default behavior: if no IDE flags are set, generate all
+    # If any flags are set, only generate those that are True
     ide_files_created = []
     ide_flags = {'copilot': copilot, 'cursor': cursor, 'windsurf': windsurf, 
                  'cline': cline, 'aider': aider, 'vscode': vscode}
+    
+    # Determine which IDEs to generate
+    has_any_flag = any(ide_flags.values())
+    if not has_any_flag:
+        # No flags set: generate all by default
+        ide_flags = {key: True for key in ide_flags}
     
     if any(ide_flags.values()):
         # Load AI rules from template
@@ -192,7 +200,7 @@ def init(
         else:
             archeon_rules = "# Archeon AI Rules\n\nSee archeon/ARCHEON.arcon for architecture.\n"
         
-        if copilot:
+        if ide_flags.get('copilot'):
             github_dir = target / ".github"
             github_dir.mkdir(exist_ok=True)
             (github_dir / "copilot-instructions.md").write_text(f'''# GitHub Copilot Instructions
@@ -201,28 +209,28 @@ def init(
 ''')
             ide_files_created.append(".github/copilot-instructions.md")
         
-        if cursor:
+        if ide_flags.get('cursor'):
             (target / ".cursorrules").write_text(f'''# Archeon Project Rules for Cursor
 
 {archeon_rules}
 ''')
             ide_files_created.append(".cursorrules")
         
-        if windsurf:
+        if ide_flags.get('windsurf'):
             (target / ".windsurfrules").write_text(f'''# Archeon Rules for Windsurf
 
 {archeon_rules}
 ''')
             ide_files_created.append(".windsurfrules")
         
-        if cline:
+        if ide_flags.get('cline'):
             (target / ".clinerules").write_text(f'''# Archeon Rules for Cline/Claude Dev
 
 {archeon_rules}
 ''')
             ide_files_created.append(".clinerules")
         
-        if aider:
+        if ide_flags.get('aider'):
             (target / ".aider.conf.yml").write_text('''# Aider configuration for Archeon project
 
 # Always include these files in context
@@ -253,7 +261,7 @@ model-settings-yaml: |
 ''')
             ide_files_created.append(".aider.conf.yml")
         
-        if vscode:
+        if ide_flags.get('vscode'):
             import json
             vscode_dir = target / ".vscode"
             vscode_dir.mkdir(exist_ok=True)
