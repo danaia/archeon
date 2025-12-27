@@ -1,284 +1,139 @@
 # Archeon
 
-> **The AI-Powered Project Architect. Structure + AI = Reliable Code.**
+> Glyph-based architecture notation system for AI-orchestrated software development.
 
-🖥️ **[ArcheonGUI](https://github.com/danaia/archeonGUI)** — Visualize your architecture as an interactive graph
+Archeon provides a hyper-compressed, human-readable **intermediate representation (IR)** that serves as both documentation and executable specification. It's a **constraint layer** that any LLM can understand, preventing hallucinations and architectural drift.
 
-## The Problem
+```
+Without Archeon:  "AI, build a login"  → Random architecture every time
 
-You're chatting with AI, building features in minutes. But without structure, your codebase drifts: inconsistent patterns, orphaned components, hallucinated code, and APIs that don't match your frontend. Context windows overflow. Models get confused. You spend more time fixing AI mistakes than shipping features.
-
-## The Solution
-
-**Archeon** is a constraint system that makes AI reliable. It's not a framework—it's a **knowledge graph** that sits between your intent and your code. It ensures:
-- ✅ **No architectural drift** — consistent patterns every session
-- ✅ **Zero hallucinations** — AI can't invent what isn't in your graph
-- ✅ **Smaller models work** — Qwen 32B outperforms GPT-4 on structured tasks
-- ✅ **Saves countless hours** — from weeks of refactoring to minutes of validation
-
----
-
-## 🖥️ Visualize Your Architecture
-
-**[ArcheonGUI](https://github.com/danaia/archeonGUI)** is a companion desktop app that brings your architecture to life:
-
-- **Interactive graph visualization** — See your entire architecture as a node graph
-- **Real-time updates** — Changes to `.arcon` appear instantly
-- **Chain exploration** — Click any glyph to see its connections
-- **Export diagrams** — Share architecture visuals with your team
-
-```bash
-# After running arc index code, open in GUI
-# Download from: https://github.com/danaia/archeonGUI
+With Archeon:     "AI, build a login"  → NED:login => CMP:LoginForm => API:POST/auth
+                                        → Same structure, any model, always
 ```
 
 ---
 
-## Get Started in 60 Seconds
+## Two Paths to Choose From
 
-### 1️⃣ Install Archeon
+Archeon offers **two distinct workflows** depending on how much control and scaffolding you need:
 
-**Option A: Direct pip install (fastest)**
+| | **🎯 IDE AI Rules** | **🏗️ Architecture Shapes** |
+|---|---|---|
+| **Best for** | Existing projects, minimal setup | New projects, complete scaffolding |
+| **Setup time** | < 1 minute | 2-3 minutes |
+| **What you get** | Glyph rules for your IDE | Full project structure + pre-built components |
+| **Command** | `arc init` + `arc ai-setup` | `arc init --arch vue3-fastapi` |
+
+---
+
+### 🎯 Path 1: IDE AI Rules (Lightweight)
+**Best for:** Experienced developers who want AI assistance within existing projects or prefer minimal scaffolding.
+
+**What you get:**
+- IDE-specific configuration files (`.cursorrules`, `.github/copilot-instructions.md`, etc.)
+- Your AI assistant learns the glyph system
+- Chat-based architecture proposals
+- Minimal project structure (just `archeon/ARCHEON.arcon` + templates)
+
+**Setup:**
 ```bash
-pip install git+https://github.com/danaia/archeon.git
-```
-
-**Option B: Clone and install locally**
-```bash
-git clone git@github.com:danaia/archeon.git
-cd archeon
+# 1. Install Archeon
 pip install -e .
+
+# 2. Initialize minimal structure
+mkdir my-app && cd my-app
+arc init
+
+# 3. Generate IDE rules
+arc ai-setup --cursor      # For Cursor
+arc ai-setup --copilot     # For GitHub Copilot
+arc ai-setup --windsurf    # For Windsurf
+arc ai-setup               # Or all at once
 ```
 
-### 2️⃣ Set Up Your Project
+**Now just chat with your IDE** — it reads `ARCHEON.arcon` and proposes architecture.
 
-**New project:**
-```bash
-arc init --arch vue3-fastapi
-cd my-app && npm run dev
-```
+---
 
-**Then set up IDE rules (generates all IDEs by default):**
+### 🏗️ Path 2: Architecture Shapes (Complete Scaffolding)
+**Best for:** New projects, teams wanting consistency, or full-stack setup out of the box.
+
+> **💡 Key Insight:** Shapes are **100% customizable JSON files**. You define the exact code patterns, naming conventions, and structure your AI will follow. No more "AI does it differently every time" — your team's coding standards become the AI's training data.
+
+**What you get:**
+- **Complete project scaffolding** (client/, server/, pre-configured build tools)
+- **Pre-built components** (ThemeToggle, ThemeSelector, design tokens)
+- **Framework-specific templates** for every glyph (CMP, STO, API, MDL, EVT, FNC)
+- **Full dependency management** (package.json, requirements.txt, pre-configured)
+- **Tailwind + theming system** ready to use
+- **Test stubs** auto-generated with components
+- **Everything the AI needs** to generate production-ready code immediately
+
+**Setup:**
 ```bash
+# 1. Install Archeon  
+pip install -e .
+
+# 2. View available shapes
+arc shapes
+
+# 3. Initialize with a complete architecture
+arc init --arch vue3-fastapi       # Vue 3 + FastAPI + MongoDB
+arc init --arch react-fastapi      # React + FastAPI + MongoDB
+
+# 4. Optional: Add IDE rules too
 arc ai-setup
 ```
 
-**Or specify IDE rules during init:**
-```bash
-arc init --arch vue3-fastapi --cursor          # For Cursor only
-arc init --arch vue3-fastapi --copilot         # For GitHub Copilot only
-arc init --arch vue3-fastapi --windsurf --cline  # Multiple IDEs
+**Available Shapes:**
+
+| Shape ID | Stack | What's Included |
+|----------|-------|-----------------|
+| `vue3-fastapi` | Vue 3, Pinia, Tailwind, FastAPI, MongoDB | Complete monorepo, theme system, pre-built components |
+| `react-fastapi` | React, Zustand, Tailwind, FastAPI, MongoDB | Complete monorepo, theme system, pre-built components |
+
+**Project structure after shape initialization:**
+```
+my-app/
+├── client/                 # Frontend (Vite configured)
+│   ├── src/
+│   │   ├── components/     # Pre-built: ThemeToggle, ThemeSelector
+│   │   ├── stores/         # Theme store ready
+│   │   └── tokens/         # Design tokens (CSS, JS, Tailwind)
+│   ├── package.json
+│   └── vite.config.js
+├── server/                 # Backend
+│   ├── src/
+│   │   ├── api/routes/
+│   │   ├── models/
+│   │   └── main.py
+│   └── requirements.txt
+└── archeon/
+    ├── ARCHEON.arcon       # Knowledge graph
+    └── templates/          # Glyph-specific code templates
+        ├── CMP/            # Component snippets
+        ├── STO/            # Store snippets  
+        ├── API/            # API route snippets
+        └── _config/        # Tailwind, theme tokens
 ```
 
-**Existing project:**
-```bash
-arc ai-setup
-```
-
-### 3️⃣ Open Your IDE and Chat
-
-Pick your IDE, then use this natural language prompt:
-
-```
-"Initialize this project with Archeon"
-```
-
-**Your AI assistant will:**
-- ✅ Read your project structure (or scaffold a new one)
-- ✅ Generate `archeon/ARCHEON.arcon` knowledge graph
-- ✅ Create IDE-specific rule files for your AI
-- ✅ Be ready to build features with you
-
-**What happens next:**
-```
-You (in IDE chat): "Initialize this project with Archeon"
-
-AI: ✓ Created archeon/ARCHEON.arcon
-    ✓ Generated IDE rules for your setup
-    ✓ Ready to build features
-
-You: "User registers with email and password, then sees their dashboard"
-
-AI: Adding chain:
-    @v1 NED:register => CMP:RegisterForm => STO:Auth
-        => API:POST/register => MDL:user => OUT:dashboard
-
-    ✓ Generated RegisterForm
-    ✓ Generated AuthStore
-    ✓ Generated register.py endpoint
-    Done!
-```
-
-Your AI now understands your architecture, validates every feature before generating code, and maintains consistency across sessions.
-
-## Quickstart: Choose Your IDE
-
-The fastest way to get Archeon working is to set up your IDE's AI rules. This works with **any project** (new or existing) and requires **no terminal commands after setup**.
-
-### Available IDE Rules
-
-When you run `arc ai-setup`, Archeon generates rule files for your IDE:
-
-| IDE / Tool          | Rule File                         | What It Does                           |
-| ------------------- | --------------------------------- | -------------------------------------- |
-| **Cursor**          | `.cursorrules`                    | AI reads & writes glyph chains         |
-| **Windsurf**        | `.windsurfrules`                  | Cascade follows your architecture      |
-| **VS Code + Copilot** | `.github/copilot-instructions.md` | Copilot understands the glyph system   |
-| **Cline/Claude Dev** | `.clinerules`                     | Claude writes chains before coding     |
-| **Aider**           | `.aider.conf.yml`                 | Auto-includes graph context            |
-
-### One Command: `arc ai-setup`
-
-```bash
-# Your project (new or existing)
-cd my-project
-
-# Generate rule files for your IDE
-arc ai-setup
-
-# That's it! Now open your IDE and ask:
-# "Initialize this project with Archeon"
-```
-
-### Selective Setup
-
-```bash
-arc ai-setup --cursor              # Only Cursor
-arc ai-setup --copilot             # Only GitHub Copilot
-arc ai-setup --windsurf --cline    # Windsurf + Cline only
-```
-
-### Then Build Features
-
-Open your IDE chat and describe what you need:
-
-```
-"User registers with email and password, then sees their dashboard"
-```
-
-Your AI will propose a glyph chain and implement it. No hallucinations. Consistent architecture every time.
-
+**The difference:** Shapes generate **everything** — not just rules, but actual working code, configs, and dependencies. Your AI assistant can immediately start implementing features using the pre-built patterns.
 
 ---
 
-## What Archeon Looks Like
+## Quick Comparison
 
-A glyph chain describes a complete feature:
-```
-NED:login => CMP:LoginForm => STO:Auth => API:POST/auth => OUT:dashboard
-```
-
-User need → UI → State → API → Outcome. Every feature follows this pattern. Incomplete chains are rejected before code is generated.
-
-**The glyphs:**
-- `NED:` User need (the "why")
-- `CMP:` Component (UI)
-- `STO:` Store (client state)
-- `API:` Endpoint (server call)
-- `MDL:` Model (database)
-- `OUT:` Outcome (success)
-- `ERR:` Error (failure path)
-
----
-
-## How It Works: Three Innovations That Change Everything
-
-### 1. **Glyph Notation** — Language for Architecture
-Instead of asking AI to build in the void, you describe what you want using glyphs:
-```
-NED:register => CMP:RegisterForm => STO:Auth => API:POST/register => MDL:user => OUT:dashboard
-```
-That's a complete feature. User need → UI → State → API → Outcome. No guessing. No drift.
-
-### 2. **Persistent Knowledge Graph** (`.arcon`)
-Your architecture lives in a ~12KB file that **survives between sessions**. The AI reads it, proposes changes, and updates it. Future sessions know exactly what exists—no re-explaining your stack.
-
-### 3. **Entropy-Based Context Compression**
-Large codebases normally overflow token limits. Archeon identifies the most information-rich parts of your code and compresses the rest, fitting entire projects into context windows. The AI stays focused and accurate, even on massive codebases.
-
-### Why This Matters: The Math (Bear With Us, It's Fun)
-
-LLMs predict the next token by sampling from a probability distribution. The *entropy* of that distribution determines how confident the model is:
-
-$$H(X) = -\sum p(x) \log_2 p(x)$$
-
-**Translation:** When entropy is high, the model is basically rolling dice. When entropy is low, it *knows* what comes next.
-
-#### Without Archeon: Entropy Hell 🔥
-
-Ask an LLM to "build a login system" on a 50-file codebase. It must reason over:
-- **~10,000 possible patterns** (REST? GraphQL? tRPC? Auth0? JWT? Session cookies? Magic links?)
-- **~50 files × ~100 lines = 5,000 lines** of context (most irrelevant)
-- **Infinite naming conventions** (is it `authStore`? `useAuth`? `AuthService`? `loginHandler`?)
-
-If we model this as ~10,000 plausible architectural patterns, then in the worst case:
-$$H = \log_2(10000) ≈ 13.3 \text{ bits}$$
-
-That's **~10,000 equally plausible choices** the model is juggling per architectural decision. No wonder it hallucinates.
-
-#### With Archeon: Entropy Tamed 🧊
-
-Same request, but now the model reasons over:
-- **16 glyph types** (NED, CMP, STO, API, etc.)
-- **4 edge types** (=>, ~>, ->, ::)
-- **1 template per glyph** (predetermined structure)
-- **1-hop dependencies only** (~500 tokens vs 50,000)
-
-For the glyph selection alone:
-$$H = \log_2(16) = 4 \text{ bits}$$
-
-That's **16 choices**, not 10,000. The model isn't guessing—it's following a grammar.
-
-#### The Punchline
-
-| Metric | Unconstrained | Archeon |
-|--------|---------------|---------|
-| Entropy | ~13.3 bits | 4 bits |
-| Equivalent choices | ~10,000 | 16 |
-| **Reduction** | — | **625× fewer options** |
-
-*(~70% lower entropy — meaning the model's next-step uncertainty collapses, and the tail-risk of weird choices drops hard.)*
-
-A 30B model can reliably sample from 16 options. It *cannot* reliably sample from 10,000. This is why **Qwen 32B locally can match GPT-4** on Archeon tasks—not because it's smarter, but because the problem is *tractable*.
-
-> **TL;DR:** We didn't make the model smarter. We made the problem dumber. That's the whole trick.
-
----
-
-## The Workflow (It's Just Chat)
-
-```
-You: "User registers with email and password, then sees their dashboard"
-
-AI: Proposed chain:
-    NED:register => CMP:RegisterForm => STO:Auth 
-        => API:POST/register => MDL:user => OUT:redirect('/dashboard')
-    
-    Shall I proceed?
-
-You: Yes
-
-AI: ✓ Generated RegisterForm.vue
-    ✓ Generated AuthStore.js  
-    ✓ Generated register.py
-    ✓ Updated ARCHEON.arcon
-    
-    Done.
-```
-
-No CLI gymnastics. No memorizing commands. **Just describe what you want.**
-
----
-
-## Why Archeon Works
-
-Without a shared language for architecture, each AI session invents its own patterns. Features become inconsistent. Hallucinations go uncaught. Context windows overflow.
-
-Archeon fixes this by:
-- **Enforcing constraints** — Glyphs define what's valid, not imagination
-- **Persisting architecture** — `.arcon` survives between sessions, models, and team members
-- **Compressing context** — Fits entire projects into context windows so AI stays focused
-- **Validating before code** — Bad chains get caught before they're written
+| Feature | IDE AI Rules | Architecture Shapes |
+|---------|-------------|---------------------|
+| **Setup Time** | < 1 min | 2-3 min |
+| **Project Scaffolding** | Minimal (archeon/ only) | Complete (client/, server/, configs) |
+| **Pre-built Components** | ❌ | ✅ ThemeToggle, ThemeSelector |
+| **Design Tokens** | ❌ | ✅ Pre-configured Tailwind theming |
+| **Framework Templates** | Basic reference only | ✅ Production-ready glyph snippets |
+| **Dependencies** | Manual setup | ✅ Auto-configured package.json, requirements.txt |
+| **Team Coding Standards** | AI improvises | ✅ **Enforced via JSON — 100% your rules** |
+| **Best For** | Existing projects, minimal setup | New projects, teams, full-stack apps |
+| **AI Code Quality** | Good (with manual refinement) | Excellent (follows shape blueprints) |
 
 ---
 
@@ -286,31 +141,7 @@ Archeon fixes this by:
 
 > **🎯 Just chat with your IDE AI assistant. No commands to memorize.**
 
-The most intuitive way to use Archeon is through **natural conversation** in your AI-powered IDE — VS Code, Cursor, Windsurf, or any editor with AI chat. Your AI assistant reads `ARCHEON.arcon`, proposes architecture, and implements everything.
-
-### Quick Setup
-
-Archeon works by generating **IDE-specific rule files** that teach your AI assistant the glyph system. Each IDE has its own rules format:
-
-```bash
-# 1. Install Archeon
-git clone git@github.com:danaia/archeon.git
-cd archeon        # Important: install from the project root, not archeon/archeon/
-pip install -e .
-
-# 2. Initialize your project (with optional --copilot flag)
-mkdir my-app && cd my-app
-arc init --arch vue3-fastapi --copilot   # Creates project + Copilot rules in one step
-
-# Or generate IDE rules separately with ai-setup
-arc ai-setup --cursor      # For Cursor → creates .cursorrules
-arc ai-setup --windsurf    # For Windsurf → creates .windsurfrules
-arc ai-setup --copilot     # For GitHub Copilot → creates .github/copilot-instructions.md
-arc ai-setup --cline       # For Cline/Claude Dev → creates .clinerules
-arc ai-setup --vscode      # For VS Code → creates .vscode/settings.json
-```
-
-That's it. **Now just chat.**
+Whether you choose **IDE rules** or **shapes**, the daily workflow is the same: natural conversation in your AI-powered IDE — VS Code, Cursor, Windsurf, or any editor with AI chat. Your AI assistant reads `ARCHEON.arcon`, proposes architecture, and implements everything.
 
 ### Your Daily Workflow
 
@@ -319,16 +150,12 @@ Open your IDE and describe what you want in natural language:
 ```
 You: "User wants to register with email and password, then see their dashboard"
 
-AI: Adding chain to ARCHEON.arcon:
+AI: Creating Archeon chain:
 
     @v1 NED:register => TSK:submit => CMP:RegisterForm => STO:Auth
         => API:POST/register => MDL:user.create => OUT:redirect('/dashboard')
 
-    Detected error paths:
-      → API:POST/register -> ERR:validation.emailTaken
-      → API:POST/register -> ERR:validation.invalidEmail
-
-AI: ✓ Added chain to archeon/ARCHEON.arcon
+    ✓ Added chain to archeon/ARCHEON.arcon
     ✓ Generated CMP:RegisterForm → client/src/components/RegisterForm.vue
     ✓ Generated STO:Auth → client/src/stores/AuthStore.js
     ✓ Generated API:POST/register → server/src/api/routes/register.py
@@ -337,23 +164,24 @@ AI: ✓ Added chain to archeon/ARCHEON.arcon
     Done! Registration flow is ready.
 ```
 
-**No terminal commands. Just conversation.** The AI proposes, you approve, code gets generated.
+**No terminal commands. Just conversation.** The AI executes directly — no approval needed.
 
 ### Iterative Refinement
 
 ```
 You: "Add profile editing"
 
-AI: Proposed chain:
-    @v1 NED:editProfile => CMP:ProfileForm => OUT:result
-
-    Confidence: MEDIUM - no API or storage detected
+AI: @v1 NED:editProfile => CMP:ProfileForm => OUT:result
+    ✓ Created ProfileForm component
 
 You: "Save to database through API"
 
 AI: Updated chain:
     @v1 NED:editProfile => CMP:ProfileForm
         => API:PUT/profile => MDL:user.update => OUT:toast('Profile saved')
+    
+    ✓ Added API endpoint
+    ✓ Added user model update method
 
 You: "Also add image upload for avatar"
 
@@ -362,21 +190,27 @@ AI: Final chain:
         => TSK:submit => API:PUT/profile => MDL:user.update
         => OUT:toast('Profile saved')
 
-    Implementing now...
+    ✓ Added AvatarUpload component
+    ✓ Updated ProfilePage view
+    Done!
 ```
 
-### Supported IDEs
+**With shapes:** The AI pulls from your shape's pre-built component templates, ensuring consistent patterns across all features.
 
-Archeon is **rule-based** — it generates IDE-specific configuration files that constrain your AI assistant to the glyph taxonomy:
+---
 
-| IDE                   | Command                   | Creates                           | What It Does                       |
-| --------------------- | ------------------------- | --------------------------------- | ---------------------------------- |
-| **Cursor**            | `arc ai-setup --cursor`   | `.cursorrules`                    | AI reads + writes to ARCHEON.arcon |
-| **Windsurf**          | `arc ai-setup --windsurf` | `.windsurfrules`                  | Cascade AI follows the graph       |
-| **VS Code + Copilot** | `arc ai-setup --copilot`  | `.github/copilot-instructions.md` | Copilot Chat understands glyphs    |
-| **Cline/Claude Dev**  | `arc ai-setup --cline`    | `.clinerules`                     | Claude writes chains first         |
-| **Aider**             | `arc ai-setup --aider`    | `.aider.conf.yml`                 | Auto-loads graph context           |
-| **All at once**       | `arc ai-setup`            | All of the above                  | Full setup                         |
+Archeon is **rule-based** — it generates IDE-specific configuration files that constrain your AI assistant to the glyph taxonomy. This works with **both approaches** (IDE rules or shapes):
+
+| IDE                   | Command                   | Creates                           | Works With           |
+| --------------------- | ------------------------- | --------------------------------- | -------------------- |
+| **Cursor**            | `arc ai-setup --cursor`   | `.cursorrules`                    | IDE Rules + Shapes   |
+| **Windsurf**          | `arc ai-setup --windsurf` | `.windsurfrules`                  | IDE Rules + Shapes   |
+| **VS Code + Copilot** | `arc ai-setup --copilot`  | `.github/copilot-instructions.md` | IDE Rules + Shapes   |
+| **Cline/Claude Dev**  | `arc ai-setup --cline`    | `.clinerules`                     | IDE Rules + Shapes   |
+| **Aider**             | `arc ai-setup --aider`    | `.aider.conf.yml`                 | IDE Rules + Shapes   |
+| **All at once**       | `arc ai-setup`            | All of the above                  | IDE Rules + Shapes   |
+
+**Shapes + IDE Rules = Maximum Power:** Initialize with a shape for complete scaffolding, then run `arc ai-setup` so your AI assistant understands how to extend it.
 
 ---
 
@@ -436,12 +270,28 @@ With Archeon:     "AI, build me a login"
 
 > **For automation, CI/CD, scripts, and fine-grained control — the CLI gives you direct access to every Archeon operation.**
 
-While IDE chat is the most intuitive daily workflow, the CLI unlocks precision operations:
+While IDE chat is the most intuitive daily workflow, the CLI unlocks precision operations for both IDE rules and shapes workflows:
+
+### Project Initialization
+
+```bash
+# Lightweight: IDE rules only (minimal scaffolding)
+arc init
+arc ai-setup
+
+# Complete: Architecture shape (full scaffolding)
+arc shapes                              # List available shapes
+arc init --arch vue3-fastapi            # Full Vue 3 + FastAPI stack
+arc init --arch react-fastapi           # Full React + FastAPI stack
+arc init --arch vue3-fastapi --copilot  # With IDE rules included
+
+# Manual framework selection (uses shapes behind the scenes)
+arc init --frontend vue3 --backend fastapi
+```
 
 ### Core Commands
 
 ```bash
-arc init [--frontend react|vue3] [--backend fastapi]  # Create project
 arc parse "<chain>"                                    # Add chain directly to graph
 arc gen                                                # Generate code from graph
 arc validate                                           # Check architecture integrity
@@ -449,6 +299,7 @@ arc status                                             # Show graph statistics
 arc legend                                             # Display all glyphs
 arc audit                                              # Check for architectural drift
 arc run "<chain>" [--sandbox]                          # Execute headless
+arc shapes                                             # List available architecture shapes
 ```
 
 ### Natural Language via CLI
@@ -508,34 +359,175 @@ $ arc gen
 
 ### When to Use CLI vs IDE Chat
 
-| Use Case                     | Recommendation             |
-| ---------------------------- | -------------------------- |
-| Daily feature development    | IDE Chat                   |
-| Exploring ideas              | IDE Chat                   |
-| Processing requirements docs | CLI: `arc i --file`        |
-| CI/CD pipeline validation    | CLI: `arc validate`        |
-| Scripted batch operations    | CLI                        |
-| Debugging chain parsing      | CLI: `arc parse --dry-run` |
-| Architecture audits          | CLI: `arc audit`           |
+| Use Case                     | Recommendation                 |
+| ---------------------------- | ------------------------------ |
+| **New project setup**        | CLI: `arc init --arch <shape>` |
+| Daily feature development    | IDE Chat                       |
+| Exploring ideas              | IDE Chat                       |
+| Processing requirements docs | CLI: `arc i --file`            |
+| CI/CD pipeline validation    | CLI: `arc validate`            |
+| Scripted batch operations    | CLI                            |
+| Debugging chain parsing      | CLI: `arc parse --dry-run`     |
+| Architecture audits          | CLI: `arc audit`               |
+| Browse available stacks      | CLI: `arc shapes`              |
+
+---
+
+## Understanding Architecture Shapes
+
+**Architecture Shapes** are the secret to Archeon's robustness. They're JSON-based blueprints that define **everything** your project needs:
+
+### What's Inside a Shape?
+
+```json
+{
+  "meta": {
+    "id": "vue3-fastapi",
+    "name": "Vue 3 + FastAPI",
+    "version": "1.0.0"
+  },
+  "stack": {
+    "frontend": { "framework": "vue3", "stateManager": "pinia" },
+    "backend": { "framework": "fastapi", "language": "python" }
+  },
+  "glyphs": {
+    "CMP": {
+      "extension": ".vue",
+      "directory": "client/src/components",
+      "snippet": "<!-- Production-ready Vue 3 component template -->"
+    },
+    "STO": {
+      "extension": ".js",
+      "directory": "client/src/stores",
+      "snippet": "// Pinia store with TypeScript support"
+    }
+  },
+  "prebuilt": {
+    "components": ["ThemeToggle.vue", "ThemeSelector.vue"],
+    "stores": ["theme.js"]
+  },
+  "dependencies": {
+    "client": { "vue": "^3.3.0", "pinia": "^2.1.0" },
+    "server": { "fastapi": "^0.104.0" }
+  }
+}
+```
+
+### Why Shapes Are More Powerful
+
+| Aspect | IDE Rules Only | With Architecture Shapes |
+|--------|---------------|-------------------------|
+| **Project setup** | Manual directory creation | ✅ Auto-scaffolded client/, server/ |
+| **Component templates** | Generic, AI-generated | ✅ Framework-specific, production-ready |
+| **Dependencies** | Manual install | ✅ Pre-configured package.json, requirements.txt |
+| **Theming system** | Build yourself | ✅ Tailwind + design tokens ready |
+| **Pre-built components** | None | ✅ ThemeToggle, ThemeSelector, theme store |
+| **Build tools** | Manual config | ✅ Vite/Webpack pre-configured |
+| **Code consistency** | Varies by AI session | ✅ Enforced by shape templates |
+| **Customizability** | AI learns from examples | ✅ **100% controlled via JSON schema** |
+| **Onboarding speed** | Hours to days | ✅ Minutes |
+
+### Creating Custom Shapes — **Train AI to Your Coding Style**
+
+**This is where teams gain true control.** Every shape is just a JSON file that defines:
+- Component/API/Store code templates with **your** preferred patterns
+- **Your** naming conventions, file structure, import style
+- **Your** testing patterns, error handling, validation logic
+- **Your** design tokens, theme system, utility functions
+
+**Shapes are training data for your AI.** When you create a custom shape, you're teaching the AI exactly how your team writes code.
+
+**Example: Custom React component style**
+```json
+{
+  "glyphs": {
+    "CMP": {
+      "snippet": "// YOUR team's component template\nimport { FC } from 'react';\nimport { cn } from '@/lib/utils';  // Your util\n\ninterface {{NAME}}Props {\n  className?: string;\n}\n\nexport const {{NAME}}: FC<{{NAME}}Props> = ({ className }) => {\n  return (\n    <div className={cn('your-base-class', className)}>\n      {/* Your structure */}\n    </div>\n  );\n};"
+    }
+  }
+}
+```
+
+**Every component the AI generates will follow this exact pattern.** No variation. No hallucination. Just your team's standards, every time.
+
+**Want your API routes to follow a specific error handling pattern?**
+```json
+{
+  "glyphs": {
+    "API": {
+      "snippet": "from fastapi import APIRouter, HTTPException\nfrom your_company.middleware import log_request, validate_auth\n\nrouter = APIRouter()\n\n@router.{{METHOD}}('{{PATH}}')\n@log_request  # Your custom decorator\n@validate_auth  # Your auth pattern\nasync def {{NAME}}():\n    try:\n        # Implementation\n        pass\n    except Exception as e:\n        # Your error handling\n        raise HTTPException(status_code=500, detail=str(e))"
+    }
+  }
+}
+```
+
+**Every endpoint follows your company's middleware stack, logging, and error patterns.**
+
+Create a `.shape.json` file in `archeon/architectures/` and run `arc init --arch your-shape`. See the [Architecture Shapes wiki](https://github.com/danaia/archeon/wiki/Architecture-Shapes) for complete JSON schema specification.
 
 ---
 
 ## Project Structure
 
+**With IDE Rules Only (Minimal):**
+```
+my-app/
+├── .archeonrc           # Config
+└── archeon/
+    ├── ARCHEON.arcon    # Knowledge graph
+    └── templates/       # Reference templates only
+```
+
+**With Architecture Shape (Complete):**
 ```
 my-app/
 ├── .archeonrc           # Config (frontend, backend, paths)
 ├── client/              # Frontend code (CMP, STO)
-│   └── src/
-│       ├── components/
-│       └── stores/
+│   ├── src/
+│   │   ├── components/  # Pre-built: ThemeToggle, ThemeSelector
+│   │   ├── stores/      # Pre-built: theme store
+│   │   └── tokens/      # Design tokens (CSS, JS, Tailwind)
+│   ├── package.json     # Dependencies auto-configured
+│   └── vite.config.js   # Build tool pre-configured
 ├── server/              # Backend code (API, MDL, EVT)
-│   └── src/
-│       ├── api/routes/
-│       ├── models/
-│       └── events/
+│   ├── src/
+│   │   ├── api/routes/
+│   │   ├── models/
+│   │   └── events/
+│   └── requirements.txt # Python dependencies ready
 └── archeon/
+    ├── ARCHEON.arcon    # Knowledge graph
+    └── templates/       # Framework-specific glyph templates
+```
     └── ARCHEON.arcon    # Knowledge graph (the source of truth)
+```
+
+---
+
+## Installation
+
+```bash
+# Clone and install
+git clone git@github.com:danaia/archeon.git
+cd archeon
+pip install -e .
+
+# Verify installation
+arc --version
+
+# Quick start - choose your path:
+# Path 1: Lightweight IDE rules
+mkdir my-app && cd my-app
+arc init
+arc ai-setup
+
+# Path 2: Complete architecture shape  
+mkdir my-app && cd my-app
+arc init --arch vue3-fastapi
+arc ai-setup  # Optional but recommended
+
+# Uninstall
+pip uninstall archeon
 ```
 
 ---
@@ -555,6 +547,7 @@ For complete guides, see the [wiki documentation](https://github.com/danaia/arch
 - [Chain Syntax](https://github.com/danaia/archeon/wiki/Chain-Syntax) — Composition rules and validation
 - [Natural Language Intent](https://github.com/danaia/archeon/wiki/Natural-Language-Intent) — Plain English → chains
 - [Knowledge Graph](https://github.com/danaia/archeon/wiki/Knowledge-Graph) — The `.arcon` file explained
+- [Architecture Shapes](https://github.com/danaia/archeon/wiki/Architecture-Shapes) — **Creating and using shape blueprints**
 
 ### Reference
 
@@ -564,52 +557,17 @@ For complete guides, see the [wiki documentation](https://github.com/danaia/arch
 
 ---
 
-## IDE AI Integration
+## Development
 
-**Your IDE's AI becomes architecture-aware.** After running `arc ai-setup`, your AI assistant can read your glyph chains and implement features consistently.
+```bash
+# Clone and install with dev dependencies
+git clone <repo>
+cd Archeon
+pip install -e ".[dev]"
 
-### What Your AI Does Next
-
-Simply ask in IDE chat:
-
+# Run tests
+pytest archeon/tests/ -v
 ```
-"Initialize this project with Archeon"
-"Create a user registration feature"
-"Add a password reset flow"
-"What chains are defined in this project?"
-```
-
-Your AI will:
-1. **Read** `archeon/ARCHEON.arcon` to understand your architecture
-2. **Write** glyph chains for new features
-3. **Implement** components following those chains exactly
-
-No hallucinations. Consistent patterns. Persistent across sessions.
-
-### Advanced: Cline Custom Instructions
-
-For Cline (Claude Dev), add to IDE settings for extra context:
-
-1. Open Cline panel → Settings ⚙️
-2. In **"Custom Instructions"**, add:
-   ```
-   Always reference archeon/ARCHEON.arcon. Write new chains before implementing features.
-   ```
-3. Optionally add `archeon/ARCHEON.arcon` to always-included files
-
----
-
-## The Real Value
-
-**Tight architecture** — Your codebase stays coherent. Features connect properly. No orphaned code.
-
-**Persistent across change** — New team member? New AI model? Existing requirements document? The architecture survives and guides them.
-
-**For existing codebases** — Use `arc ai-setup` to scan your project and generate the knowledge graph. You may need to adjust some pieces to fit the glyph taxonomy, but you'll end up with a clear, documented architecture that persists.
-
----
-
-
 
 ## License
 
