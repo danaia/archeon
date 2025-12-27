@@ -4,6 +4,38 @@
 
 ---
 
+## Installation
+
+### System Requirements
+
+- **Python**: 3.10 or higher
+- **OS**: macOS, Linux, or Windows (WSL recommended)
+- **Git**: For cloning the repository
+
+### Install from Source (Recommended)
+
+```bash
+# Clone the repository
+git clone git@github.com:danaia/archeon.git
+cd archeon
+
+# Install in editable mode globally
+pip install -e .
+
+# Verify installation
+arc --version
+```
+
+**Why editable mode?** Installing with `-e` allows you to pull updates without reinstalling (`git pull`), modify templates with immediate effect, and contribute back easily.
+
+### Install from PyPI (Coming Soon)
+
+```bash
+pip install archeon
+```
+
+---
+
 ## The Problem: LLM Drift Destroys Vibe Coding
 
 LLMs have **zero persistent memory** between sessions. Every chat is a blank slate.
