@@ -363,7 +363,7 @@
       "layer": "frontend",
       "output": {
         "directory": "client/src/app",
-        "extension": "/page.tsx",
+        "extension": ".tsx",
         "naming": "kebab-case"
       },
       "sections": ["imports", "types", "page", "exports"],
