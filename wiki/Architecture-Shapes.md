@@ -2,6 +2,8 @@
 
 Architecture Shapes are JSON-based blueprints that define complete technology stacks for Archeon projects. They contain glyph templates, configuration files, prebuilt components, and dependency specifications.
 
+> **Key Insight:** Shapes are **100% customizable**. Create your own shape to enforce your team's exact coding standards, patterns, and architecture. **Your shape = Your AI's training data.**
+
 ---
 
 ## Quick Start
@@ -26,6 +28,335 @@ arc init --arch vue3-fastapi
 | **Next.js + Express** | `arc init --arch nextjs-express` | **Next.js 14, Zustand, Express, TypeScript, Mongoose (RECOMMENDED)** |
 | Vue 3 + FastAPI       | `arc init --arch vue3-fastapi`   | Vue 3, Pinia, TailwindCSS, FastAPI, MongoDB                          |
 | React + FastAPI       | `arc init --arch react-fastapi`  | React, Zustand, TailwindCSS, FastAPI, MongoDB                        |
+
+---
+
+## Creating Your Team's Custom Shape
+
+**This is the most powerful feature of Archeon.** Custom shapes let you codify your team's exact coding standards into a JSON file that the AI must follow.
+
+### Why Create a Custom Shape?
+
+| Problem                                      | Custom Shape Solution                                                     |
+| -------------------------------------------- | ------------------------------------------------------------------------- |
+| "AI uses different patterns every time"      | ✅ Define exact templates for CMP, API, STO — AI follows them always      |
+| "Every dev has their own style"              | ✅ One shape = one standard = zero style drift                            |
+| "Onboarding takes weeks"                     | ✅ New devs run `arc init --arch yourcompany` → instant setup             |
+| "AI doesn't know our error handling pattern" | ✅ Embed your try/catch, logging, middleware in API template              |
+| "We need custom auth middleware on routes"   | ✅ Put it in the API snippet — every endpoint gets it                     |
+| "Design system isn't consistent"             | ✅ Pre-build components with your utility classes, tokens, theme patterns |
+
+### The Power of Custom Shapes
+
+**Example: Your team uses a specific React component pattern:**
+
+```json
+{
+  "glyphs": {
+    "CMP": {
+      "snippet": "// @archeon:file\n// @glyph {{GLYPH_NAME}}\nimport { FC } from 'react';\nimport { cn } from '@/lib/utils';\nimport { useAnalytics } from '@/hooks/useAnalytics'; // Your custom hook\n\ninterface {{COMPONENT_NAME}}Props {\n  className?: string;\n  // Add props\n}\n\nexport const {{COMPONENT_NAME}}: FC<{{COMPONENT_NAME}}Props> = ({ className }) => {\n  const analytics = useAnalytics(); // Auto-included\n  \n  return (\n    <div className={cn('your-base-class', className)} data-component=\"{{COMPONENT_NAME}}\">\n      {/* Your structure */}\n    </div>\n  );\n};\n\n// @archeon:test\nimport { render } from '@testing-library/react';\nimport { {{COMPONENT_NAME}} } from './{{COMPONENT_NAME}}';\n\ndescribe('{{COMPONENT_NAME}}', () => {\n  it('renders', () => {\n    const { container } = render(<{{COMPONENT_NAME}} />);\n    expect(container).toMatchSnapshot();\n  });\n});"
+    }
+  }
+}
+```
+
+**Every component the AI generates will:**
+
+- Import your `cn` utility
+- Include your analytics hook
+- Use your base CSS class
+- Have a data attribute for debugging
+- Include a snapshot test
+
+**No variation. No hallucination. Zero deviation.**
+
+### Step-by-Step: Create Your Shape
+
+#### 1. Start with a Template
+
+Copy an existing shape as your starting point:
+
+```bash
+# Navigate to Archeon installation
+cd archeon/architectures
+
+# Copy the shape closest to your stack
+cp nextjs-express.shape.json yourcompany.shape.json
+```
+
+#### 2. Update Meta Information
+
+```json
+{
+  "meta": {
+    "id": "yourcompany",
+    "name": "YourCompany Stack",
+    "description": "Next.js 14 + tRPC + Prisma + Tailwind (YourCompany Standards)",
+    "version": "1.0.0",
+    "author": "YourCompany Engineering",
+    "tags": ["fullstack", "nextjs", "trpc", "prisma", "typescript"]
+  }
+}
+```
+
+#### 3. Define Your Stack
+
+```json
+{
+  "stack": {
+    "frontend": {
+      "framework": "nextjs",
+      "version": "14.0",
+      "stateManagement": "zustand",
+      "styling": "tailwind",
+      "api": "trpc"
+    },
+    "backend": {
+      "framework": "nextjs-api",
+      "language": "typescript",
+      "database": "postgresql",
+      "orm": "prisma"
+    }
+  }
+}
+```
+
+#### 4. Customize Glyph Templates
+
+This is where you encode your team's patterns. Here's a complete example:
+
+```json
+{
+  "glyphs": {
+    "CMP": {
+      "description": "Next.js React Server/Client Component with company standards",
+      "fileExtension": ".tsx",
+      "targetDir": "src/components",
+      "layer": "frontend",
+      "sections": ["imports", "types", "component", "tests"],
+      "snippet": "// @archeon:file\n// @glyph {{GLYPH_NAME}}\n'use client'; // Remove if RSC\n\nimport { FC } from 'react';\nimport { cn } from '@/lib/utils';\nimport { logger } from '@/lib/logger'; // Your logger\n\n// @archeon:section types\ninterface {{COMPONENT_NAME}}Props {\n  className?: string;\n}\n// @archeon:endsection\n\n// @archeon:section component\nexport const {{COMPONENT_NAME}}: FC<{{COMPONENT_NAME}}Props> = ({\n  className,\n}) => {\n  logger.component('{{COMPONENT_NAME}}', 'rendered'); // Your logging pattern\n  \n  return (\n    <div className={cn('base-component', className)}>\n      {/* Implementation */}\n    </div>\n  );\n};\n// @archeon:endsection",
+      "placeholders": {
+        "GLYPH_NAME": {
+          "description": "Full glyph reference (e.g., CMP:LoginButton)",
+          "required": true
+        },
+        "COMPONENT_NAME": {
+          "description": "PascalCase component name extracted from glyph",
+          "required": true
+        }
+      }
+    },
+    "API": {
+      "description": "tRPC procedure with Zod validation and company middleware",
+      "fileExtension": ".ts",
+      "targetDir": "src/server/api/routers",
+      "layer": "backend",
+      "snippet": "// @archeon:file\n// @glyph {{GLYPH_NAME}}\nimport { z } from 'zod';\nimport { router, protectedProcedure } from '@/server/api/trpc';\nimport { logger } from '@/lib/logger';\nimport { TRPCError } from '@trpc/server';\n\n// @archeon:section schema\nconst {{PROCEDURE_NAME}}Schema = z.object({\n  // Define input schema\n});\n// @archeon:endsection\n\n// @archeon:section procedure\nexport const {{ROUTER_NAME}}Router = router({\n  {{PROCEDURE_NAME}}: protectedProcedure // Your auth middleware\n    .input({{PROCEDURE_NAME}}Schema)\n    .mutation(async ({ ctx, input }) => {\n      try {\n        logger.api('{{PROCEDURE_NAME}}', { userId: ctx.user.id, input });\n        \n        // Implementation\n        \n        return { success: true };\n      } catch (error) {\n        logger.error('{{PROCEDURE_NAME}} failed', error);\n        throw new TRPCError({\n          code: 'INTERNAL_SERVER_ERROR',\n          message: 'Operation failed',\n        });\n      }\n    }),\n});\n// @archeon:endsection"
+    },
+    "STO": {
+      "description": "Zustand store with company patterns",
+      "fileExtension": ".ts",
+      "targetDir": "src/stores",
+      "layer": "frontend",
+      "snippet": "// @archeon:file\n// @glyph {{GLYPH_NAME}}\nimport { create } from 'zustand';\nimport { devtools, persist } from 'zustand/middleware';\nimport { logger } from '@/lib/logger';\n\ninterface {{STORE_NAME}}State {\n  // State properties\n}\n\ninterface {{STORE_NAME}}Actions {\n  // Action methods\n}\n\nexport const use{{STORE_NAME}} = create<{{STORE_NAME}}State & {{STORE_NAME}}Actions>()(\n  devtools(\n    persist(\n      (set, get) => ({\n        // Initial state\n        \n        // Actions with logging\n      }),\n      {\n        name: '{{STORE_NAME}}-storage',\n        onRehydrateStorage: () => (state) => {\n          logger.store('{{STORE_NAME}}', 'rehydrated');\n        },\n      }\n    ),\n    { name: '{{STORE_NAME}}' }\n  )\n);"
+    }
+  }
+}
+```
+
+#### 5. Add Pre-built Components
+
+Include your design system components:
+
+```json
+{
+  "prebuilt": {
+    "Button": {
+      "description": "Company button component with all variants",
+      "targetPath": "src/components/ui/Button.tsx",
+      "content": "// Your complete button implementation with all your variants"
+    },
+    "Input": {
+      "description": "Form input with validation",
+      "targetPath": "src/components/ui/Input.tsx",
+      "content": "// Your input component"
+    },
+    "Toast": {
+      "description": "Toast notification system",
+      "targetPath": "src/components/ui/Toast.tsx",
+      "content": "// Your toast implementation"
+    }
+  }
+}
+```
+
+#### 6. Define Configuration Files
+
+```json
+{
+  "config": {
+    "tailwind": {
+      "targetPath": "tailwind.config.ts",
+      "content": "import type { Config } from 'tailwindcss';\n\nconst config: Config = {\n  // Your company's Tailwind config\n  theme: {\n    extend: {\n      colors: {\n        brand: {\n          // Your brand colors\n        }\n      }\n    }\n  }\n};\n\nexport default config;"
+    },
+    "prettier": {
+      "targetPath": ".prettierrc",
+      "content": "{\n  \"semi\": true,\n  \"singleQuote\": true,\n  \"tabWidth\": 2\n  // Your formatting rules\n}"
+    },
+    "eslint": {
+      "targetPath": ".eslintrc.json",
+      "content": "{\n  \"extends\": [\"next/core-web-vitals\"],\n  \"rules\": {\n    // Your linting rules\n  }\n}"
+    }
+  }
+}
+```
+
+#### 7. Specify Dependencies
+
+```json
+{
+  "dependencies": {
+    "frontend": {
+      "@trpc/client": "^10.45.0",
+      "@trpc/server": "^10.45.0",
+      "next": "^14.0.0",
+      "react": "^18.2.0",
+      "zustand": "^4.4.0",
+      "zod": "^3.22.0",
+      "tailwindcss": "^3.4.0",
+      "@your-company/ui-kit": "^2.0.0"
+    },
+    "backend": {
+      "@prisma/client": "^5.7.0",
+      "prisma": "^5.7.0"
+    }
+  }
+}
+```
+
+#### 8. Validate Your Shape
+
+```bash
+# Test your shape
+arc init --arch yourcompany
+
+# Check the generated structure
+tree my-app
+
+# Validate it works
+cd my-app
+arc validate
+```
+
+#### 9. Share with Your Team
+
+```bash
+# Commit the shape file
+git add archeon/architectures/yourcompany.shape.json
+git commit -m "Add company architecture shape"
+git push
+
+# Team members clone and use it
+git clone <your-archeon-fork>
+cd archeon && pip install -e .
+cd .. && mkdir new-project && cd new-project
+arc init --arch yourcompany
+```
+
+### Complete Shape Schema Reference
+
+For full JSON schema specification, see `archeon/architectures/_schema.json`:
+
+```json
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": ["meta", "stack", "glyphs"],
+  "properties": {
+    "meta": {
+      "type": "object",
+      "required": ["id", "name", "version"],
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "version": { "type": "string" },
+        "author": { "type": "string" },
+        "tags": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "stack": { "type": "object" },
+    "directories": { "type": "object" },
+    "glyphs": {
+      "type": "object",
+      "properties": {
+        "CMP": { "$ref": "#/definitions/glyphTemplate" },
+        "STO": { "$ref": "#/definitions/glyphTemplate" },
+        "API": { "$ref": "#/definitions/glyphTemplate" },
+        "MDL": { "$ref": "#/definitions/glyphTemplate" },
+        "EVT": { "$ref": "#/definitions/glyphTemplate" },
+        "FNC": { "$ref": "#/definitions/glyphTemplate" },
+        "V": { "$ref": "#/definitions/glyphTemplate" }
+      }
+    },
+    "config": { "type": "object" },
+    "prebuilt": { "type": "object" },
+    "dependencies": {
+      "type": "object",
+      "properties": {
+        "frontend": { "type": "object" },
+        "backend": { "type": "object" }
+      }
+    }
+  },
+  "definitions": {
+    "glyphTemplate": {
+      "type": "object",
+      "required": ["fileExtension", "targetDir", "snippet"],
+      "properties": {
+        "description": { "type": "string" },
+        "fileExtension": { "type": "string" },
+        "targetDir": { "type": "string" },
+        "layer": { "enum": ["frontend", "backend", "shared"] },
+        "sections": { "type": "array", "items": { "type": "string" } },
+        "snippet": { "type": "string" },
+        "placeholders": { "type": "object" }
+      }
+    }
+  }
+}
+```
+
+### Pro Tips
+
+1. **Start small** — Copy a base shape and modify one glyph at a time
+2. **Test frequently** — Run `arc init --arch yourshape` after each change
+3. **Use placeholders** — `{{COMPONENT_NAME}}`, `{{GLYPH_NAME}}` are auto-replaced
+4. **Include tests** — Put test stubs in your glyph snippets
+5. **Version your shapes** — Use semver in meta.version for tracking changes
+6. **Document patterns** — Use description fields to explain your decisions
+7. **Share internally** — Fork Archeon, add company shape, use in all projects
+
+### Real-World Examples
+
+**Startup (Move Fast):**
+
+- Minimal templates, get started quickly
+- Pre-built auth, payments, email components
+- Supabase + Next.js for rapid prototyping
+
+**Enterprise (Compliance & Standards):**
+
+- Detailed error handling, logging, audit trails in every template
+- Custom middleware for auth, rate limiting, monitoring
+- Pre-built components that meet accessibility standards
+- Strict TypeScript, ESLint, testing requirements
+
+**Agency (Client Variety):**
+
+- Multiple shapes for different client tech preferences
+- Reusable design system components
+- Consistent project structure across all client work
 
 ---
 
