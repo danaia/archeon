@@ -17,25 +17,28 @@ With Archeon:     "AI, build a login"  → NED:login => CMP:LoginForm => API:POS
 
 Archeon offers **two distinct workflows** depending on how much control and scaffolding you need:
 
-| | **🎯 IDE AI Rules** | **🏗️ Architecture Shapes** |
-|---|---|---|
-| **Best for** | Existing projects, minimal setup | New projects, complete scaffolding |
-| **Setup time** | < 1 minute | 2-3 minutes |
-| **What you get** | Glyph rules for your IDE | Full project structure + pre-built components |
-| **Command** | `arc init` + `arc ai-setup` | `arc init --arch vue3-fastapi` |
+|                  | **🎯 IDE AI Rules**              | **🏗️ Architecture Shapes**                    |
+| ---------------- | -------------------------------- | --------------------------------------------- |
+| **Best for**     | Existing projects, minimal setup | New projects, complete scaffolding            |
+| **Setup time**   | < 1 minute                       | 2-3 minutes                                   |
+| **What you get** | Glyph rules for your IDE         | Full project structure + pre-built components |
+| **Command**      | `arc init` + `arc ai-setup`      | `arc init --arch vue3-fastapi`                |
 
 ---
 
 ### 🎯 Path 1: IDE AI Rules (Lightweight)
+
 **Best for:** Experienced developers who want AI assistance within existing projects or prefer minimal scaffolding.
 
 **What you get:**
+
 - IDE-specific configuration files (`.cursorrules`, `.github/copilot-instructions.md`, etc.)
 - Your AI assistant learns the glyph system
 - Chat-based architecture proposals
 - Minimal project structure (just `archeon/ARCHEON.arcon` + templates)
 
 **Setup:**
+
 ```bash
 # 1. Install Archeon
 pip install -e .
@@ -56,11 +59,13 @@ arc ai-setup               # Or all at once
 ---
 
 ### 🏗️ Path 2: Architecture Shapes (Complete Scaffolding)
+
 **Best for:** New projects, teams wanting consistency, or full-stack setup out of the box.
 
 > **💡 Key Insight:** Shapes are **100% customizable JSON files**. You define the exact code patterns, naming conventions, and structure your AI will follow. No more "AI does it differently every time" — your team's coding standards become the AI's training data.
 
 **What you get:**
+
 - **Complete project scaffolding** (client/, server/, pre-configured build tools)
 - **Pre-built components** (ThemeToggle, ThemeSelector, design tokens)
 - **Framework-specific templates** for every glyph (CMP, STO, API, MDL, EVT, FNC)
@@ -70,8 +75,9 @@ arc ai-setup               # Or all at once
 - **Everything the AI needs** to generate production-ready code immediately
 
 **Setup:**
+
 ```bash
-# 1. Install Archeon  
+# 1. Install Archeon
 pip install -e .
 
 # 2. View available shapes
@@ -87,12 +93,13 @@ arc ai-setup
 
 **Available Shapes:**
 
-| Shape ID | Stack | What's Included |
-|----------|-------|-----------------|
-| `vue3-fastapi` | Vue 3, Pinia, Tailwind, FastAPI, MongoDB | Complete monorepo, theme system, pre-built components |
+| Shape ID        | Stack                                      | What's Included                                       |
+| --------------- | ------------------------------------------ | ----------------------------------------------------- |
+| `vue3-fastapi`  | Vue 3, Pinia, Tailwind, FastAPI, MongoDB   | Complete monorepo, theme system, pre-built components |
 | `react-fastapi` | React, Zustand, Tailwind, FastAPI, MongoDB | Complete monorepo, theme system, pre-built components |
 
 **Project structure after shape initialization:**
+
 ```
 my-app/
 ├── client/                 # Frontend (Vite configured)
@@ -112,7 +119,7 @@ my-app/
     ├── ARCHEON.arcon       # Knowledge graph
     └── templates/          # Glyph-specific code templates
         ├── CMP/            # Component snippets
-        ├── STO/            # Store snippets  
+        ├── STO/            # Store snippets
         ├── API/            # API route snippets
         └── _config/        # Tailwind, theme tokens
 ```
@@ -123,17 +130,17 @@ my-app/
 
 ## Quick Comparison
 
-| Feature | IDE AI Rules | Architecture Shapes |
-|---------|-------------|---------------------|
-| **Setup Time** | < 1 min | 2-3 min |
-| **Project Scaffolding** | Minimal (archeon/ only) | Complete (client/, server/, configs) |
-| **Pre-built Components** | ❌ | ✅ ThemeToggle, ThemeSelector |
-| **Design Tokens** | ❌ | ✅ Pre-configured Tailwind theming |
-| **Framework Templates** | Basic reference only | ✅ Production-ready glyph snippets |
-| **Dependencies** | Manual setup | ✅ Auto-configured package.json, requirements.txt |
-| **Team Coding Standards** | AI improvises | ✅ **Enforced via JSON — 100% your rules** |
-| **Best For** | Existing projects, minimal setup | New projects, teams, full-stack apps |
-| **AI Code Quality** | Good (with manual refinement) | Excellent (follows shape blueprints) |
+| Feature                   | IDE AI Rules                     | Architecture Shapes                               |
+| ------------------------- | -------------------------------- | ------------------------------------------------- |
+| **Setup Time**            | < 1 min                          | 2-3 min                                           |
+| **Project Scaffolding**   | Minimal (archeon/ only)          | Complete (client/, server/, configs)              |
+| **Pre-built Components**  | ❌                               | ✅ ThemeToggle, ThemeSelector                     |
+| **Design Tokens**         | ❌                               | ✅ Pre-configured Tailwind theming                |
+| **Framework Templates**   | Basic reference only             | ✅ Production-ready glyph snippets                |
+| **Dependencies**          | Manual setup                     | ✅ Auto-configured package.json, requirements.txt |
+| **Team Coding Standards** | AI improvises                    | ✅ **Enforced via JSON — 100% your rules**        |
+| **Best For**              | Existing projects, minimal setup | New projects, teams, full-stack apps              |
+| **AI Code Quality**       | Good (with manual refinement)    | Excellent (follows shape blueprints)              |
 
 ---
 
@@ -179,7 +186,7 @@ You: "Save to database through API"
 AI: Updated chain:
     @v1 NED:editProfile => CMP:ProfileForm
         => API:PUT/profile => MDL:user.update => OUT:toast('Profile saved')
-    
+
     ✓ Added API endpoint
     ✓ Added user model update method
 
@@ -201,14 +208,14 @@ AI: Final chain:
 
 Archeon is **rule-based** — it generates IDE-specific configuration files that constrain your AI assistant to the glyph taxonomy. This works with **both approaches** (IDE rules or shapes):
 
-| IDE                   | Command                   | Creates                           | Works With           |
-| --------------------- | ------------------------- | --------------------------------- | -------------------- |
-| **Cursor**            | `arc ai-setup --cursor`   | `.cursorrules`                    | IDE Rules + Shapes   |
-| **Windsurf**          | `arc ai-setup --windsurf` | `.windsurfrules`                  | IDE Rules + Shapes   |
-| **VS Code + Copilot** | `arc ai-setup --copilot`  | `.github/copilot-instructions.md` | IDE Rules + Shapes   |
-| **Cline/Claude Dev**  | `arc ai-setup --cline`    | `.clinerules`                     | IDE Rules + Shapes   |
-| **Aider**             | `arc ai-setup --aider`    | `.aider.conf.yml`                 | IDE Rules + Shapes   |
-| **All at once**       | `arc ai-setup`            | All of the above                  | IDE Rules + Shapes   |
+| IDE                   | Command                   | Creates                           | Works With         |
+| --------------------- | ------------------------- | --------------------------------- | ------------------ |
+| **Cursor**            | `arc ai-setup --cursor`   | `.cursorrules`                    | IDE Rules + Shapes |
+| **Windsurf**          | `arc ai-setup --windsurf` | `.windsurfrules`                  | IDE Rules + Shapes |
+| **VS Code + Copilot** | `arc ai-setup --copilot`  | `.github/copilot-instructions.md` | IDE Rules + Shapes |
+| **Cline/Claude Dev**  | `arc ai-setup --cline`    | `.clinerules`                     | IDE Rules + Shapes |
+| **Aider**             | `arc ai-setup --aider`    | `.aider.conf.yml`                 | IDE Rules + Shapes |
+| **All at once**       | `arc ai-setup`            | All of the above                  | IDE Rules + Shapes |
 
 **Shapes + IDE Rules = Maximum Power:** Initialize with a shape for complete scaffolding, then run `arc ai-setup` so your AI assistant understands how to extend it.
 
@@ -415,21 +422,22 @@ $ arc gen
 
 ### Why Shapes Are More Powerful
 
-| Aspect | IDE Rules Only | With Architecture Shapes |
-|--------|---------------|-------------------------|
-| **Project setup** | Manual directory creation | ✅ Auto-scaffolded client/, server/ |
-| **Component templates** | Generic, AI-generated | ✅ Framework-specific, production-ready |
-| **Dependencies** | Manual install | ✅ Pre-configured package.json, requirements.txt |
-| **Theming system** | Build yourself | ✅ Tailwind + design tokens ready |
-| **Pre-built components** | None | ✅ ThemeToggle, ThemeSelector, theme store |
-| **Build tools** | Manual config | ✅ Vite/Webpack pre-configured |
-| **Code consistency** | Varies by AI session | ✅ Enforced by shape templates |
-| **Customizability** | AI learns from examples | ✅ **100% controlled via JSON schema** |
-| **Onboarding speed** | Hours to days | ✅ Minutes |
+| Aspect                   | IDE Rules Only            | With Architecture Shapes                         |
+| ------------------------ | ------------------------- | ------------------------------------------------ |
+| **Project setup**        | Manual directory creation | ✅ Auto-scaffolded client/, server/              |
+| **Component templates**  | Generic, AI-generated     | ✅ Framework-specific, production-ready          |
+| **Dependencies**         | Manual install            | ✅ Pre-configured package.json, requirements.txt |
+| **Theming system**       | Build yourself            | ✅ Tailwind + design tokens ready                |
+| **Pre-built components** | None                      | ✅ ThemeToggle, ThemeSelector, theme store       |
+| **Build tools**          | Manual config             | ✅ Vite/Webpack pre-configured                   |
+| **Code consistency**     | Varies by AI session      | ✅ Enforced by shape templates                   |
+| **Customizability**      | AI learns from examples   | ✅ **100% controlled via JSON schema**           |
+| **Onboarding speed**     | Hours to days             | ✅ Minutes                                       |
 
 ### Creating Custom Shapes — **Train AI to Your Coding Style**
 
 **This is where teams gain true control.** Every shape is just a JSON file that defines:
+
 - Component/API/Store code templates with **your** preferred patterns
 - **Your** naming conventions, file structure, import style
 - **Your** testing patterns, error handling, validation logic
@@ -438,6 +446,7 @@ $ arc gen
 **Shapes are training data for your AI.** When you create a custom shape, you're teaching the AI exactly how your team writes code.
 
 **Example: Custom React component style**
+
 ```json
 {
   "glyphs": {
@@ -451,6 +460,7 @@ $ arc gen
 **Every component the AI generates will follow this exact pattern.** No variation. No hallucination. Just your team's standards, every time.
 
 **Want your API routes to follow a specific error handling pattern?**
+
 ```json
 {
   "glyphs": {
@@ -470,6 +480,7 @@ Create a `.shape.json` file in `archeon/architectures/` and run `arc init --arch
 ## Project Structure
 
 **With IDE Rules Only (Minimal):**
+
 ```
 my-app/
 ├── .archeonrc           # Config
@@ -479,6 +490,7 @@ my-app/
 ```
 
 **With Architecture Shape (Complete):**
+
 ```
 my-app/
 ├── .archeonrc           # Config (frontend, backend, paths)
@@ -499,8 +511,10 @@ my-app/
     ├── ARCHEON.arcon    # Knowledge graph
     └── templates/       # Framework-specific glyph templates
 ```
+
     └── ARCHEON.arcon    # Knowledge graph (the source of truth)
-```
+
+````
 
 ---
 
@@ -521,14 +535,14 @@ mkdir my-app && cd my-app
 arc init
 arc ai-setup
 
-# Path 2: Complete architecture shape  
+# Path 2: Complete architecture shape
 mkdir my-app && cd my-app
 arc init --arch vue3-fastapi
 arc ai-setup  # Optional but recommended
 
 # Uninstall
 pip uninstall archeon
-```
+````
 
 ---
 
