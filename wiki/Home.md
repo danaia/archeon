@@ -1,86 +1,78 @@
 # Archeon
 
-> **The missing architecture layer for vibecoding.**
-
-You're building with AI — describing features in plain English, watching code appear in seconds. It feels like the future.
-
-Until session 5, when your codebase looks like it was built by 12 different developers who never talked to each other.
-
-**That's not an AI problem. That's a constraint problem.**
+> **The essential constraint layer for vibe coding.** Stop LLM drift. Start shipping consistent code.
 
 ---
 
-## What Vibecoding Gets Wrong
+## The Problem: LLM Drift Destroys Vibe Coding
 
-Vibecoding (AI-assisted, conversational development) is powerful. But out of the box, it has no memory, no structure, and no rules.
+LLMs have **zero persistent memory** between sessions. Every chat is a blank slate.
 
-| Symptom | Root Cause |
-|---------|------------|
-| Components that call APIs that don't exist | No end-to-end validation |
-| Every feature uses a different pattern | No architectural persistence |
-| "Fix this" spawns 3 new bugs | No dependency awareness |
-| Small models produce garbage | Context is too noisy |
-| Refactoring takes days | No one knows what connects to what |
+Your AI assistant **forgets your architecture** the moment you close the window.
 
-**Archeon exists because vibecoding without constraints is just fast chaos.**
+Without constraints, the same prompt generates **different code patterns every time**.
+
+This is **LLM drift** — and it's why "vibe coding" (informal AI-assisted development) breaks down after a few sessions:
+
+- **Session 1:** AI builds login with Redux
+- **Session 2:** AI builds profile with Zustand (forgot Redux exists)
+- **Session 3:** AI refactors login to Context API (now you have 3 state systems)
+
+**Result:** Architectural chaos. Inconsistent patterns. Constant refactoring. Your "vibe" becomes a nightmare.
 
 ---
 
-## What Archeon Actually Does
+## The Solution: Archeon = Persistent Constraint Layer
 
-Three things. That's it.
+Archeon is a **hyper-compressed notation system** that acts as your AI's permanent memory:
 
-### 1. A Shared Language (Glyphs)
+1. **Glyphs ARE the spec** — Not documentation. Not comments. The architecture itself.
 
-16 symbols that represent architectural concerns:
+   - `NED:login => CMP:LoginForm => API:POST/auth => OUT:dashboard`
+   - **10 symbols** replace 500 lines of specification
+   - **Zero ambiguity** — AI can't misinterpret a glyph chain
+   - **Works on small models** — Fits in any context window (even local 7B models)
 
-```
-NED:login => CMP:LoginForm => STO:Auth => API:POST/auth => OUT:dashboard
-```
+2. **Why compression matters:**
 
-- `NED` = User need
-- `CMP` = UI component  
-- `STO` = Client state
-- `API` = Backend endpoint
-- `OUT` = What the user sees
+   - Traditional specs: AI reads 50-page docs → interprets → hallucinates edge cases
+   - Archeon glyphs: AI reads `CMP => STO => API` → executes pattern → no interpretation needed
+   - **Smaller context = fewer tokens = faster inference = works locally**
 
-Every feature is a **chain** from need to outcome. If there's no outcome? It's not a feature.
+3. **Read on every session** — AI loads the graph before generating code
 
-### 2. A File That Remembers (`.arcon`)
+4. **Cannot deviate** — Only 10 glyph types exist. AI cannot invent `XYZ:Something`
 
-Your architecture lives in `archeon/ARCHEON.arcon`. It persists between sessions. When your AI starts a new chat, it reads this file and knows:
+5. **Enforced patterns** — Architecture shapes lock in your exact code style
 
-- What features exist
-- How they connect
-- What patterns are allowed
-- Where to put new code
-
-**Architecture becomes memory, not suggestion.**
-
-### 3. Validation Before Generation
+**The result:**
 
 ```
-❌ NED:login => CMP:LoginForm
-   REJECTED — no observable outcome
+Without Archeon:  "AI, add a feature"  → Random patterns, architectural drift
 
-✅ NED:login => CMP:LoginForm => OUT:redirect('/dashboard')
-   VALID
+With Archeon:     "AI, add a feature"  → Reads ARCHEON.arcon → Follows existing chains
+                                        → Same patterns, every time, any LLM
 ```
 
-Bad architecture gets caught **before** it becomes bad code. Not during review. Not in production. Before a single line is written.
+**Why it works:**
+
+- ✅ **Persistent memory** — Graph survives sessions, not chat history
+- ✅ **Model-portable** — Switch GPT ↔ Claude ↔ Gemini, graph remains
+- ✅ **Human-readable** — You control the notation, not black-box prompts
+- ✅ **Enforceable** — Shapes = code templates AI must follow
 
 ---
 
 ## Why This Exists (Measured Impact)
 
-| Metric | Traditional AI | Archeon | Mechanism |
-|--------|---------------|---------|-----------|
-| **Structural drift** | 60% of features | **0%** | Rejected at parse-time |
-| **Missing outcomes** | 42% incomplete | **0%** | NED→OUT invariant enforced |
-| **Reasoning context** | ~45K tokens | ~12K tokens | Glyph projection |
-| **Time to valid code** | ~35 min | ~10 min | Validate before generate |
-| **Structural rework** | 60% | **~1-2%** | Invalid chains rejected |
-| **Refactor overhead** | 3+ hrs/week | <10 min | Persistent architecture |
+| Metric                 | Traditional AI  | Archeon     | Mechanism                  |
+| ---------------------- | --------------- | ----------- | -------------------------- |
+| **Structural drift**   | 60% of features | **0%**      | Rejected at parse-time     |
+| **Missing outcomes**   | 42% incomplete  | **0%**      | NED→OUT invariant enforced |
+| **Reasoning context**  | ~45K tokens     | ~12K tokens | Glyph projection           |
+| **Time to valid code** | ~35 min         | ~10 min     | Validate before generate   |
+| **Structural rework**  | 60%             | **~1-2%**   | Invalid chains rejected    |
+| **Refactor overhead**  | 3+ hrs/week     | <10 min     | Persistent architecture    |
 
 ---
 
@@ -117,7 +109,7 @@ sequenceDiagram
 ```
 
 Archeon enforces a strict **NED → OUT (or ERR)** invariant.
-If a feature does not terminate in user-visible feedback, it is rejected *before* code generation.
+If a feature does not terminate in user-visible feedback, it is rejected _before_ code generation.
 
 This is not linting. It is a **structural requirement**.
 
@@ -129,15 +121,15 @@ This is not linting. It is a **structural requirement**.
 
 Instead of loading entire repositories, Archeon performs **glyph-based context projection**:
 
-| Traditional AI Context | Archeon Context |
-|----------------------|-----------------|
-| Components: ~15K tokens | Chain + metadata: ~2K tokens |
-| API routes: ~10K tokens | Template: ~6K tokens |
-| Stores: ~8K tokens | 1-hop deps only: ~4K tokens |
-| Docs/examples: ~12K tokens | |
-| **Total: ~45K tokens** | **Total: ~12K tokens** |
+| Traditional AI Context     | Archeon Context              |
+| -------------------------- | ---------------------------- |
+| Components: ~15K tokens    | Chain + metadata: ~2K tokens |
+| API routes: ~10K tokens    | Template: ~6K tokens         |
+| Stores: ~8K tokens         | 1-hop deps only: ~4K tokens  |
+| Docs/examples: ~12K tokens |                              |
+| **Total: ~45K tokens**     | **Total: ~12K tokens**       |
 
-The model doesn't reason over *less information* — it reasons over **only the information that matters**.
+The model doesn't reason over _less information_ — it reasons over **only the information that matters**.
 
 👉 [Architecture – Context Projection](Architecture#context-projection)
 
@@ -162,11 +154,12 @@ Failures are caught at the **architecture level**, not during review.
 Invalid architectural changes cannot be committed to the graph.
 
 **Observed internally:**
+
 - 200+ generated features
 - 2–3 required rework (human-approved invalid chains)
 - **~1.25% structural rework rate**
 
-Most rework disappears because mistakes are rejected *before* they become code.
+Most rework disappears because mistakes are rejected _before_ they become code.
 
 👉 [Knowledge Graph – Validation](Knowledge-Graph#graph-validation)
 
@@ -176,11 +169,11 @@ Most rework disappears because mistakes are rejected *before* they become code.
 
 The `.arcon` file persists architecture across sessions.
 
-| Traditional AI | Archeon |
-|---------------|---------|
+| Traditional AI                      | Archeon                |
+| ----------------------------------- | ---------------------- |
 | Each session renegotiates structure | Rules live in `.arcon` |
-| Inconsistencies accumulate | AI reads once |
-| ~3+ hours/week fixing drift | <10 min/week overhead |
+| Inconsistencies accumulate          | AI reads once          |
+| ~3+ hours/week fixing drift         | <10 min/week overhead  |
 
 Architecture becomes **memory**, not suggestion.
 
@@ -218,18 +211,18 @@ These failures are eliminated by construction.
 
 16 typed symbols representing architectural concerns:
 
-| Glyph | Layer | Purpose |
-|-------|-------|---------|
-| `NED` | Meta | User need |
-| `TSK` | Meta | User action |
-| `OUT` | Meta | Observable outcome |
-| `ERR` | Meta | Error state |
-| `CMP` | Frontend | UI component |
-| `STO` | Frontend | Client state |
-| `FNC` | Backend | Function |
-| `EVT` | Backend | Event handler |
-| `API` | Backend | HTTP endpoint |
-| `MDL` | Backend | Data model |
+| Glyph | Layer    | Purpose            |
+| ----- | -------- | ------------------ |
+| `NED` | Meta     | User need          |
+| `TSK` | Meta     | User action        |
+| `OUT` | Meta     | Observable outcome |
+| `ERR` | Meta     | Error state        |
+| `CMP` | Frontend | UI component       |
+| `STO` | Frontend | Client state       |
+| `FNC` | Backend  | Function           |
+| `EVT` | Backend  | Event handler      |
+| `API` | Backend  | HTTP endpoint      |
+| `MDL` | Backend  | Data model         |
 
 👉 [Full Glyph Reference](Glyph-Reference)
 
@@ -246,14 +239,14 @@ arc index code
 
 This single command does everything:
 
-| Step | What It Does |
-|------|--------------|
-| 1 | Scans your entire codebase |
-| 2 | Auto-detects tech stack (Vue, React, FastAPI, etc.) |
-| 3 | Classifies every file to a glyph type |
-| 4 | Creates `archeon/ARCHEON.index.json` |
-| 5 | Generates `archeon/ARCHEON.arcon` knowledge graph |
-| 6 | Creates AI rules for **all IDEs** |
+| Step | What It Does                                        |
+| ---- | --------------------------------------------------- |
+| 1    | Scans your entire codebase                          |
+| 2    | Auto-detects tech stack (Vue, React, FastAPI, etc.) |
+| 3    | Classifies every file to a glyph type               |
+| 4    | Creates `archeon/ARCHEON.index.json`                |
+| 5    | Generates `archeon/ARCHEON.arcon` knowledge graph   |
+| 6    | Creates AI rules for **all IDEs**                   |
 
 ```
 $ arc index code
@@ -283,6 +276,7 @@ $ arc index code
 ```
 
 **That's it.** Your AI can now:
+
 - See your entire architecture in one file
 - Understand which files are components, stores, APIs, models
 - Propose architecturally consistent changes

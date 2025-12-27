@@ -7,25 +7,74 @@ This guide will walk you through creating your first Archeon project in under 5 
 Make sure you have Archeon installed:
 
 ```bash
+# Install Archeon
+git clone git@github.com:danaia/archeon.git
+cd archeon
+pip install -e .
+
+# Verify
 arc --version
 ```
 
-If not installed, see [Installation](Installation).
+If already installed, see [Installation](Installation) for details.
 
-## Step 1: Create a New Project
+## Choose Your Path
+
+Archeon offers **two distinct workflows**:
+
+|                  | **IDE AI Rules**                 | **Architecture Shapes**                       |
+| ---------------- | -------------------------------- | --------------------------------------------- |
+| **Best for**     | Existing projects, minimal setup | New projects, complete scaffolding            |
+| **Setup time**   | < 1 minute                       | 2-3 minutes                                   |
+| **What you get** | Glyph rules for your IDE         | Full project structure + pre-built components |
+| **Command**      | `arc init` + `arc ai-setup`      | `arc init --arch nextjs-express`              |
+
+---
+
+## Path 1: IDE AI Rules (Lightweight)
+
+**Best for:** Existing projects or minimal scaffolding.
 
 ```bash
+# Navigate to your project (or create new directory)
+cd ..
+mkdir my-app && cd my-app
+
+# Initialize minimal structure
+arc init
+
+# Generate IDE rules
+arc ai-setup --cursor      # For Cursor
+arc ai-setup --copilot     # For GitHub Copilot
+arc ai-setup               # Or all at once
+```
+
+**Now just chat with your IDE** — it reads `ARCHEON.arcon` and proposes architecture.
+
+---
+
+## Path 2: Architecture Shapes (Complete Scaffolding)
+
+**Best for:** New projects wanting complete setup.
+
+```bash
+# Navigate to parent directory
+cd ..
+
 # Create project directory
 mkdir my-app && cd my-app
 
-# Initialize with Vue 3 frontend and FastAPI backend
-arc init --frontend vue3 --backend fastapi
+# Initialize with a complete architecture
+arc init --arch nextjs-express     # Next.js 14 + Express + TypeScript (RECOMMENDED)
+arc init --arch vue3-fastapi       # Vue 3 + FastAPI + MongoDB
+arc init --arch react-fastapi      # React + FastAPI + MongoDB
 
-# Or with GitHub Copilot rules included
-arc init --arch vue3-fastapi --copilot
+# Optional: Add IDE rules too
+arc ai-setup
 ```
 
 This creates:
+
 ```
 my-app/
 ├── archeon/
@@ -48,11 +97,13 @@ my-app/
 ### Framework Options
 
 **Frontend:**
+
 - `react` - React 18 with Zustand
 - `vue` - Vue 2
 - `vue3` - Vue 3 with Pinia (recommended)
 
 **Backend:**
+
 - `fastapi` - FastAPI (recommended)
 - `express` - Express.js (coming soon)
 
@@ -79,10 +130,11 @@ Suggested error paths:
   → API:POST/auth/login -> ERR:auth.invalidCredentials
   → API:POST/auth/login -> ERR:network.timeout
 
-Action [a/e/r/s]: 
+Action [a/e/r/s]:
 ```
 
 **Actions:**
+
 - `a` - Approve and add to graph
 - `e` - Edit the chain
 - `r` - Reject and try again
@@ -118,23 +170,23 @@ Let's look at what was created:
 
 <script setup>
 // @archeon:section imports
-import { ref } from 'vue';
-import { useAuthStore } from '@/stores/AuthStore';
+import { ref } from "vue";
+import { useAuthStore } from "@/stores/AuthStore";
 // @archeon:endsection
 
 // @archeon:section props_and_state
 const authStore = useAuthStore();
-const email = ref('');
-const password = ref('');
+const email = ref("");
+const password = ref("");
 const loading = ref(false);
-const error = ref('');
+const error = ref("");
 // @archeon:endsection
 
 // @archeon:section handlers
 async function handleSubmit() {
   loading.value = true;
-  error.value = '';
-  
+  error.value = "";
+
   try {
     await authStore.login(email.value, password.value);
   } catch (err) {
@@ -152,9 +204,14 @@ async function handleSubmit() {
     <h2>Login</h2>
     <form @submit.prevent="handleSubmit">
       <input v-model="email" type="email" placeholder="Email" required />
-      <input v-model="password" type="password" placeholder="Password" required />
+      <input
+        v-model="password"
+        type="password"
+        placeholder="Password"
+        required
+      />
       <button type="submit" :disabled="loading">
-        {{ loading ? 'Logging in...' : 'Login' }}
+        {{ loading ? "Logging in..." : "Login" }}
       </button>
       <p v-if="error" class="error">{{ error }}</p>
     </form>
@@ -170,45 +227,45 @@ async function handleSubmit() {
 // @glyph STO:Auth
 // @intent Authentication state management
 
-import { defineStore } from 'pinia';
-import { ref, computed } from 'vue';
+import { defineStore } from "pinia";
+import { ref, computed } from "vue";
 
-export const useAuthStore = defineStore('auth', () => {
+export const useAuthStore = defineStore("auth", () => {
   // @archeon:section state
   const user = ref(null);
-  const token = ref(localStorage.getItem('token'));
+  const token = ref(localStorage.getItem("token"));
   // @archeon:endsection
-  
+
   // @archeon:section actions
   async function login(email, password) {
-    const response = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password })
+    const response = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
     });
-    
-    if (!response.ok) throw new Error('Invalid credentials');
-    
+
+    if (!response.ok) throw new Error("Invalid credentials");
+
     const data = await response.json();
     token.value = data.token;
     user.value = data.user;
-    localStorage.setItem('token', data.token);
-    
+    localStorage.setItem("token", data.token);
+
     // Navigate to dashboard
-    window.location.href = '/dashboard';
+    window.location.href = "/dashboard";
   }
-  
+
   function logout() {
     user.value = null;
     token.value = null;
-    localStorage.removeItem('token');
+    localStorage.removeItem("token");
   }
   // @archeon:endsection
-  
+
   // @archeon:section selectors
   const isAuthenticated = computed(() => !!token.value);
   // @archeon:endsection
-  
+
   return { user, token, isAuthenticated, login, logout };
 });
 ```
@@ -292,6 +349,7 @@ arc validate
 ```
 
 Checks for:
+
 - Orphaned glyphs
 - Missing error paths
 - Incomplete user journeys

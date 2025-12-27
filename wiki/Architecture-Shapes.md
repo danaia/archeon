@@ -21,10 +21,11 @@ arc init --arch vue3-fastapi
 
 **Available Shapes:**
 
-| Shape | Command | Stack |
-|-------|---------|-------|
-| Vue 3 + FastAPI | `arc init --arch vue3-fastapi` | Vue 3, Pinia, TailwindCSS, FastAPI, MongoDB |
-| React + FastAPI | `arc init --arch react-fastapi` | React, Zustand, TailwindCSS, FastAPI, MongoDB |
+| Shape                 | Command                          | Stack                                                                |
+| --------------------- | -------------------------------- | -------------------------------------------------------------------- |
+| **Next.js + Express** | `arc init --arch nextjs-express` | **Next.js 14, Zustand, Express, TypeScript, Mongoose (RECOMMENDED)** |
+| Vue 3 + FastAPI       | `arc init --arch vue3-fastapi`   | Vue 3, Pinia, TailwindCSS, FastAPI, MongoDB                          |
+| React + FastAPI       | `arc init --arch react-fastapi`  | React, Zustand, TailwindCSS, FastAPI, MongoDB                        |
 
 ---
 
@@ -62,8 +63,9 @@ archeon/
 arc shapes
 
 # Initialize project with specific shape
-arc init --arch vue3-fastapi
-arc init --arch react-fastapi
+arc init --arch nextjs-express     # Next.js 14 + Express + TypeScript (RECOMMENDED)
+arc init --arch vue3-fastapi       # Vue 3 + FastAPI + MongoDB
+arc init --arch react-fastapi      # React + FastAPI + MongoDB
 
 # Default behavior (uses vue3-fastapi)
 arc init
@@ -88,20 +90,21 @@ arc init
 }
 ```
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `id` | string | ✅ | Unique identifier (kebab-case) |
-| `name` | string | ✅ | Human-readable name |
-| `description` | string | ✅ | Brief description |
-| `version` | string | ✅ | Semver version |
-| `author` | string | ❌ | Shape author |
-| `tags` | string[] | ❌ | Searchable tags |
+| Field         | Type     | Required | Description                    |
+| ------------- | -------- | -------- | ------------------------------ |
+| `id`          | string   | ✅       | Unique identifier (kebab-case) |
+| `name`        | string   | ✅       | Human-readable name            |
+| `description` | string   | ✅       | Brief description              |
+| `version`     | string   | ✅       | Semver version                 |
+| `author`      | string   | ❌       | Shape author                   |
+| `tags`        | string[] | ❌       | Searchable tags                |
 
 ### 2. Stack Section
 
 Defines the technology choices. Can be simple strings or detailed objects:
 
 **Simple format (react-fastapi):**
+
 ```json
 {
   "stack": {
@@ -114,6 +117,7 @@ Defines the technology choices. Can be simple strings or detailed objects:
 ```
 
 **Detailed format (vue3-fastapi):**
+
 ```json
 {
   "stack": {
@@ -195,15 +199,15 @@ Each glyph type has a template definition:
 
 **Supported Glyph Types:**
 
-| Glyph | Purpose | Frontend | Backend |
-|-------|---------|----------|---------|
-| `CMP` | UI Component | ✅ React/Vue | - |
-| `STO` | State Store | ✅ Zustand/Pinia | - |
-| `API` | API Endpoint | - | ✅ FastAPI |
-| `MDL` | Data Model | - | ✅ Pydantic |
-| `EVT` | Event System | - | ✅ Pub/Sub |
-| `FNC` | Utility Function | ✅ | ✅ |
-| `V` | View/Page or Validation | ✅ | ✅ |
+| Glyph | Purpose                 | Frontend         | Backend     |
+| ----- | ----------------------- | ---------------- | ----------- |
+| `CMP` | UI Component            | ✅ React/Vue     | -           |
+| `STO` | State Store             | ✅ Zustand/Pinia | -           |
+| `API` | API Endpoint            | -                | ✅ FastAPI  |
+| `MDL` | Data Model              | -                | ✅ Pydantic |
+| `EVT` | Event System            | -                | ✅ Pub/Sub  |
+| `FNC` | Utility Function        | ✅               | ✅          |
+| `V`   | View/Page or Validation | ✅               | ✅          |
 
 ### 5. Config Section
 
@@ -370,7 +374,7 @@ interface GlyphDefinition {
   description: string;
   fileExtension: string;
   targetDir: string;
-  layer: 'frontend' | 'backend' | 'shared';
+  layer: "frontend" | "backend" | "shared";
   sections: string[];
   snippet: string;
   placeholders: Record<string, PlaceholderDef>;
@@ -380,14 +384,14 @@ interface PlaceholderDef {
   description: string;
   required?: boolean;
   default?: string;
-  transform?: 'pascalCase' | 'camelCase' | 'snake_case' | 'kebab-case';
+  transform?: "pascalCase" | "camelCase" | "snake_case" | "kebab-case";
 }
 
 interface PrebuiltComponent {
   description: string;
   targetPath: string;
   content: string;
-  glyph?: string;  // e.g., "CMP:ThemeToggle"
+  glyph?: string; // e.g., "CMP:ThemeToggle"
 }
 ```
 
@@ -597,11 +601,13 @@ print(shape.dependencies)   # {'frontend': {...}, 'backend': {...}}
 ### JSON Schema Location
 
 The JSON Schema for validating shapes is at:
+
 ```
 archeon/architectures/_schema.json
 ```
 
 Use it for:
+
 - Editor autocomplete (VS Code, etc.)
 - Runtime validation
 - GUI form generation
@@ -625,33 +631,36 @@ Use it for:
 □ Directory structure matches framework conventions
 □ All 7 core glyph types defined (CMP, STO, API, MDL, EVT, FNC, V)
 □ Each glyph has:
-  □ Appropriate file extension
-  □ Correct target directory
-  □ Layer assignment (frontend/backend/shared)
-  □ Section markers in snippet
-  □ Placeholder definitions
+□ Appropriate file extension
+□ Correct target directory
+□ Layer assignment (frontend/backend/shared)
+□ Section markers in snippet
+□ Placeholder definitions
 □ Config files for build tools (tailwind, vite/webpack)
 □ Theme store with light/dark/system support
 □ At least ThemeToggle prebuilt component
 □ Dependencies list is complete and version-pinned
-□ Shape validates against _schema.json
+□ Shape validates against \_schema.json
 ```
 
 ### Common Patterns
 
 **Frontend Frameworks:**
+
 - React: `.tsx`, Zustand/Redux, Zod validation
 - Vue 3: `.vue`, Pinia, Composition API
 - Angular: `.ts`, NgRx, Services
 - Svelte: `.svelte`, Svelte stores
 
 **Backend Frameworks:**
+
 - FastAPI: Python, Pydantic, async
 - NestJS: TypeScript, decorators, DI
 - Express: JavaScript/TypeScript
 - Django: Python, ORM, class-based
 
 **State Management:**
+
 - Zustand (React): `create()`, middleware
 - Pinia (Vue): `defineStore()`, actions
 - NgRx (Angular): Actions, Reducers, Effects
@@ -692,16 +701,19 @@ Use it for:
 ### Recommended User Flows
 
 **1. Discovery Flow**
+
 ```
 Browse Shapes → Filter by Stack → View Details → Preview Files → Clone to Project
 ```
 
 **2. Creation Flow**
+
 ```
 New Shape → Select Base Template → Configure Stack → Edit Glyphs → Add Prebuilt → Save
 ```
 
 **3. Editing Flow**
+
 ```
 Select Shape → Edit Section → Live Preview → Validate → Save → Test Init
 ```
@@ -710,12 +722,12 @@ Select Shape → Edit Section → Live Preview → Validate → Save → Test In
 
 ```typescript
 interface ShapeFilters {
-  search?: string;          // Full-text search
-  frontend?: string[];      // ['react', 'vue', 'angular']
-  backend?: string[];       // ['fastapi', 'nestjs', 'express']
-  database?: string[];      // ['mongodb', 'postgresql', 'mysql']
-  tags?: string[];          // ['fullstack', 'spa', 'enterprise']
-  hasPrebuilt?: boolean;    // Has prebuilt components
+  search?: string; // Full-text search
+  frontend?: string[]; // ['react', 'vue', 'angular']
+  backend?: string[]; // ['fastapi', 'nestjs', 'express']
+  database?: string[]; // ['mongodb', 'postgresql', 'mysql']
+  tags?: string[]; // ['fullstack', 'spa', 'enterprise']
+  hasPrebuilt?: boolean; // Has prebuilt components
 }
 ```
 
@@ -742,16 +754,16 @@ Your GUI should integrate with:
 
 ## Future Shape Ideas
 
-| Shape ID | Frontend | Backend | Database | Status |
-|----------|----------|---------|----------|--------|
-| `vue3-fastapi` | Vue 3 | FastAPI | MongoDB | ✅ Done |
-| `react-fastapi` | React | FastAPI | MongoDB | ✅ Done |
-| `angular-nestjs` | Angular | NestJS | PostgreSQL | 📋 Planned |
-| `svelte-fastapi` | Svelte | FastAPI | MongoDB | 📋 Planned |
-| `react-express` | React | Express | MongoDB | 📋 Planned |
-| `vue3-django` | Vue 3 | Django | PostgreSQL | 📋 Planned |
-| `nextjs-prisma` | Next.js | Next API | PostgreSQL | 📋 Planned |
-| `nuxt-nitro` | Nuxt 3 | Nitro | MongoDB | 📋 Planned |
+| Shape ID         | Frontend | Backend  | Database   | Status     |
+| ---------------- | -------- | -------- | ---------- | ---------- |
+| `vue3-fastapi`   | Vue 3    | FastAPI  | MongoDB    | ✅ Done    |
+| `react-fastapi`  | React    | FastAPI  | MongoDB    | ✅ Done    |
+| `angular-nestjs` | Angular  | NestJS   | PostgreSQL | 📋 Planned |
+| `svelte-fastapi` | Svelte   | FastAPI  | MongoDB    | 📋 Planned |
+| `react-express`  | React    | Express  | MongoDB    | 📋 Planned |
+| `vue3-django`    | Vue 3    | Django   | PostgreSQL | 📋 Planned |
+| `nextjs-prisma`  | Next.js  | Next API | PostgreSQL | 📋 Planned |
+| `nuxt-nitro`     | Nuxt 3   | Nitro    | MongoDB    | 📋 Planned |
 
 ---
 

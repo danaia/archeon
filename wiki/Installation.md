@@ -12,8 +12,8 @@ The recommended way to install Archeon is directly from the source repository in
 
 ```bash
 # Clone the repository
-git clone https://github.com/danaia/Archeon.git
-cd Archeon
+git clone git@github.com:danaia/archeon.git
+cd archeon
 
 # Install in editable mode globally
 pip install -e .
@@ -25,6 +25,7 @@ arc --version
 ### Why Editable Mode?
 
 Installing with `-e` (editable mode) allows you to:
+
 - Pull updates without reinstalling: `git pull`
 - Modify templates and have changes take effect immediately
 - Contribute back to the project easily
@@ -48,6 +49,7 @@ archeon --version
 ```
 
 You should see output like:
+
 ```
 archeon version 0.1.0
 ```
@@ -76,15 +78,17 @@ pip uninstall archeon
 If `arc` command is not found after installation:
 
 1. **Check pip installation location:**
+
    ```bash
    pip show archeon
    ```
 
 2. **Ensure pip's bin directory is in PATH:**
+
    ```bash
    # On macOS/Linux
    echo $PATH
-   
+
    # Add to ~/.zshrc or ~/.bashrc if needed:
    export PATH="$HOME/.local/bin:$PATH"
    ```
@@ -119,11 +123,13 @@ python --version
 If you have an older version:
 
 **macOS (using Homebrew):**
+
 ```bash
 brew install python@3.11
 ```
 
 **Ubuntu/Debian:**
+
 ```bash
 sudo apt update
 sudo apt install python3.11
