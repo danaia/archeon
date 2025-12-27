@@ -17,7 +17,7 @@ With Archeon:     "AI, build a login"  → NED:login => CMP:LoginForm => API:POS
 
 Archeon offers **two distinct workflows** depending on how much control and scaffolding you need:
 
-|                  | **🎯 IDE AI Rules**              | **🏗️ Architecture Shapes**                    |
+|                  | **IDE AI Rules**                 | **Architecture Shapes**                       |
 | ---------------- | -------------------------------- | --------------------------------------------- |
 | **Best for**     | Existing projects, minimal setup | New projects, complete scaffolding            |
 | **Setup time**   | < 1 minute                       | 2-3 minutes                                   |
@@ -26,7 +26,7 @@ Archeon offers **two distinct workflows** depending on how much control and scaf
 
 ---
 
-### 🎯 Path 1: IDE AI Rules (Lightweight)
+### Path 1: IDE AI Rules (Lightweight)
 
 **Best for:** Experienced developers who want AI assistance within existing projects or prefer minimal scaffolding.
 
@@ -61,11 +61,11 @@ arc ai-setup               # Or all at once
 
 ---
 
-### 🏗️ Path 2: Architecture Shapes (Complete Scaffolding)
+### Path 2: Architecture Shapes (Complete Scaffolding)
 
 **Best for:** New projects, teams wanting consistency, or full-stack setup out of the box.
 
-> **💡 Key Insight:** Shapes are **100% customizable JSON files**. You define the exact code patterns, naming conventions, and structure your AI will follow. No more "AI does it differently every time" — your team's coding standards become the AI's training data.
+> **Key Insight:** Shapes are **100% customizable JSON files**. You define the exact code patterns, naming conventions, and structure your AI will follow. No more "AI does it differently every time" — your team's coding standards become the AI's training data.
 
 **What you get:**
 
@@ -160,7 +160,7 @@ my-app/
 
 ## The Easiest Way: IDE Chat
 
-> **🎯 Just chat with your IDE AI assistant. No commands to memorize.**
+> **Just chat with your IDE AI assistant. No commands to memorize.**
 
 Whether you choose **IDE rules** or **shapes**, the daily workflow is the same: natural conversation in your AI-powered IDE — VS Code, Cursor, Windsurf, or any editor with AI chat. Your AI assistant reads `ARCHEON.arcon`, proposes architecture, and implements everything.
 
@@ -586,7 +586,7 @@ pip uninstall archeon
 
 ---
 
-## 📚 Documentation
+## Documentation
 
 For complete guides, see the [wiki documentation](https://github.com/danaia/archeon/wiki):
 
