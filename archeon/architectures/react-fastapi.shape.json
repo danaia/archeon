@@ -7,6 +7,7 @@
     "version": "1.0.0",
     "author": "Archeon"
   },
+  "defaultChain": "@v1 NED:system.ready => OUT:architecture.installed",
   "stack": {
     "frontend": "react",
     "backend": "fastapi",

@@ -6,6 +6,7 @@
     "description": "Full-stack architecture with Vue 3 Composition API frontend and FastAPI Python backend",
     "tags": ["fullstack", "spa", "python", "vue", "mongodb"]
   },
+  "defaultChain": "@v1 NED:system.ready => OUT:architecture.installed",
   "stack": {
     "frontend": {
       "framework": "vue3",

@@ -6,6 +6,7 @@
     "version": "1.0.0",
     "tags": ["fullstack", "typescript", "nextjs", "react", "express", "modern"]
   },
+  "defaultChain": "@v1 NED:system.ready => OUT:architecture.installed",
   "stack": {
     "frontend": {
       "framework": "nextjs",
