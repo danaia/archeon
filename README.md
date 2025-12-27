@@ -17,12 +17,12 @@ With Archeon:     "AI, build a login"  → NED:login => CMP:LoginForm => API:POS
 
 Archeon offers **two distinct workflows** depending on how much control and scaffolding you need:
 
-|                  | **🎯 IDE AI Rules**              | **🏗️ Architecture Shapes**                    |
-| ---------------- | -------------------------------- | --------------------------------------------- |
-| **Best for**     | Existing projects, minimal setup | New projects, complete scaffolding            |
-| **Setup time**   | < 1 minute                       | 2-3 minutes                                   |
-| **What you get** | Glyph rules for your IDE         | Full project structure + pre-built components |
-| **Command**      | `arc init` + `arc ai-setup`      | `arc init --arch vue3-fastapi`                |
+|                  | **🎯 IDE AI Rules**              | **🏗️ Architecture Shapes**                     |
+| ---------------- | -------------------------------- | ---------------------------------------------- |
+| **Best for**     | Existing projects, minimal setup | New projects, complete scaffolding             |
+| **Setup time**   | < 1 minute                       | 2-3 minutes                                    |
+| **What you get** | Glyph rules for your IDE         | Full project structure + pre-built components  |
+| **Command**      | `arc init` + `arc ai-setup`      | `arc init --arch nextjs-express` |
 
 ---
 
@@ -41,9 +41,12 @@ Archeon offers **two distinct workflows** depending on how much control and scaf
 
 ```bash
 # 1. Install Archeon
+git clone git@github.com:danaia/archeon.git
+cd archeon
 pip install -e .
 
-# 2. Initialize minimal structure
+# 2. Initialize minimal structure (in your project directory)
+cd ..
 mkdir my-app && cd my-app
 arc init
 
@@ -78,12 +81,17 @@ arc ai-setup               # Or all at once
 
 ```bash
 # 1. Install Archeon
+git clone git@github.com:danaia/archeon.git
+cd archeon
 pip install -e .
 
 # 2. View available shapes
 arc shapes
 
-# 3. Initialize with a complete architecture
+# 3. Initialize with a complete architecture (in your project directory)
+cd ..
+mkdir my-app && cd my-app
+arc init --arch nextjs-express     # Next.js 14 + Express + TypeScript (RECOMMENDED)
 arc init --arch vue3-fastapi       # Vue 3 + FastAPI + MongoDB
 arc init --arch react-fastapi      # React + FastAPI + MongoDB
 
@@ -93,35 +101,41 @@ arc ai-setup
 
 **Available Shapes:**
 
-| Shape ID        | Stack                                      | What's Included                                       |
-| --------------- | ------------------------------------------ | ----------------------------------------------------- |
-| `vue3-fastapi`  | Vue 3, Pinia, Tailwind, FastAPI, MongoDB   | Complete monorepo, theme system, pre-built components |
-| `react-fastapi` | React, Zustand, Tailwind, FastAPI, MongoDB | Complete monorepo, theme system, pre-built components |
+| Shape ID          | Stack                                                 | What's Included                                       |
+| ----------------- | ----------------------------------------------------- | ----------------------------------------------------- |
+| `nextjs-express`  | **Next.js 14, Zustand, Express, TypeScript, Mongoose** | **Modern full-stack, App Router, RSC, Zod validation** |
+| `vue3-fastapi`    | Vue 3, Pinia, Tailwind, FastAPI, MongoDB              | Complete monorepo, theme system, pre-built components |
+| `react-fastapi`   | React, Zustand, Tailwind, FastAPI, MongoDB            | Complete monorepo, theme system, pre-built components |
 
-**Project structure after shape initialization:**
+**Project structure after shape initialization (nextjs-express):**
 
 ```
 my-app/
-├── client/                 # Frontend (Vite configured)
+├── client/                 # Next.js 14 frontend
 │   ├── src/
-│   │   ├── components/     # Pre-built: ThemeToggle, ThemeSelector
-│   │   ├── stores/         # Theme store ready
-│   │   └── tokens/         # Design tokens (CSS, JS, Tailwind)
+│   │   ├── app/            # App Router pages (RSC)
+│   │   ├── components/     # Pre-built: ThemeToggle, ThemeProvider
+│   │   ├── stores/         # Zustand stores
+│   │   ├── lib/            # Utils (cn helper included)
+│   │   └── types/          # TypeScript definitions
 │   ├── package.json
-│   └── vite.config.js
-├── server/                 # Backend
+│   ├── tsconfig.json
+│   ├── tailwind.config.ts
+│   └── next.config.js
+├── server/                 # Express + TypeScript backend
 │   ├── src/
-│   │   ├── api/routes/
-│   │   ├── models/
-│   │   └── main.py
-│   └── requirements.txt
+│   │   ├── api/
+│   │   │   ├── routes/     # Express routes + Zod validation
+│   │   │   └── middleware/
+│   │   ├── models/         # Mongoose TypeScript models
+│   │   ├── events/         # Event emitters
+│   │   └── types/
+│   ├── tsconfig.json
+│   └── package.json
 └── archeon/
     ├── ARCHEON.arcon       # Knowledge graph
-    └── templates/          # Glyph-specific code templates
-        ├── CMP/            # Component snippets
-        ├── STO/            # Store snippets
-        ├── API/            # API route snippets
-        └── _config/        # Tailwind, theme tokens
+    └── architectures/
+        └── nextjs-express.shape.json  # Your customizable shape
 ```
 
 **The difference:** Shapes generate **everything** — not just rules, but actual working code, configs, and dependencies. Your AI assistant can immediately start implementing features using the pre-built patterns.
@@ -282,15 +296,21 @@ While IDE chat is the most intuitive daily workflow, the CLI unlocks precision o
 ### Project Initialization
 
 ```bash
+# First, install Archeon (if not already installed)
+git clone git@github.com:danaia/archeon.git
+cd archeon && pip install -e .
+
 # Lightweight: IDE rules only (minimal scaffolding)
+cd .. && mkdir my-app && cd my-app
 arc init
 arc ai-setup
 
 # Complete: Architecture shape (full scaffolding)
 arc shapes                              # List available shapes
-arc init --arch vue3-fastapi            # Full Vue 3 + FastAPI stack
-arc init --arch react-fastapi           # Full React + FastAPI stack
-arc init --arch vue3-fastapi --copilot  # With IDE rules included
+arc init --arch nextjs-express          # Next.js 14 + Express + TypeScript
+arc init --arch vue3-fastapi            # Vue 3 + FastAPI + MongoDB
+arc init --arch react-fastapi           # React + FastAPI + MongoDB
+arc init --arch nextjs-express --copilot  # With IDE rules included
 
 # Manual framework selection (uses shapes behind the scenes)
 arc init --frontend vue3 --backend fastapi
@@ -521,10 +541,30 @@ my-app/
 ## Installation
 
 ```bash
-# Clone and install
+# Clone and install from GitHub
 git clone git@github.com:danaia/archeon.git
 cd archeon
 pip install -e .
+
+# Verify installation
+arc --version
+
+# Quick start - choose your path:
+# Path 1: Lightweight IDE rules
+cd ..
+mkdir my-app && cd my-app
+arc init
+arc ai-setup
+
+# Path 2: Complete architecture shape
+cd ..
+mkdir my-app && cd my-app
+arc init --arch nextjs-express
+arc ai-setup  # Optional but recommended
+
+# Uninstall
+pip uninstall archeon
+```
 
 # Verify installation
 arc --version

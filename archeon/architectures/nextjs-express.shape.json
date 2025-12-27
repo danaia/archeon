@@ -1,0 +1,484 @@
+{
+  "meta": {
+    "id": "nextjs-express",
+    "name": "Next.js 14 + Express + TypeScript",
+    "description": "Modern full-stack TypeScript with Next.js App Router, React Server Components, Zustand, and Express",
+    "version": "1.0.0",
+    "tags": ["fullstack", "typescript", "nextjs", "react", "express", "modern"]
+  },
+  "stack": {
+    "frontend": {
+      "framework": "nextjs",
+      "version": "14.x",
+      "language": "typescript",
+      "stateManager": "zustand",
+      "styling": "tailwindcss",
+      "router": "app-router"
+    },
+    "backend": {
+      "framework": "express",
+      "language": "typescript",
+      "database": "mongodb",
+      "orm": "mongoose"
+    }
+  },
+  "directories": {
+    "client": {
+      "src": {
+        "app": {},
+        "components": {},
+        "stores": {},
+        "lib": {
+          "utils": {}
+        },
+        "types": {}
+      }
+    },
+    "server": {
+      "src": {
+        "api": {
+          "routes": {},
+          "middleware": {}
+        },
+        "models": {},
+        "events": {},
+        "lib": {},
+        "types": {}
+      }
+    }
+  },
+  "glyphs": {
+    "CMP": {
+      "description": "React Server/Client Component with TypeScript",
+      "layer": "frontend",
+      "output": {
+        "directory": "client/src/components",
+        "extension": ".tsx",
+        "naming": "PascalCase"
+      },
+      "sections": ["imports", "types", "component", "exports"],
+      "snippet": "// @archeon:file\n// @glyph {GLYPH_NAME}\n// @intent {INTENT}\n// @chain {CHAIN}\n\n// @archeon:section imports\n'use client';\n\nimport { cn } from '@/lib/utils';\n{IMPORTS}\n// @archeon:endsection\n\n// @archeon:section types\ninterface {NAME}Props {\n  className?: string;\n  {PROPS}\n}\n// @archeon:endsection\n\n// @archeon:section component\nexport function {NAME}({ className, {PROP_NAMES} }: {NAME}Props) {\n  return (\n    <div className={cn('', className)}>\n      {/* Component content */}\n      {CONTENT}\n    </div>\n  );\n}\n// @archeon:endsection",
+      "placeholders": {
+        "GLYPH_NAME": {
+          "description": "Full glyph identifier (e.g., CMP:LoginForm)",
+          "required": true
+        },
+        "INTENT": {
+          "description": "Component purpose",
+          "default": "Component"
+        },
+        "CHAIN": {
+          "description": "Chain reference",
+          "default": "@v1"
+        },
+        "NAME": {
+          "description": "Component name in PascalCase",
+          "required": true
+        },
+        "IMPORTS": {
+          "description": "Additional imports",
+          "default": ""
+        },
+        "PROPS": {
+          "description": "Additional prop definitions",
+          "default": ""
+        },
+        "PROP_NAMES": {
+          "description": "Destructured prop names",
+          "default": ""
+        },
+        "CONTENT": {
+          "description": "Component JSX content",
+          "default": ""
+        }
+      }
+    },
+    "STO": {
+      "description": "Zustand store with TypeScript",
+      "layer": "frontend",
+      "output": {
+        "directory": "client/src/stores",
+        "extension": ".ts",
+        "naming": "camelCase"
+      },
+      "sections": ["imports", "types", "store", "exports"],
+      "snippet": "// @archeon:file\n// @glyph {GLYPH_NAME}\n// @intent {INTENT}\n// @chain {CHAIN}\n\n// @archeon:section imports\nimport { create } from 'zustand';\nimport { devtools, persist } from 'zustand/middleware';\n{IMPORTS}\n// @archeon:endsection\n\n// @archeon:section types\ninterface {NAME}State {\n  {STATE_FIELDS}\n}\n\ninterface {NAME}Actions {\n  {ACTION_FIELDS}\n}\n\ntype {NAME}Store = {NAME}State & {NAME}Actions;\n// @archeon:endsection\n\n// @archeon:section store\nexport const use{NAME} = create<{NAME}Store>()((\n  devtools(\n    persist(\n      (set, get) => ({\n        // State\n        {INITIAL_STATE}\n        \n        // Actions\n        {ACTIONS}\n      }),\n      {\n        name: '{STORE_NAME}-storage',\n      }\n    )\n  )\n));\n// @archeon:endsection",
+      "placeholders": {
+        "GLYPH_NAME": {
+          "description": "Full glyph identifier",
+          "required": true
+        },
+        "INTENT": {
+          "description": "Store purpose",
+          "default": "State store"
+        },
+        "CHAIN": {
+          "description": "Chain reference",
+          "default": "@v1"
+        },
+        "NAME": {
+          "description": "Store name in PascalCase (e.g., Auth)",
+          "required": true
+        },
+        "STORE_NAME": {
+          "description": "Storage key name",
+          "required": true
+        },
+        "IMPORTS": {
+          "description": "Additional imports",
+          "default": ""
+        },
+        "STATE_FIELDS": {
+          "description": "State field definitions",
+          "default": "// Add state fields"
+        },
+        "ACTION_FIELDS": {
+          "description": "Action function signatures",
+          "default": "// Add actions"
+        },
+        "INITIAL_STATE": {
+          "description": "Initial state values",
+          "default": "// Initial state"
+        },
+        "ACTIONS": {
+          "description": "Action implementations",
+          "default": "// Actions"
+        }
+      }
+    },
+    "API": {
+      "description": "Express TypeScript route handler",
+      "layer": "backend",
+      "output": {
+        "directory": "server/src/api/routes",
+        "extension": ".ts",
+        "naming": "camelCase"
+      },
+      "sections": ["imports", "types", "route", "exports"],
+      "snippet": "// @archeon:file\n// @glyph {GLYPH_NAME}\n// @intent {INTENT}\n// @chain {CHAIN}\n\n// @archeon:section imports\nimport { Router, Request, Response, NextFunction } from 'express';\nimport { z } from 'zod';\n{IMPORTS}\n// @archeon:endsection\n\n// @archeon:section types\nconst {NAME}Schema = z.object({\n  {SCHEMA_FIELDS}\n});\n\ntype {NAME}Body = z.infer<typeof {NAME}Schema>;\n// @archeon:endsection\n\n// @archeon:section route\nconst router = Router();\n\nrouter.{METHOD}('{PATH}', async (\n  req: Request<{}, {}, {NAME}Body>,\n  res: Response,\n  next: NextFunction\n) => {\n  try {\n    // Validate request body\n    const data = {NAME}Schema.parse(req.body);\n    \n    {IMPLEMENTATION}\n    \n    res.status({SUCCESS_CODE}).json({\n      success: true,\n      data: {RESPONSE_DATA}\n    });\n  } catch (error) {\n    if (error instanceof z.ZodError) {\n      return res.status(400).json({\n        success: false,\n        error: 'Validation failed',\n        details: error.errors\n      });\n    }\n    next(error);\n  }\n});\n// @archeon:endsection\n\n// @archeon:section exports\nexport default router;\n// @archeon:endsection",
+      "placeholders": {
+        "GLYPH_NAME": {
+          "description": "Full glyph identifier (e.g., API:POST/auth/login)",
+          "required": true
+        },
+        "INTENT": {
+          "description": "Route purpose",
+          "default": "API endpoint"
+        },
+        "CHAIN": {
+          "description": "Chain reference",
+          "default": "@v1"
+        },
+        "NAME": {
+          "description": "Route name in PascalCase",
+          "required": true
+        },
+        "METHOD": {
+          "description": "HTTP method (get, post, put, delete, patch)",
+          "default": "post"
+        },
+        "PATH": {
+          "description": "Route path",
+          "required": true
+        },
+        "IMPORTS": {
+          "description": "Additional imports",
+          "default": ""
+        },
+        "SCHEMA_FIELDS": {
+          "description": "Zod schema field definitions",
+          "default": "// Add validation schema"
+        },
+        "IMPLEMENTATION": {
+          "description": "Route implementation logic",
+          "default": "// Implementation"
+        },
+        "SUCCESS_CODE": {
+          "description": "Success HTTP status code",
+          "default": "200"
+        },
+        "RESPONSE_DATA": {
+          "description": "Response data object",
+          "default": "{}"
+        }
+      }
+    },
+    "MDL": {
+      "description": "Mongoose TypeScript model",
+      "layer": "backend",
+      "output": {
+        "directory": "server/src/models",
+        "extension": ".ts",
+        "naming": "PascalCase"
+      },
+      "sections": ["imports", "interface", "schema", "model", "exports"],
+      "snippet": "// @archeon:file\n// @glyph {GLYPH_NAME}\n// @intent {INTENT}\n// @chain {CHAIN}\n\n// @archeon:section imports\nimport mongoose, { Document, Schema, Model } from 'mongoose';\n{IMPORTS}\n// @archeon:endsection\n\n// @archeon:section interface\nexport interface I{NAME} extends Document {\n  {FIELDS}\n  createdAt: Date;\n  updatedAt: Date;\n}\n// @archeon:endsection\n\n// @archeon:section schema\nconst {NAME}Schema = new Schema<I{NAME}>(\n  {\n    {SCHEMA_DEFINITION}\n  },\n  {\n    timestamps: true,\n  }\n);\n\n// Indexes\n{INDEXES}\n\n// Methods\n{METHODS}\n\n// Statics\n{STATICS}\n// @archeon:endsection\n\n// @archeon:section model\nconst {NAME}: Model<I{NAME}> = mongoose.models.{NAME} || mongoose.model<I{NAME}>('{NAME}', {NAME}Schema);\n// @archeon:endsection\n\n// @archeon:section exports\nexport default {NAME};\n// @archeon:endsection",
+      "placeholders": {
+        "GLYPH_NAME": {
+          "description": "Full glyph identifier",
+          "required": true
+        },
+        "INTENT": {
+          "description": "Model purpose",
+          "default": "Database model"
+        },
+        "CHAIN": {
+          "description": "Chain reference",
+          "default": "@v1"
+        },
+        "NAME": {
+          "description": "Model name in PascalCase",
+          "required": true
+        },
+        "IMPORTS": {
+          "description": "Additional imports",
+          "default": ""
+        },
+        "FIELDS": {
+          "description": "TypeScript interface fields",
+          "default": "// Add fields"
+        },
+        "SCHEMA_DEFINITION": {
+          "description": "Mongoose schema definition",
+          "default": "// Schema fields"
+        },
+        "INDEXES": {
+          "description": "Schema indexes",
+          "default": "// Add indexes if needed"
+        },
+        "METHODS": {
+          "description": "Instance methods",
+          "default": "// Add methods if needed"
+        },
+        "STATICS": {
+          "description": "Static methods",
+          "default": "// Add static methods if needed"
+        }
+      }
+    },
+    "EVT": {
+      "description": "Event emitter/handler",
+      "layer": "backend",
+      "output": {
+        "directory": "server/src/events",
+        "extension": ".ts",
+        "naming": "camelCase"
+      },
+      "sections": ["imports", "types", "emitter", "handlers", "exports"],
+      "snippet": "// @archeon:file\n// @glyph {GLYPH_NAME}\n// @intent {INTENT}\n// @chain {CHAIN}\n\n// @archeon:section imports\nimport { EventEmitter } from 'events';\n{IMPORTS}\n// @archeon:endsection\n\n// @archeon:section types\ninterface {NAME}Payload {\n  {PAYLOAD_FIELDS}\n}\n// @archeon:endsection\n\n// @archeon:section emitter\nclass {NAME}Emitter extends EventEmitter {\n  emit(event: '{EVENT_NAME}', data: {NAME}Payload): boolean {\n    return super.emit(event, data);\n  }\n  \n  on(event: '{EVENT_NAME}', listener: (data: {NAME}Payload) => void): this {\n    return super.on(event, listener);\n  }\n}\n\nexport const {INSTANCE_NAME} = new {NAME}Emitter();\n// @archeon:endsection\n\n// @archeon:section handlers\n{INSTANCE_NAME}.on('{EVENT_NAME}', async (data) => {\n  try {\n    {HANDLER_IMPLEMENTATION}\n  } catch (error) {\n    console.error('[{EVENT_NAME}] Error:', error);\n  }\n});\n// @archeon:endsection",
+      "placeholders": {
+        "GLYPH_NAME": {
+          "description": "Full glyph identifier",
+          "required": true
+        },
+        "INTENT": {
+          "description": "Event purpose",
+          "default": "Event handler"
+        },
+        "CHAIN": {
+          "description": "Chain reference",
+          "default": "@v1"
+        },
+        "NAME": {
+          "description": "Event class name in PascalCase",
+          "required": true
+        },
+        "EVENT_NAME": {
+          "description": "Event name string",
+          "required": true
+        },
+        "INSTANCE_NAME": {
+          "description": "Exported instance name",
+          "required": true
+        },
+        "IMPORTS": {
+          "description": "Additional imports",
+          "default": ""
+        },
+        "PAYLOAD_FIELDS": {
+          "description": "Event payload field definitions",
+          "default": "// Payload fields"
+        },
+        "HANDLER_IMPLEMENTATION": {
+          "description": "Event handler implementation",
+          "default": "// Handle event"
+        }
+      }
+    },
+    "FNC": {
+      "description": "Utility function",
+      "layer": "shared",
+      "output": {
+        "directory": "lib",
+        "extension": ".ts",
+        "naming": "camelCase"
+      },
+      "sections": ["imports", "types", "function", "exports"],
+      "snippet": "// @archeon:file\n// @glyph {GLYPH_NAME}\n// @intent {INTENT}\n// @chain {CHAIN}\n\n// @archeon:section imports\n{IMPORTS}\n// @archeon:endsection\n\n// @archeon:section types\ntype {NAME}Params = {\n  {PARAMS}\n};\n\ntype {NAME}Return = {RETURN_TYPE};\n// @archeon:endsection\n\n// @archeon:section function\nexport function {FUNCTION_NAME}({\n  {PARAM_NAMES}\n}: {NAME}Params): {NAME}Return {\n  {IMPLEMENTATION}\n}\n// @archeon:endsection",
+      "placeholders": {
+        "GLYPH_NAME": {
+          "description": "Full glyph identifier",
+          "required": true
+        },
+        "INTENT": {
+          "description": "Function purpose",
+          "default": "Utility function"
+        },
+        "CHAIN": {
+          "description": "Chain reference",
+          "default": "@v1"
+        },
+        "NAME": {
+          "description": "Type name in PascalCase",
+          "required": true
+        },
+        "FUNCTION_NAME": {
+          "description": "Function name in camelCase",
+          "required": true
+        },
+        "IMPORTS": {
+          "description": "Additional imports",
+          "default": ""
+        },
+        "PARAMS": {
+          "description": "Parameter type definitions",
+          "default": "// Parameters"
+        },
+        "PARAM_NAMES": {
+          "description": "Destructured parameter names",
+          "default": ""
+        },
+        "RETURN_TYPE": {
+          "description": "Return type",
+          "default": "void"
+        },
+        "IMPLEMENTATION": {
+          "description": "Function implementation",
+          "default": "// Implementation"
+        }
+      }
+    },
+    "V": {
+      "description": "Next.js App Router page",
+      "layer": "frontend",
+      "output": {
+        "directory": "client/src/app",
+        "extension": "/page.tsx",
+        "naming": "kebab-case"
+      },
+      "sections": ["imports", "types", "page", "exports"],
+      "snippet": "// @archeon:file\n// @glyph {GLYPH_NAME}\n// @intent {INTENT}\n// @chain {CHAIN}\n\n// @archeon:section imports\nimport { Metadata } from 'next';\n{IMPORTS}\n// @archeon:endsection\n\n// @archeon:section types\nexport const metadata: Metadata = {\n  title: '{TITLE}',\n  description: '{DESCRIPTION}',\n};\n\ninterface {NAME}PageProps {\n  params: { {PARAMS} };\n  searchParams: { {SEARCH_PARAMS} };\n}\n// @archeon:endsection\n\n// @archeon:section page\nexport default async function {NAME}Page({\n  params,\n  searchParams,\n}: {NAME}PageProps) {\n  {IMPLEMENTATION}\n  \n  return (\n    <div>\n      {CONTENT}\n    </div>\n  );\n}\n// @archeon:endsection",
+      "placeholders": {
+        "GLYPH_NAME": {
+          "description": "Full glyph identifier",
+          "required": true
+        },
+        "INTENT": {
+          "description": "Page purpose",
+          "default": "Page"
+        },
+        "CHAIN": {
+          "description": "Chain reference",
+          "default": "@v1"
+        },
+        "NAME": {
+          "description": "Page name in PascalCase",
+          "required": true
+        },
+        "TITLE": {
+          "description": "Page title",
+          "required": true
+        },
+        "DESCRIPTION": {
+          "description": "Page description",
+          "default": ""
+        },
+        "IMPORTS": {
+          "description": "Additional imports",
+          "default": ""
+        },
+        "PARAMS": {
+          "description": "Route params type definition",
+          "default": ""
+        },
+        "SEARCH_PARAMS": {
+          "description": "Search params type definition",
+          "default": ""
+        },
+        "IMPLEMENTATION": {
+          "description": "Page server-side logic",
+          "default": ""
+        },
+        "CONTENT": {
+          "description": "Page JSX content",
+          "default": "<h1>Page</h1>"
+        }
+      }
+    }
+  },
+  "config": {
+    "tailwind": {
+      "path": "client/tailwind.config.ts",
+      "content": "import type { Config } from 'tailwindcss';\n\nconst config: Config = {\n  content: [\n    './src/pages/**/*.{js,ts,jsx,tsx,mdx}',\n    './src/components/**/*.{js,ts,jsx,tsx,mdx}',\n    './src/app/**/*.{js,ts,jsx,tsx,mdx}',\n  ],\n  theme: {\n    extend: {\n      colors: {\n        background: 'var(--background)',\n        foreground: 'var(--foreground)',\n      },\n    },\n  },\n  plugins: [],\n};\n\nexport default config;"
+    },
+    "utils": {
+      "path": "client/src/lib/utils.ts",
+      "content": "import { type ClassValue, clsx } from 'clsx';\nimport { twMerge } from 'tailwind-merge';\n\nexport function cn(...inputs: ClassValue[]) {\n  return twMerge(clsx(inputs));\n}"
+    },
+    "tsconfig-client": {
+      "path": "client/tsconfig.json",
+      "content": "{\n  \"compilerOptions\": {\n    \"target\": \"ES2020\",\n    \"lib\": [\"ES2020\", \"DOM\", \"DOM.Iterable\"],\n    \"jsx\": \"preserve\",\n    \"module\": \"ESNext\",\n    \"moduleResolution\": \"bundler\",\n    \"resolveJsonModule\": true,\n    \"allowJs\": true,\n    \"strict\": true,\n    \"noEmit\": true,\n    \"esModuleInterop\": true,\n    \"skipLibCheck\": true,\n    \"forceConsistentCasingInFileNames\": true,\n    \"incremental\": true,\n    \"plugins\": [\n      {\n        \"name\": \"next\"\n      }\n    ],\n    \"paths\": {\n      \"@/*\": [\"./src/*\"]\n    }\n  },\n  \"include\": [\"next-env.d.ts\", \"**/*.ts\", \"**/*.tsx\", \".next/types/**/*.ts\"],\n  \"exclude\": [\"node_modules\"]\n}"
+    },
+    "tsconfig-server": {
+      "path": "server/tsconfig.json",
+      "content": "{\n  \"compilerOptions\": {\n    \"target\": \"ES2020\",\n    \"lib\": [\"ES2020\"],\n    \"module\": \"commonjs\",\n    \"moduleResolution\": \"node\",\n    \"resolveJsonModule\": true,\n    \"strict\": true,\n    \"esModuleInterop\": true,\n    \"skipLibCheck\": true,\n    \"forceConsistentCasingInFileNames\": true,\n    \"outDir\": \"./dist\",\n    \"rootDir\": \"./src\",\n    \"declaration\": true,\n    \"declarationMap\": true,\n    \"sourceMap\": true\n  },\n  \"include\": [\"src/**/*\"],\n  \"exclude\": [\"node_modules\", \"dist\"]\n}"
+    },
+    "nextConfig": {
+      "path": "client/next.config.js",
+      "content": "/** @type {import('next').NextConfig} */\nconst nextConfig = {\n  reactStrictMode: true,\n};\n\nmodule.exports = nextConfig;"
+    }
+  },
+  "prebuilt": {
+    "ThemeToggle": {
+      "path": "client/src/components/ThemeToggle.tsx",
+      "glyph": "CMP:ThemeToggle",
+      "description": "Dark/light mode toggle button"
+    },
+    "ThemeProvider": {
+      "path": "client/src/components/ThemeProvider.tsx",
+      "glyph": "CMP:ThemeProvider",
+      "description": "Theme context provider"
+    },
+    "themeStore": {
+      "path": "client/src/stores/theme.ts",
+      "glyph": "STO:theme",
+      "description": "Theme state management"
+    }
+  },
+  "dependencies": {
+    "client": {
+      "next": "^14.0.0",
+      "react": "^18.2.0",
+      "react-dom": "^18.2.0",
+      "zustand": "^4.4.0",
+      "clsx": "^2.0.0",
+      "tailwind-merge": "^2.0.0",
+      "tailwindcss": "^3.3.0",
+      "typescript": "^5.3.0",
+      "@types/react": "^18.2.0",
+      "@types/react-dom": "^18.2.0",
+      "@types/node": "^20.0.0"
+    },
+    "server": {
+      "express": "^4.18.0",
+      "mongoose": "^8.0.0",
+      "zod": "^3.22.0",
+      "cors": "^2.8.0",
+      "dotenv": "^16.3.0",
+      "typescript": "^5.3.0",
+      "@types/express": "^4.17.0",
+      "@types/node": "^20.0.0",
+      "@types/cors": "^2.8.0"
+    }
+  }
+}
