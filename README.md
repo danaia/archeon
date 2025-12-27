@@ -17,12 +17,12 @@ With Archeon:     "AI, build a login"  → NED:login => CMP:LoginForm => API:POS
 
 Archeon offers **two distinct workflows** depending on how much control and scaffolding you need:
 
-|                  | **🎯 IDE AI Rules**              | **🏗️ Architecture Shapes**                     |
-| ---------------- | -------------------------------- | ---------------------------------------------- |
-| **Best for**     | Existing projects, minimal setup | New projects, complete scaffolding             |
-| **Setup time**   | < 1 minute                       | 2-3 minutes                                    |
-| **What you get** | Glyph rules for your IDE         | Full project structure + pre-built components  |
-| **Command**      | `arc init` + `arc ai-setup`      | `arc init --arch nextjs-express` |
+|                  | **🎯 IDE AI Rules**              | **🏗️ Architecture Shapes**                    |
+| ---------------- | -------------------------------- | --------------------------------------------- |
+| **Best for**     | Existing projects, minimal setup | New projects, complete scaffolding            |
+| **Setup time**   | < 1 minute                       | 2-3 minutes                                   |
+| **What you get** | Glyph rules for your IDE         | Full project structure + pre-built components |
+| **Command**      | `arc init` + `arc ai-setup`      | `arc init --arch nextjs-express`              |
 
 ---
 
@@ -101,11 +101,11 @@ arc ai-setup
 
 **Available Shapes:**
 
-| Shape ID          | Stack                                                 | What's Included                                       |
-| ----------------- | ----------------------------------------------------- | ----------------------------------------------------- |
-| `nextjs-express`  | **Next.js 14, Zustand, Express, TypeScript, Mongoose** | **Modern full-stack, App Router, RSC, Zod validation** |
-| `vue3-fastapi`    | Vue 3, Pinia, Tailwind, FastAPI, MongoDB              | Complete monorepo, theme system, pre-built components |
-| `react-fastapi`   | React, Zustand, Tailwind, FastAPI, MongoDB            | Complete monorepo, theme system, pre-built components |
+| Shape ID         | Stack                                                  | What's Included                                        |
+| ---------------- | ------------------------------------------------------ | ------------------------------------------------------ |
+| `nextjs-express` | **Next.js 14, Zustand, Express, TypeScript, Mongoose** | **Modern full-stack, App Router, RSC, Zod validation** |
+| `vue3-fastapi`   | Vue 3, Pinia, Tailwind, FastAPI, MongoDB               | Complete monorepo, theme system, pre-built components  |
+| `react-fastapi`  | React, Zustand, Tailwind, FastAPI, MongoDB             | Complete monorepo, theme system, pre-built components  |
 
 **Project structure after shape initialization (nextjs-express):**
 
