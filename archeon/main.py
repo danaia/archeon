@@ -309,12 +309,10 @@ model-settings-yaml: |
         rprint(f"  [cyan]cd client && npm install[/cyan]")
         rprint(f"  [cyan]cd server && pip install -r requirements.txt[/cyan]")
     
-    rprint(f"\n  [bold]Next:[/bold] Describe a feature in natural language:")
-    rprint(f"  [cyan]arc intent \"user logs in with email and password\"[/cyan]")
-    rprint(f"\n  Or use glyph notation directly:")
+    rprint(f"\n  You use glyph notation directly if you like:")
     rprint(f"  [cyan]arc parse \"NED:login => CMP:LoginForm => API:POST/auth => OUT:dashboard\"[/cyan]")
     
-    rprint(f"\n  [bold]Tip:[/bold] Run [cyan]arc ai-setup[/cyan] to configure IDE AI assistants")
+    rprint(f"\n  [bold]Next Up:[/bold] Talk with your AI! [cyan]arc ai-setup[/cyan] build something awesome!")
 
 
 @app.command("shapes")
