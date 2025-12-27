@@ -1,15 +1,65 @@
 # Archeon
 
-> Glyph-based architecture notation system for AI-orchestrated software development.
+> **The essential constraint layer for vibe coding.** Stop LLM drift. Start shipping consistent code.
 
-Archeon provides a hyper-compressed, human-readable **intermediate representation (IR)** that serves as both documentation and executable specification. It's a **constraint layer** that any LLM can understand, preventing hallucinations and architectural drift.
+---
+
+## The Problem: LLM Drift Destroys Vibe Coding
+
+LLMs have **zero persistent memory** between sessions. Every chat is a blank slate.
+
+Your AI assistant **forgets your architecture** the moment you close the window.
+
+Without constraints, the same prompt generates **different code patterns every time**.
+
+This is **LLM drift** — and it's why "vibe coding" (informal AI-assisted development) breaks down after a few sessions:
+
+- **Session 1:** AI builds login with Redux
+- **Session 2:** AI builds profile with Zustand (forgot Redux exists)
+- **Session 3:** AI refactors login to Context API (now you have 3 state systems)
+
+**Result:** Architectural chaos. Inconsistent patterns. Constant refactoring. Your "vibe" becomes a nightmare.
+
+---
+
+## The Solution: Archeon = Persistent Constraint Layer
+
+Archeon is a **hyper-compressed notation system** that acts as your AI's permanent memory:
+
+1. **Glyphs ARE the spec** — Not documentation. Not comments. The architecture itself.
+
+   - `NED:login => CMP:LoginForm => API:POST/auth => OUT:dashboard`
+   - **10 symbols** replace 500 lines of specification
+   - **Zero ambiguity** — AI can't misinterpret a glyph chain
+   - **Works on small models** — Fits in any context window (even local 7B models)
+
+2. **Why compression matters:**
+
+   - Traditional specs: AI reads 50-page docs → interprets → hallucinates edge cases
+   - Archeon glyphs: AI reads `CMP => STO => API` → executes pattern → no interpretation needed
+   - **Smaller context = fewer tokens = faster inference = works locally**
+
+3. **Read on every session** — AI loads the graph before generating code (via IDE rules or shapes)
+
+4. **Cannot deviate** — Only 10 glyph types exist. AI cannot invent `XYZ:Something`
+
+5. **Enforced patterns** — Architecture shapes lock in your exact code style
+
+**The result:**
 
 ```
-Without Archeon:  "AI, build a login"  → Random architecture every time
+Without Archeon:  "AI, add a feature"  → Random patterns, architectural drift
 
-With Archeon:     "AI, build a login"  → NED:login => CMP:LoginForm => API:POST/auth
-                                        → Same structure, any model, always
+With Archeon:     "AI, add a feature"  → Reads ARCHEON.arcon → Follows existing chains
+                                        → Same patterns, every time, any LLM
 ```
+
+**Why it works:**
+
+- ✅ **Persistent memory** — Graph survives sessions, not chat history
+- ✅ **Model-portable** — Switch GPT ↔ Claude ↔ Gemini, graph remains
+- ✅ **Human-readable** — You control the notation, not black-box prompts
+- ✅ **Enforceable** — Shapes = code templates AI must follow
 
 ---
 
@@ -235,29 +285,60 @@ Archeon is **rule-based** — it generates IDE-specific configuration files that
 
 ---
 
-## Why Archeon?
+## Why This Actually Works: The Technical Reality
 
-```
-Without Archeon:  "AI, build me a login"  → Random architecture every time
+### The Core Truth About LLMs
 
-With Archeon:     "AI, build me a login"
-                  → AI writes: NED:login => CMP:LoginForm => API:POST/auth => OUT:dashboard
-                  → Same structure, any model, always
-```
+**LLMs are stateless.** Every conversation starts from zero. They have:
 
-**Anti-hallucination** - Models can't invent random patterns. Glyphs define what's allowed.  
-**Anti-drift** - Context persists in `.arcon` files, not in chat history.  
-**Model-portable** - Switch Claude to GPT mid-project. The graph remains.
+- ❌ No memory of previous sessions
+- ❌ No awareness of your existing codebase patterns
+- ❌ No way to enforce consistency between features
 
-### Measured Impact
+**This is not a bug — it's fundamental to how transformers work.**
 
-| Metric                   | Traditional AI  | Archeon     |
-| ------------------------ | --------------- | ----------- |
-| Structural drift         | 60% of features | **0%**      |
-| Missing outcomes         | 42% incomplete  | **0%**      |
-| Time to valid code       | ~35 min         | **~10 min** |
-| Structural rework        | 60%             | **~1-2%**   |
-| Weekly refactor overhead | 3+ hrs          | **<10 min** |
+### How Archeon Solves This
+
+Archeon creates a **persistent constraint layer** that exists outside the LLM:
+
+1. **`ARCHEON.arcon` = Hyper-Compressed Specification**
+
+   - Every feature is a glyph chain
+   - **10 symbols** replace hundreds of lines of documentation
+   - **Example:** `NED:login => CMP:LoginForm => STO:Auth => API:POST/auth => OUT:dashboard`
+     - **Glyph version:** 71 characters
+     - **Traditional spec:** 500+ lines of requirements, diagrams, and edge cases
+   - AI cannot generate code without consulting it first
+
+2. **Why Glyphs Eliminate Hallucinations**
+
+   - **No interpretation needed** — `API:POST/auth` means one thing, always
+   - **No ambiguity** — Can't misread a symbol like you can misread prose
+   - **Fits any context window** — Even 7B local models can process entire architecture
+   - **Validation is mechanical** — Parser catches invalid glyphs before generation
+
+3. **Glyphs = Hard Constraints**
+
+   - Only 10 glyph types allowed (NED, TSK, CMP, STO, API, MDL, EVT, FNC, OUT, ERR)
+   - AI cannot invent new patterns
+   - Validation catches drift before code generation
+
+4. **Shapes = Template Enforcement**
+   - Your code patterns defined in JSON
+   - AI fills templates, doesn't freestyle
+   - 100% consistency across all generated code
+
+### Why Other Approaches Fail
+
+| Approach               | Why It Fails                         | Archeon's Advantage                     |
+| ---------------------- | ------------------------------------ | --------------------------------------- |
+| **Detailed prompts**   | LLM forgets prompt in next session   | Graph persists forever                  |
+| **Code comments**      | LLM may or may not read them         | AI MUST read .arcon before generating   |
+| **Linting rules**      | Only catches errors after generation | Prevents invalid patterns before coding |
+| **Documentation**      | Gets outdated, LLM can ignore        | Graph IS the code, always in sync       |
+| **Senior dev reviews** | Expensive, slow, humans drift too    | Instant validation, zero cost           |
+
+**The difference:** Archeon is not documentation. It's a **compiler** for AI behavior.
 
 ---
 
