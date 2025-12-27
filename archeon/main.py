@@ -312,7 +312,7 @@ model-settings-yaml: |
     rprint(f"\n  You use glyph notation directly if you like:")
     rprint(f"  [cyan]arc parse \"NED:login => CMP:LoginForm => API:POST/auth => OUT:dashboard\"[/cyan]")
     
-    rprint(f"\n  [bold]Next Up:[/bold] Talk with your AI! [cyan]arc ai-setup[/cyan] build something awesome!")
+    rprint(f"\n  [bold]Next Up:[/bold] [cyan] Talk with your AI! [/cyan] Go build something awesome!")
 
 
 @app.command("shapes")
