@@ -986,11 +986,17 @@ async def health_check():
         )
 
 
-def create_arcon_file(archeon_dir: Path, project_name: str):
-    """Create initial ARCHEON.arcon file."""
+def create_arcon_file(archeon_dir: Path, project_name: str, shape_id: str = None):
+    """Create initial ARCHEON.arcon file.
+    
+    Args:
+        archeon_dir: Path to archeon directory
+        project_name: Name of the project
+        shape_id: Architecture shape ID if a shape was used during init
+    """
     arcon_path = archeon_dir / "ARCHEON.arcon"
     if not arcon_path.exists():
-        arcon_path.write_text(
+        content = (
             "# Archeon Knowledge Graph\n"
             "# Version: 2.0\n"
             f"# Project: {project_name}\n"
@@ -1000,8 +1006,19 @@ def create_arcon_file(archeon_dir: Path, project_name: str):
             "GRF:domain :: ORC:main\n"
             "\n"
             "# === AGENT CHAINS ===\n"
-            "# Add chains using: archeon parse \"<chain>\"\n"
         )
+        
+        # Add default ready glyph when shape is installed
+        if shape_id:
+            content += (
+                f"# System ready - Architecture shape '{shape_id}' installed\n"
+                f"# This chain will be replaced when you start building features\n"
+                f"@v1 NED:system.ready => OUT:architecture.installed\n"
+                "\n"
+            )
+        
+        content += "# Add chains using: archeon parse \"<chain>\"\n"
+        arcon_path.write_text(content)
     
     # Also create the index file
     create_index_file(archeon_dir, project_name)

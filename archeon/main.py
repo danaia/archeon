@@ -171,7 +171,8 @@ def init(
                 pass  # Non-fatal: tokens can be generated later with `arc tokens build`
     
     # Create ARCHEON.arcon (also creates ARCHEON.index.json)
-    create_arcon_file(archeon_dir, target.name)
+    # Pass shape_id to add default ready glyph
+    create_arcon_file(archeon_dir, target.name, shape_id=shape_id if used_shape else None)
     
     # Create .archeonrc config file
     create_archeonrc_file(target, monorepo, frontend, backend)
