@@ -29,6 +29,21 @@
 # - `arc init --arch vue3-fastapi` - Initialize with specific shape
 # - `arc init -f vue3 -b fastapi` - Auto-maps to vue3-fastapi shape
 #
+# SHAPE INSTALLATION:
+# When you run `arc init --arch <shape-id>`, Archeon will:
+# 1. Create project structure (client/, server/, archeon/)
+# 2. Copy shape file to archeon/<shape-id>.shape.json
+# 3. Add a default NED:system.ready glyph to ARCHEON.arcon
+# 4. This default glyph signals the system is ready for AI-driven development
+# 5. The glyph will be automatically replaced as you build real features
+#
+# DEFAULT READY GLYPH (auto-generated):
+# ```
+# @v1 NED:system.ready => OUT:architecture.installed
+# ```
+# This placeholder chain indicates the architecture is installed and ready.
+# Start chatting with your AI to create the first real feature chain!
+#
 # SHAPE LOCATIONS:
 # - Built-in: archeon/architectures/*.shape.json
 # - Project: archeon/<shape-id>.shape.json (copied on init)
