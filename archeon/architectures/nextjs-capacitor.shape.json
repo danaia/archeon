@@ -1,0 +1,193 @@
+{
+  "meta": {
+    "id": "nextjs-capacitor",
+    "name": "Next.js 14 + React + Capacitor (Near-Native Mobile)",
+    "description": "Near-native mobile app using Next.js App Router wrapped with Capacitor, offline-first, plugin-gated IO",
+    "version": "1.0.0",
+    "tags": ["mobile", "capacitor", "nextjs", "react", "offline-first"]
+  },
+
+  "defaultChain": "@v1 NED:system.ready => ARC:nextjs-capacitor => OUT:installed",
+
+  "stack": {
+    "frontend": {
+      "framework": "nextjs",
+      "version": "14.x",
+      "language": "typescript",
+      "runtime": "capacitor",
+      "stateManager": "zustand",
+      "styling": "tailwindcss",
+      "router": "app-router"
+    },
+    "platform": {
+      "wrapper": "capacitor",
+      "targets": ["ios", "android"],
+      "plugins": [
+        "camera",
+        "filesystem",
+        "preferences",
+        "push-notifications",
+        "haptics",
+        "device",
+        "network"
+      ]
+    }
+  },
+
+  "directories": {
+    "client": {
+      "src": {
+        "app": {},
+        "components": {},
+        "features": {},
+        "stores": {},
+        "services": {},
+        "adapters": {},
+        "platform": {
+          "plugins": {},
+          "permissions": {}
+        },
+        "lib": {
+          "http": {},
+          "cache": {},
+          "utils": {}
+        },
+        "types": {}
+      }
+    }
+  },
+
+  "glyphs": {
+    "CMP": {
+      "description": "React component (UI only, no IO)",
+      "layer": "frontend",
+      "output": {
+        "directory": "client/src/components",
+        "extension": ".tsx",
+        "naming": "PascalCase"
+      },
+      "sections": ["imports", "types", "component", "exports"],
+      "snippet": "// @archeon:file\n// @glyph {GLYPH_NAME}\n// @intent {INTENT}\n// @chain {CHAIN}\n\n'use client';\n\n// @archeon:section imports\nimport { cn } from '@/lib/utils';\n{IMPORTS}\n// @archeon:endsection\n\n// @archeon:section types\ninterface {NAME}Props {\n  className?: string;\n  {PROPS}\n}\n// @archeon:endsection\n\n// @archeon:section component\nexport function {NAME}({ className, {PROP_NAMES} }: {NAME}Props) {\n  return (\n    <div className={cn('', className)}>\n      {CONTENT}\n    </div>\n  );\n}\n// @archeon:endsection",
+      "placeholders": {
+        "GLYPH_NAME": { "required": true },
+        "INTENT": { "default": "UI Component" },
+        "CHAIN": { "default": "@v1" },
+        "NAME": { "required": true },
+        "IMPORTS": { "default": "" },
+        "PROPS": { "default": "" },
+        "PROP_NAMES": { "default": "" },
+        "CONTENT": { "default": "" }
+      }
+    },
+
+    "STO": {
+      "description": "Zustand store (state + orchestration only)",
+      "layer": "frontend",
+      "output": {
+        "directory": "client/src/stores",
+        "extension": ".ts",
+        "naming": "camelCase"
+      },
+      "sections": ["imports", "types", "store"],
+      "snippet": "// @archeon:file\n// @glyph {GLYPH_NAME}\n// @intent {INTENT}\n// @chain {CHAIN}\n\nimport { create } from 'zustand';\n\ninterface {NAME}State {\n  {STATE}\n}\n\ninterface {NAME}Actions {\n  {ACTIONS}\n}\n\nexport const use{NAME}Store = create<{NAME}State & {NAME}Actions>((set, get) => ({\n  {INITIAL_STATE}\n  {IMPLEMENTATIONS}\n}));",
+      "placeholders": {
+        "GLYPH_NAME": { "required": true },
+        "NAME": { "required": true },
+        "STATE": { "default": "" },
+        "ACTIONS": { "default": "" },
+        "INITIAL_STATE": { "default": "" },
+        "IMPLEMENTATIONS": { "default": "" }
+      }
+    },
+
+    "SVC": {
+      "description": "Service / use-case orchestrator",
+      "layer": "frontend",
+      "output": {
+        "directory": "client/src/services",
+        "extension": ".ts",
+        "naming": "camelCase"
+      },
+      "sections": ["imports", "service"],
+      "snippet": "// @archeon:file\n// @glyph {GLYPH_NAME}\n// @intent {INTENT}\n\nimport { networkAdapter } from '@/adapters/networkAdapter';\n\nexport async function {FUNCTION_NAME}() {\n  {IMPLEMENTATION}\n}",
+      "placeholders": {
+        "GLYPH_NAME": { "required": true },
+        "FUNCTION_NAME": { "required": true },
+        "IMPLEMENTATION": { "default": "" }
+      }
+    },
+
+    "ADP": {
+      "description": "Adapter (HTTP / cache boundary)",
+      "layer": "frontend",
+      "output": {
+        "directory": "client/src/adapters",
+        "extension": ".ts",
+        "naming": "camelCase"
+      },
+      "sections": ["imports", "adapter"],
+      "snippet": "// @archeon:file\n// @glyph {GLYPH_NAME}\n\nexport const {NAME}Adapter = {\n  async fetch() {\n    {IMPLEMENTATION}\n  }\n};",
+      "placeholders": {
+        "GLYPH_NAME": { "required": true },
+        "NAME": { "required": true },
+        "IMPLEMENTATION": { "default": "" }
+      }
+    },
+
+    "PLUG": {
+      "description": "Capacitor plugin wrapper",
+      "layer": "frontend",
+      "output": {
+        "directory": "client/src/platform/plugins",
+        "extension": ".ts",
+        "naming": "camelCase"
+      },
+      "sections": ["imports", "plugin"],
+      "snippet": "// @archeon:file\n// @glyph {GLYPH_NAME}\n\nimport { Camera } from '@capacitor/camera';\n\nexport async function {FUNCTION_NAME}() {\n  return Camera.getPhoto({ resultType: 'uri' });\n}",
+      "placeholders": {
+        "GLYPH_NAME": { "required": true },
+        "FUNCTION_NAME": { "required": true }
+      }
+    },
+
+    "OUT": {
+      "description": "Observable UI outcome",
+      "layer": "frontend",
+      "output": {
+        "directory": "client/src/lib/outcomes",
+        "extension": ".ts",
+        "naming": "camelCase"
+      },
+      "sections": ["outcome"],
+      "snippet": "// @archeon:file\n// @glyph {GLYPH_NAME}\n\nexport function {FUNCTION_NAME}() {\n  {IMPLEMENTATION}\n}",
+      "placeholders": {
+        "GLYPH_NAME": { "required": true },
+        "FUNCTION_NAME": { "required": true },
+        "IMPLEMENTATION": { "default": "" }
+      }
+    }
+  },
+
+  "constraints": {
+    "forbidden": [
+      "CMP -> ADP",
+      "CMP -> PLUG",
+      "CMP -> HTTP",
+      "CMP -> DB",
+      "STO -> PLUG",
+      "CMP -> SVC"
+    ]
+  },
+
+  "dependencies": {
+    "client": {
+      "next": "^14.0.0",
+      "react": "^18.2.0",
+      "zustand": "^4.4.0",
+      "@capacitor/core": "^5.0.0",
+      "@capacitor/cli": "^5.0.0",
+      "@capacitor/ios": "^5.0.0",
+      "@capacitor/android": "^5.0.0"
+    }
+  }
+}
