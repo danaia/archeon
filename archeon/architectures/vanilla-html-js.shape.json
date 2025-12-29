@@ -21,16 +21,11 @@
   },
 
   "directories": {
-    "root": {
-      "index.html": "Main orchestrator page",
-      "components": {
-        "DESCRIPTION": "Self-contained HTML component files, embedded via <object> tag"
-      },
-      "assets": {
-        "fonts": "Custom font files",
-        "images": "Image assets",
-        "icons": "Icon files"
-      }
+    "index.html": "Main orchestrator page",
+    "components": "Self-contained HTML component files",
+    "assets": {
+      "fonts": "Custom font files",
+      "images": "Image assets"
     }
   },
 
