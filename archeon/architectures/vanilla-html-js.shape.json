@@ -21,11 +21,10 @@
   },
 
   "directories": {
-    "index.html": "Main orchestrator page",
-    "components": "Self-contained HTML component files",
+    "components": {},
     "assets": {
-      "fonts": "Custom font files",
-      "images": "Image assets"
+      "fonts": {},
+      "images": {}
     }
   },
 
