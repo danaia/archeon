@@ -37,6 +37,7 @@ class ArchitectureShape:
     config: dict
     dependencies: dict
     prebuilt: dict  # Pre-built components like ThemeToggle
+    files: dict  # Starter files to create (path -> content)
     
     @classmethod
     def from_json(cls, data: dict) -> "ArchitectureShape":
@@ -68,6 +69,7 @@ class ArchitectureShape:
             config=data.get("config", {}),
             dependencies=data.get("dependencies", {}),
             prebuilt=data.get("prebuilt", {}),
+            files=data.get("files", {}),
         )
 
 

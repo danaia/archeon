@@ -153,8 +153,17 @@ def init(
     # Create AI provisioning guide
     create_ai_readme(archeon_dir)
     
-    if monorepo:
-        # Create client and server structures
+    # Determine if shape is frontend-only (no backend)
+    is_frontend_only = False
+    if shape:
+        # Check if shape has no backend defined or backend is None/empty
+        backend_config = shape.stack.get("backend")
+        is_frontend_only = backend_config is None or backend_config == {} or (
+            isinstance(backend_config, dict) and not backend_config.get("framework")
+        )
+    
+    if monorepo and not is_frontend_only:
+        # Create client and server structures (only for full-stack shapes)
         create_client_structure(target / "client", frontend)
         create_server_structure(target / "server")
         create_server_files(target / "server", backend)
@@ -169,6 +178,27 @@ def init(
                 transformer.generate_all(tokens_output)
             except Exception:
                 pass  # Non-fatal: tokens can be generated later with `arc tokens build`
+    elif is_frontend_only and shape:
+        # For frontend-only shapes (like vanilla-html-js), scaffold from shape directories
+        def scaffold_dirs(base_path: Path, dir_structure: dict):
+            """Recursively create directories from shape config."""
+            for name, value in dir_structure.items():
+                dir_path = base_path / name
+                if isinstance(value, dict):
+                    dir_path.mkdir(parents=True, exist_ok=True)
+                    scaffold_dirs(dir_path, value)
+                elif value == {} or value is None:
+                    dir_path.mkdir(parents=True, exist_ok=True)
+        
+        if shape.directories:
+            scaffold_dirs(target, shape.directories)
+        
+        # Create starter files from shape's "files" config
+        if hasattr(shape, 'files') and shape.files:
+            for file_path, content in shape.files.items():
+                full_path = target / file_path
+                full_path.parent.mkdir(parents=True, exist_ok=True)
+                full_path.write_text(content)
     
     # Create ARCHEON.arcon (also creates ARCHEON.index.json)
     # Pass shape_id to add default ready glyph

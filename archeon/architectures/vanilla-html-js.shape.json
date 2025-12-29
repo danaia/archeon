@@ -28,6 +28,12 @@
     }
   },
 
+  "files": {
+    "index.html": "<!doctype html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"utf-8\">\n  <meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">\n  <title>App</title>\n  <script src=\"https://cdn.tailwindcss.com\"></script>\n  <link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css\">\n</head>\n<body class=\"min-h-screen flex flex-col bg-gray-100\">\n  <!-- Header -->\n  <object data=\"components/header.html\" type=\"text/html\" class=\"w-full block\" style=\"height:60px;\" scrolling=\"no\"></object>\n\n  <!-- Main content -->\n  <main class=\"flex-1 p-6\">\n    <div class=\"max-w-4xl mx-auto bg-white rounded-lg shadow p-6\">\n      <h1 class=\"text-2xl font-bold text-gray-900 mb-4\">Welcome</h1>\n      <p class=\"text-gray-600\">Edit index.html and add components to components/ folder.</p>\n    </div>\n  </main>\n\n  <!-- Footer -->\n  <object data=\"components/footer.html\" type=\"text/html\" class=\"w-full block\" style=\"height:50px;\" scrolling=\"no\"></object>\n\n  <script>\n    // Cross-component messaging\n    window.addEventListener('message', (event) => {\n      console.log('Message received:', event.data);\n    });\n  </script>\n</body>\n</html>",
+    "components/header.html": "<!doctype html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"utf-8\">\n  <script src=\"https://cdn.tailwindcss.com\"></script>\n  <link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css\">\n</head>\n<body class=\"m-0 p-0 bg-transparent\">\n  <header class=\"bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between\">\n    <h1 class=\"text-xl font-bold text-gray-900\">My App</h1>\n    <nav class=\"flex gap-4\">\n      <a href=\"#\" class=\"text-gray-600 hover:text-gray-900\">Home</a>\n      <a href=\"#\" class=\"text-gray-600 hover:text-gray-900\">About</a>\n    </nav>\n  </header>\n</body>\n</html>",
+    "components/footer.html": "<!doctype html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"utf-8\">\n  <script src=\"https://cdn.tailwindcss.com\"></script>\n</head>\n<body class=\"m-0 p-0 bg-transparent\">\n  <footer class=\"bg-gray-800 text-gray-400 text-center py-4 text-sm\">\n    &copy; 2025 My App. All rights reserved.\n  </footer>\n</body>\n</html>"
+  },
+
   "glyphs": {
     "CMP": {
       "description": "Self-contained HTML component with inline JS and CSS, embeddable via <object> tag",
