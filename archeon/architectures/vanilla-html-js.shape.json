@@ -7,6 +7,18 @@
     "tags": ["static", "vanilla", "html", "javascript", "no-build", "components", "embedded-html", "cdn"]
   },
 
+  "architecture": {
+    "summary": "Zero-build architecture. HTML components are self-contained with inline CSS/JS. Components embed in parent via <object> tags. Communication via postMessage, state in localStorage.",
+    "layers": [
+      {"name": "Orchestrator (ORK)", "description": "Parent HTML page managing composition, view switching, and cross-component messaging. Single source of truth in localStorage."},
+      {"name": "Components (CMP)", "description": "Self-contained HTML files with inline styles and scripts. Copy-paste reusable, embed via <object> tag."},
+      {"name": "Utilities (MOD)", "description": "Reusable JavaScript classes embedded as <script> tags. Pure functions, no DOM manipulation."},
+      {"name": "State (localStorage)", "description": "Persistent state via localStorage with window.appState getter/setter. Components watch via storage events."}
+    ],
+    "dataFlow": "ORK embeds CMP via <object> -> CMP postMessage to ORK -> ORK updates localStorage -> CMP watches storage events",
+    "keyPrinciples": ["Zero build process", "Self-contained components", "CDN resources only", "Graceful degradation", "Lightweight", "PostMessage IPC"]
+  },
+
   "defaultChain": "@v1 NED:system.ready => ARC:vanilla-html-js => OUT:installed",
 
   "stack": {

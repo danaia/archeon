@@ -6,6 +6,20 @@
     "version": "1.0.0",
     "tags": ["fullstack", "typescript", "nextjs", "react", "express", "modern"]
   },
+
+  "architecture": {
+    "summary": "Full-stack TypeScript monorepo. Next.js handles frontend with Server Components for SSR/static rendering. Express backend provides REST API. Ideal for fast loads and SEO.",
+    "layers": [
+      {"name": "Server Components", "description": "Next.js 'use server' components run on server with direct DB access. No JavaScript sent to browser."},
+      {"name": "Client Components (CMP)", "description": "React 'use client' components run in browser using Zustand stores."},
+      {"name": "Zustand Stores (STO)", "description": "Client-side state management that fetches from Express API."},
+      {"name": "Express Backend", "description": "Separate Node.js server with REST API endpoints, business logic, and DB queries."},
+      {"name": "MongoDB + Mongoose", "description": "Document database with schema validation and async queries."}
+    ],
+    "dataFlow": "SC (direct DB) | CMP -> STO -> Express API",
+    "keyPrinciples": ["Server Components for SEO", "Client Components + Zustand for interactivity", "Express for business logic", "End-to-end TypeScript", "Monorepo with shared types"]
+  },
+
   "defaultChain": "@v1 NED:system.ready => ARC:nextjs-express => OUT:installed",
   "stack": {
     "frontend": {

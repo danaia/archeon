@@ -6,6 +6,20 @@
     "description": "Full-stack architecture with Vue 3 Composition API frontend and FastAPI Python backend",
     "tags": ["fullstack", "spa", "python", "vue", "mongodb"]
   },
+
+  "architecture": {
+    "summary": "Vue 3 SPA with Pinia state management communicates with FastAPI backend via HTTP. Vue Composition API provides reactive components. Ideal for teams preferring Vue over React.",
+    "layers": [
+      {"name": "UI Layer (CMP)", "description": "Vue 3 components using Composition API. Receive data from Pinia stores via composables. No direct HTTP calls."},
+      {"name": "State Layer (STO)", "description": "Pinia stores manage application state and orchestrate HTTP requests to FastAPI."},
+      {"name": "HTTP Adapters", "description": "Axios adapters handle all API communication with error handling and response transformation."},
+      {"name": "FastAPI Backend", "description": "REST endpoints serving JSON. Each API:* maps to a Pydantic-validated endpoint."},
+      {"name": "MongoDB + Motor", "description": "Async database with Pydantic schema validation and relationships."}
+    ],
+    "dataFlow": "CMP -> Pinia Store -> HTTP Adapter -> API:* (FastAPI) -> MDL:* (MongoDB)",
+    "keyPrinciples": ["Vue 3 Composition API", "Pinia for state", "Vite for fast builds", "RESTful FastAPI", "Type safety (TypeScript + Pydantic)"]
+  },
+
   "defaultChain": "@v1 NED:system.ready => ARC:vue3-fastapi => OUT:installed",
   "stack": {
     "frontend": {

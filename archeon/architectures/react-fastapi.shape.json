@@ -7,6 +7,20 @@
     "version": "1.0.0",
     "author": "Archeon"
   },
+
+  "architecture": {
+    "summary": "A traditional SPA + REST API. React client manages state with Zustand and fetches from FastAPI backend via HTTP. Ideal for team projects with clear frontend/backend separation.",
+    "layers": [
+      {"name": "UI Layer (CMP)", "description": "React components display data from stores. No direct HTTP calls."},
+      {"name": "State Layer (STO)", "description": "Zustand stores manage global state and orchestrate HTTP requests."},
+      {"name": "HTTP Adapters", "description": "Axios adapters handle all API communication with error handling and retries."},
+      {"name": "FastAPI Backend", "description": "REST endpoints serve JSON responses. Each API:* maps to a Pydantic-validated endpoint."},
+      {"name": "MongoDB + Motor", "description": "Async database queries with Pydantic models for validation."}
+    ],
+    "dataFlow": "CMP -> STO (Zustand) -> HTTP Adapter -> API:* (FastAPI) -> MDL:* (MongoDB)",
+    "keyPrinciples": ["Complete frontend/backend separation", "Zustand for client-side state", "RESTful API design", "Async Python", "Type safety (TypeScript + Pydantic)"]
+  },
+
   "defaultChain": "@v1 NED:system.ready => ARC:react-fastapi => OUT:installed",
   "stack": {
     "frontend": "react",
