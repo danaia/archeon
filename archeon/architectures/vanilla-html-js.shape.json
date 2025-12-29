@@ -1,0 +1,134 @@
+{
+  "meta": {
+    "id": "vanilla-html-js",
+    "name": "Vanilla HTML/JS/CSS (No Build)",
+    "description": "Self-contained HTML components with inline JS/CSS, CDN resources, postMessage IPC, and localStorage state. Zero-build, browser-native.",
+    "version": "1.0.0",
+    "tags": ["static", "vanilla", "html", "javascript", "no-build", "components", "embedded-html", "cdn"]
+  },
+
+  "defaultChain": "@v1 NED:system.ready => ARC:vanilla-html-js => OUT:installed",
+
+  "stack": {
+    "frontend": {
+      "framework": "vanilla",
+      "language": "javascript",
+      "stateManagement": "localStorage",
+      "styling": "tailwind-cdn + inline-css",
+      "runtime": "browser",
+      "embedding": "html-object-tag"
+    }
+  },
+
+  "directories": {
+    "root": {
+      "index.html": "Main orchestrator page",
+      "components": {
+        "DESCRIPTION": "Self-contained HTML component files, embedded via <object> tag"
+      },
+      "assets": {
+        "fonts": "Custom font files",
+        "images": "Image assets",
+        "icons": "Icon files"
+      }
+    }
+  },
+
+  "glyphs": {
+    "CMP": {
+      "description": "Self-contained HTML component with inline JS and CSS, embeddable via <object> tag",
+      "layer": "frontend",
+      "output": {
+        "directory": "components",
+        "extension": ".html",
+        "naming": "kebab-case"
+      },
+      "sections": ["head", "body", "styles", "scripts"],
+      "snippet": "<!doctype html>\n<html lang=\"en\">\n<!-- @archeon:section head -->\n<head>\n  <meta charset=\"utf-8\">\n  <script src=\"https://cdn.tailwindcss.com\"></script>\n  <link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css\">\n  <!-- @archeon:section styles -->\n  <style>\n    {INLINE_STYLES}\n  </style>\n  <!-- @archeon:endsection -->\n</head>\n<!-- @archeon:endsection -->\n\n<!-- @archeon:section body -->\n<body class=\"m-0 p-0 bg-transparent\">\n  <div id=\"{COMPONENT_ID}\" class=\"w-full\">\n    {CONTENT}\n  </div>\n</body>\n<!-- @archeon:endsection -->\n\n<!-- @archeon:section scripts -->\n<script>\n  {INLINE_SCRIPTS}\n</script>\n<!-- @archeon:endsection -->\n</html>",
+      "placeholders": {
+        "GLYPH_NAME": { "required": true },
+        "COMPONENT_ID": { "required": true },
+        "CONTENT": { "default": "<p>Component content</p>" },
+        "INLINE_STYLES": { "default": ".{COMPONENT_ID} { display: block; }" },
+        "INLINE_SCRIPTS": { "default": "console.log('{COMPONENT_ID} loaded');" }
+      }
+    },
+
+    "ORK": {
+      "description": "Orchestrator page that manages component composition, view switching, and cross-component communication",
+      "layer": "frontend",
+      "output": {
+        "directory": "root",
+        "extension": ".html",
+        "naming": "kebab-case"
+      },
+      "sections": ["head", "body", "message-handlers", "state-management"],
+      "snippet": "<!doctype html>\n<html lang=\"en\">\n<!-- @archeon:section head -->\n<head>\n  <meta charset=\"utf-8\">\n  <meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">\n  <title>{PAGE_TITLE}</title>\n  <script src=\"https://cdn.tailwindcss.com\"></script>\n  <link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css\">\n  <style>\n    {GLOBAL_STYLES}\n  </style>\n</head>\n<!-- @archeon:endsection -->\n\n<!-- @archeon:section body -->\n<body class=\"min-h-screen flex flex-col\">\n  <!-- Components embedded via object tag -->\n  {COMPONENT_EMBEDS}\n</body>\n<!-- @archeon:endsection -->\n\n<!-- @archeon:section message-handlers -->\n<script>\n  window.addEventListener('message', (event) => {\n    {MESSAGE_HANDLERS}\n  });\n</script>\n<!-- @archeon:endsection -->\n\n<!-- @archeon:section state-management -->\n<script>\n  // Cross-component state via localStorage\n  class AppState {\n    constructor(storageKey = 'app-state') {\n      this.storageKey = storageKey;\n    }\n    get(key, defaultValue = null) {\n      const data = JSON.parse(localStorage.getItem(this.storageKey) || '{}');\n      return data[key] !== undefined ? data[key] : defaultValue;\n    }\n    set(key, value) {\n      const data = JSON.parse(localStorage.getItem(this.storageKey) || '{}');\n      data[key] = value;\n      localStorage.setItem(this.storageKey, JSON.stringify(data));\n    }\n  }\n  window.appState = new AppState();\n  \n  {STATE_INITIALIZATION}\n</script>\n<!-- @archeon:endsection -->\n</html>",
+      "placeholders": {
+        "GLYPH_NAME": { "required": true },
+        "PAGE_TITLE": { "required": true },
+        "GLOBAL_STYLES": { "default": "/* Global styles and font declarations */" },
+        "COMPONENT_EMBEDS": { "default": "<object data=\"components/example.html\" type=\"text/html\" class=\"w-full block\" style=\"height: 100px;\"></object>" },
+        "MESSAGE_HANDLERS": { "default": "if (event.data.type === 'custom-event') { console.log('Received:', event.data); }" },
+        "STATE_INITIALIZATION": { "default": "// Initialize app state" }
+      }
+    },
+
+    "MOD": {
+      "description": "Utility/helper JavaScript module for shared logic (embedded in CMP or ORK as inline script)",
+      "layer": "frontend",
+      "output": {
+        "directory": "components",
+        "extension": ".html",
+        "naming": "camelCase"
+      },
+      "sections": ["implementation"],
+      "snippet": "<!-- @archeon:file\n     @glyph {GLYPH_NAME}\n     @intent {INTENT}\n-->\n<script>\n  // @archeon:section implementation\n  class {CLASS_NAME} {\n    {METHODS}\n  }\n  window.{EXPORT_NAME} = new {CLASS_NAME}();\n  // @archeon:endsection\n</script>",
+      "placeholders": {
+        "GLYPH_NAME": { "required": true },
+        "INTENT": { "default": "Utility module" },
+        "CLASS_NAME": { "required": true },
+        "METHODS": { "default": "constructor() {}" },
+        "EXPORT_NAME": { "required": true }
+      }
+    }
+  },
+
+  "constraints": {
+    "embedding": [
+      "CMP can only be embedded in ORK via <object data=\"components/xxx.html\" type=\"text/html\">",
+      "CMP cannot import other CMP directly; use postMessage for communication",
+      "ORK orchestrates all view switching and component composition"
+    ],
+    "communication": [
+      "Cross-component IPC via window.parent.postMessage()",
+      "Parent-to-child: window.parent.postMessage({ type: 'event-name', data: {} }, '*')",
+      "Child-to-parent: postMessage to window.parent, parent listens with window.addEventListener('message', ...)"
+    ],
+    "state": [
+      "Persistent state via localStorage (window.appState)",
+      "Transient state via window globals (caution: cross-component coupling)",
+      "Component-local state via DOM or inline script variables"
+    ],
+    "resources": [
+      "Use CDN for Tailwind (https://cdn.tailwindcss.com)",
+      "Use CDN for Font Awesome or icon library",
+      "All fonts and assets relative paths (../assets/fonts/...)"
+    ]
+  },
+
+  "examples": {
+    "embed-component": "<object data=\"components/header.html\" type=\"text/html\" class=\"w-full block\" style=\"height:90px;\" scrolling=\"no\"></object>",
+    "send-message": "window.parent.postMessage({ type: 'switch-view', view: 'settings' }, '*')",
+    "receive-message": "window.addEventListener('message', (event) => { if (event.data.type === 'close-modal') { closeModal(); } });"
+  },
+
+  "dependencies": {
+    "client": {
+      "cdn": {
+        "tailwind": "https://cdn.tailwindcss.com",
+        "font-awesome": "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+      }
+    }
+  }
+}
