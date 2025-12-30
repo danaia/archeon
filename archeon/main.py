@@ -104,7 +104,7 @@ def init(
     cline: bool = typer.Option(False, "--cline", help="Generate .clinerules for Cline/Claude Dev"),
     aider: bool = typer.Option(False, "--aider", help="Generate .aider.conf.yml for Aider"),
     vscode: bool = typer.Option(False, "--vscode", help="Update .vscode/settings.json"),
-    antigravity: bool = typer.Option(False, "--antigravity", help="Generate .agents/rules/archeonrules.md for Antigravity"),
+    antigravity: bool = typer.Option(False, "--antigravity", help="Generate .agent/rules/archeonrules.md for Antigravity"),
 ):
     """Initialize a new Archeon project with client/server structure.
     
@@ -317,13 +317,13 @@ model-settings-yaml: |
             ide_files_created.append(".vscode/settings.json")
         
         if ide_flags.get('antigravity'):
-            agents_rules_dir = target / ".agents" / "rules"
-            agents_rules_dir.mkdir(parents=True, exist_ok=True)
-            (agents_rules_dir / "archeonrules.md").write_text(f'''# Archeon Rules for Antigravity
+            agent_rules_dir = target / ".agent" / "rules"
+            agent_rules_dir.mkdir(parents=True, exist_ok=True)
+            (agent_rules_dir / "archeonrules.md").write_text(f'''# Archeon Rules for Antigravity
 
 {archeon_rules}
 ''')
-            ide_files_created.append(".agents/rules/archeonrules.md")
+            ide_files_created.append(".agent/rules/archeonrules.md")
     
     rprint(f"[green]✓[/green] Initialized Archeon project at [bold]{archeon_dir}[/bold]")
     rprint(f"  Architecture shape: [cyan]{shape_id}[/cyan]")
@@ -421,7 +421,7 @@ def ai_setup(
     cline: Optional[bool] = typer.Option(None, "--cline/--no-cline", help="Generate .clinerules"),
     aider: Optional[bool] = typer.Option(None, "--aider/--no-aider", help="Generate .aider.conf.yml"),
     vscode: Optional[bool] = typer.Option(None, "--vscode/--no-vscode", help="Update .vscode/settings.json"),
-    antigravity: Optional[bool] = typer.Option(None, "--antigravity/--no-antigravity", help="Generate .agents/rules/archeonrules.md"),
+    antigravity: Optional[bool] = typer.Option(None, "--antigravity/--no-antigravity", help="Generate .agent/rules/archeonrules.md"),
     all_ides: bool = typer.Option(False, "--all", "-a", help="Generate configs for all IDEs"),
 ):
     """Generate AI assistant configuration files for IDE integration.
@@ -762,22 +762,22 @@ The `settings.json` has been updated with:
         created.append(".vscode/ARCHEON_README.md")
     
     if flags['antigravity']:
-        agents_rules_dir = target / ".agents" / "rules"
-        agents_rules_dir.mkdir(parents=True, exist_ok=True)
+        agent_rules_dir = target / ".agent" / "rules"
+        agent_rules_dir.mkdir(parents=True, exist_ok=True)
         
-        antigravity_file = agents_rules_dir / "archeonrules.md"
+        antigravity_file = agent_rules_dir / "archeonrules.md"
         antigravity_file.write_text(f'''# Archeon Rules for Antigravity
 
 {archeon_rules}
 ''')
         
         # Create README
-        agents_dir = target / ".agents"
-        (agents_dir / "README.md").write_text('''# Antigravity Configuration for Archeon
+        agent_dir = target / ".agent"
+        (agent_dir / "README.md").write_text('''# Antigravity Configuration for Archeon
 
 ## Setup Complete ✓
 
-The `.agents/rules/archeonrules.md` file tells Antigravity to:
+The `.agent/rules/archeonrules.md` file tells Antigravity to:
 1. Read `archeon/ARCHEON.arcon` before generating code
 2. Write new chains to the knowledge graph for new features
 3. Add @archeon:file headers and @archeon:section markers to all files
@@ -803,8 +803,8 @@ When generating code, it will:
 
 - [Archeon README](../README.md)
 ''')
-        created.append(".agents/rules/archeonrules.md")
-        created.append(".agents/README.md")
+        created.append(".agent/rules/archeonrules.md")
+        created.append(".agent/README.md")
     
     # Always create/update the AI provisioning guide
     archeon_dir = target / "archeon"
