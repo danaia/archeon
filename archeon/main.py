@@ -104,6 +104,7 @@ def init(
     cline: bool = typer.Option(False, "--cline", help="Generate .clinerules for Cline/Claude Dev"),
     aider: bool = typer.Option(False, "--aider", help="Generate .aider.conf.yml for Aider"),
     vscode: bool = typer.Option(False, "--vscode", help="Update .vscode/settings.json"),
+    antigravity: bool = typer.Option(False, "--antigravity", help="Generate .agents/rules/archeonrules.md for Antigravity"),
 ):
     """Initialize a new Archeon project with client/server structure.
     
@@ -215,7 +216,7 @@ def init(
     # If any flags are set, only generate those that are True
     ide_files_created = []
     ide_flags = {'copilot': copilot, 'cursor': cursor, 'windsurf': windsurf, 
-                 'cline': cline, 'aider': aider, 'vscode': vscode}
+                 'cline': cline, 'aider': aider, 'vscode': vscode, 'antigravity': antigravity}
     
     # Determine which IDEs to generate
     has_any_flag = any(ide_flags.values())
@@ -314,6 +315,15 @@ model-settings-yaml: |
             ]
             settings_file.write_text(json.dumps(settings, indent=2))
             ide_files_created.append(".vscode/settings.json")
+        
+        if ide_flags.get('antigravity'):
+            agents_rules_dir = target / ".agents" / "rules"
+            agents_rules_dir.mkdir(parents=True, exist_ok=True)
+            (agents_rules_dir / "archeonrules.md").write_text(f'''# Archeon Rules for Antigravity
+
+{archeon_rules}
+''')
+            ide_files_created.append(".agents/rules/archeonrules.md")
     
     rprint(f"[green]✓[/green] Initialized Archeon project at [bold]{archeon_dir}[/bold]")
     rprint(f"  Architecture shape: [cyan]{shape_id}[/cyan]")
@@ -411,6 +421,7 @@ def ai_setup(
     cline: Optional[bool] = typer.Option(None, "--cline/--no-cline", help="Generate .clinerules"),
     aider: Optional[bool] = typer.Option(None, "--aider/--no-aider", help="Generate .aider.conf.yml"),
     vscode: Optional[bool] = typer.Option(None, "--vscode/--no-vscode", help="Update .vscode/settings.json"),
+    antigravity: Optional[bool] = typer.Option(None, "--antigravity/--no-antigravity", help="Generate .agents/rules/archeonrules.md"),
     all_ides: bool = typer.Option(False, "--all", "-a", help="Generate configs for all IDEs"),
 ):
     """Generate AI assistant configuration files for IDE integration.
@@ -433,7 +444,7 @@ def ai_setup(
     # - If no flags, generate all (default behavior)
     
     flags = {'cursor': cursor, 'copilot': copilot, 'windsurf': windsurf, 
-             'cline': cline, 'aider': aider, 'vscode': vscode}
+             'cline': cline, 'aider': aider, 'vscode': vscode, 'antigravity': antigravity}
     
     has_positive = any(v is True for v in flags.values())
     has_negative = any(v is False for v in flags.values())
@@ -749,6 +760,51 @@ The `settings.json` has been updated with:
 ''')
         created.append(".vscode/settings.json")
         created.append(".vscode/ARCHEON_README.md")
+    
+    if flags['antigravity']:
+        agents_rules_dir = target / ".agents" / "rules"
+        agents_rules_dir.mkdir(parents=True, exist_ok=True)
+        
+        antigravity_file = agents_rules_dir / "archeonrules.md"
+        antigravity_file.write_text(f'''# Archeon Rules for Antigravity
+
+{archeon_rules}
+''')
+        
+        # Create README
+        agents_dir = target / ".agents"
+        (agents_dir / "README.md").write_text('''# Antigravity Configuration for Archeon
+
+## Setup Complete ✓
+
+The `.agents/rules/archeonrules.md` file tells Antigravity to:
+1. Read `archeon/ARCHEON.arcon` before generating code
+2. Write new chains to the knowledge graph for new features
+3. Add @archeon:file headers and @archeon:section markers to all files
+4. Update `archeon/ARCHEON.index.json` when creating files or sections
+5. Follow the glyph-based architecture
+
+## How It Works
+
+Antigravity reads the rules file for project context.
+When generating code, it will:
+- Check existing chains in the knowledge graph
+- If feature doesn't exist, ADD A NEW CHAIN first
+- Then implement following the chain
+- Update the index with new glyphs and sections
+
+## Key Files
+
+- `archeon/ARCHEON.arcon` - Knowledge graph (chains)
+- `archeon/ARCHEON.index.json` - Semantic index (glyph→file mapping)
+- `archeon/templates/_config/ai-rules.md` - Complete AI rules
+
+## More Info
+
+- [Archeon README](../README.md)
+''')
+        created.append(".agents/rules/archeonrules.md")
+        created.append(".agents/README.md")
     
     # Always create/update the AI provisioning guide
     archeon_dir = target / "archeon"

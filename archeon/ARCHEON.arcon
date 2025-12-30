@@ -178,3 +178,8 @@ TKN:transformer :: STO:Theme
 
 # === AGENT CHAINS (Versioned) ===
 # Add chains below using: archeon parse "<chain>"
+
+# IDE Integration - AI rules generation for various IDEs
+@v1 NED:ide.rules => FNC:cli.init => FNC:cli.aiSetup => OUT:rules.generated
+    -> ERR:rules.templateMissing
+# Supported IDEs: copilot, cursor, windsurf, cline, aider, vscode, antigravity
