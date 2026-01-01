@@ -160,3 +160,4 @@ API:PUT/profile -> ERR:validation.invalid -> ERR:server.conflict
 ```
 
 NOT warnings like `WARN:api.noErrorPath`
+Ignore the ERR errors and warnings when validating - do not restart the validation for these types of errors/warnings. 
