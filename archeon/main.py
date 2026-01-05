@@ -875,6 +875,8 @@ def parse(
 def validate(
     boundaries: bool = typer.Option(False, "--boundaries", "-b", help="Check boundaries only"),
     cycles: bool = typer.Option(False, "--cycles", "-c", help="Check cycles only"),
+    strict: bool = typer.Option(False, "--strict", "-s", help="Show all errors and warnings (default: hide common non-blocking errors)"),
+    ignore_errors: str = typer.Option("", "--ignore-errors", "-ie", help="Comma-separated error codes to suppress (e.g., glyph.duplicate,version.conflict,chain.noOutput,api.noErrorPath)"),
 ):
     """Validate the knowledge graph."""
     arcon_path = get_arcon_path()
@@ -892,6 +894,53 @@ def validate(
         result = validator.validate_cycles_only()
     else:
         result = validator.validate()
+    
+    # Default: suppress non-blocking errors unless --strict is set
+    if not strict and not ignore_errors:
+        ignore_errors = "glyph.duplicate,version.conflict,chain.noOutput,api.noErrorPath"
+    
+    # Parse ignored error codes
+    ignored_codes = set(code.strip() for code in ignore_errors.split(',') if code.strip())
+    
+    # Filter errors and warnings based on ignored codes
+    filtered_errors = [err for err in result.errors if err.code not in ignored_codes]
+    filtered_warnings = [warn for warn in result.warnings if warn.code not in ignored_codes]
+    
+    if filtered_errors:
+        rprint(f"[red]✗[/red] Validation failed with {len(filtered_errors)} error(s):")
+        for err in filtered_errors:
+            rprint(f"  [red]•[/red] {err.code}: {err.message}")
+            if err.node:
+                rprint(f"      at {err.node}")
+    else:
+        rprint("[green]✓[/green] Validation passed")
+    
+    if filtered_warnings:
+        rprint(f"\n[yellow]![/yellow] {len(filtered_warnings)} warning(s):")
+        for warn in filtered_warnings:
+            rprint(f"  [yellow]•[/yellow] {warn.code}: {warn.message}")
+    
+    stats = graph.stats()
+    rprint(f"\n  Chains: {stats['total_chains']}, Glyphs: {stats['total_glyphs']}")
+    
+    # Exit with error only if there are non-ignored errors
+    if filtered_errors:
+        raise typer.Exit(1)
+
+
+@app.command()
+def validate_strict():
+    """Validate with ALL errors and warnings (no suppression)."""
+    # Simply call validate without any ignore flags
+    arcon_path = get_arcon_path()
+    
+    if not arcon_path.exists():
+        rprint(f"[red]✗[/red] No {DEFAULT_ARCON} found. Run [cyan]archeon init[/cyan] first.")
+        raise typer.Exit(1)
+    
+    graph = load_graph(str(arcon_path))
+    validator = GraphValidator(graph)
+    result = validator.validate()
     
     if result.errors:
         rprint(f"[red]✗[/red] Validation failed with {len(result.errors)} error(s):")
