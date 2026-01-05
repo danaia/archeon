@@ -908,8 +908,15 @@ def validate(
     ignored_warning_codes = set(code.strip() for code in ignore_warnings.split(',') if code.strip())
     
     # Filter errors and warnings based on ignored codes
-    filtered_errors = [err for err in result.errors if err.code not in ignored_error_codes]
-    filtered_warnings = [warn for warn in result.warnings if warn.code not in ignored_warning_codes]
+    # Strip prefixes (ERR:, WARN:) for comparison
+    filtered_errors = [
+        err for err in result.errors 
+        if err.code.replace('ERR:', '') not in ignored_error_codes and err.code not in ignored_error_codes
+    ]
+    filtered_warnings = [
+        warn for warn in result.warnings 
+        if warn.code.replace('WARN:', '') not in ignored_warning_codes and warn.code not in ignored_warning_codes
+    ]
     
     if filtered_errors:
         rprint(f"[red]✗[/red] Validation failed with {len(filtered_errors)} error(s):")
