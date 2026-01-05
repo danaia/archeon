@@ -899,7 +899,7 @@ def validate(
     # Default: suppress non-blocking errors and warnings unless --strict is set
     if not strict:
         if not ignore_errors:
-            ignore_errors = "glyph.duplicate,version.conflict"
+            ignore_errors = "version.conflict"
         if not ignore_warnings:
             ignore_warnings = "chain.noOutput,api.noErrorPath"
     
