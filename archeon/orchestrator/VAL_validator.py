@@ -282,6 +282,9 @@ class GraphValidator:
         Glyphs can be referenced across multiple chains - that's normal.
         We only flag duplicates when the same ROOT glyph (first in chain)
         appears in multiple chains with the same version.
+        
+        Note: ERR: glyphs should never be chain roots - they're branches.
+        If an ERR: appears as a root, it's a parser artifact and should be ignored.
         """
         result = ValidationResult()
         # Track chain roots: (root_glyph, version) -> chain_raw
@@ -293,7 +296,14 @@ class GraphValidator:
                 
             # Only check the ROOT (first) glyph of each chain
             root = stored.ast.nodes[0].qualified_name
+            root_prefix = stored.ast.nodes[0].prefix
             version = stored.ast.version or 'unversioned'
+            
+            # Skip validation for error branches - ERR: should never be chain roots
+            # If an ERR: appears as root, it's an artifact of how the parser handles branches
+            if root_prefix == 'ERR':
+                continue
+            
             key = (root, version)
 
             if key in seen_roots:
@@ -317,7 +327,12 @@ class GraphValidator:
                 continue
 
             root = stored.ast.nodes[0].qualified_name
+            root_prefix = stored.ast.nodes[0].prefix
             version = stored.ast.version or 'unversioned'
+            
+            # Skip validation for error branches - ERR: should never be chain roots
+            if root_prefix == 'ERR':
+                continue
 
             if root not in root_versions:
                 root_versions[root] = set()
