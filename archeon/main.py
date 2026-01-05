@@ -875,8 +875,9 @@ def parse(
 def validate(
     boundaries: bool = typer.Option(False, "--boundaries", "-b", help="Check boundaries only"),
     cycles: bool = typer.Option(False, "--cycles", "-c", help="Check cycles only"),
-    strict: bool = typer.Option(False, "--strict", "-s", help="Show all errors and warnings (default: hide common non-blocking errors)"),
-    ignore_errors: str = typer.Option("", "--ignore-errors", "-ie", help="Comma-separated error codes to suppress (e.g., glyph.duplicate,version.conflict,chain.noOutput,api.noErrorPath)"),
+    strict: bool = typer.Option(False, "--strict", "-s", help="Show all errors and warnings (default: hide common non-blocking issues)"),
+    ignore_errors: str = typer.Option("", "--ignore-errors", "-ie", help="Comma-separated error codes to suppress"),
+    ignore_warnings: str = typer.Option("", "--ignore-warnings", "-iw", help="Comma-separated warning codes to suppress"),
 ):
     """Validate the knowledge graph."""
     arcon_path = get_arcon_path()
@@ -895,16 +896,20 @@ def validate(
     else:
         result = validator.validate()
     
-    # Default: suppress non-blocking errors unless --strict is set
-    if not strict and not ignore_errors:
-        ignore_errors = "glyph.duplicate,version.conflict,chain.noOutput,api.noErrorPath"
+    # Default: suppress non-blocking errors and warnings unless --strict is set
+    if not strict:
+        if not ignore_errors:
+            ignore_errors = "glyph.duplicate,version.conflict"
+        if not ignore_warnings:
+            ignore_warnings = "chain.noOutput,api.noErrorPath"
     
-    # Parse ignored error codes
-    ignored_codes = set(code.strip() for code in ignore_errors.split(',') if code.strip())
+    # Parse ignored error and warning codes
+    ignored_error_codes = set(code.strip() for code in ignore_errors.split(',') if code.strip())
+    ignored_warning_codes = set(code.strip() for code in ignore_warnings.split(',') if code.strip())
     
     # Filter errors and warnings based on ignored codes
-    filtered_errors = [err for err in result.errors if err.code not in ignored_codes]
-    filtered_warnings = [warn for warn in result.warnings if warn.code not in ignored_codes]
+    filtered_errors = [err for err in result.errors if err.code not in ignored_error_codes]
+    filtered_warnings = [warn for warn in result.warnings if warn.code not in ignored_warning_codes]
     
     if filtered_errors:
         rprint(f"[red]✗[/red] Validation failed with {len(filtered_errors)} error(s):")
