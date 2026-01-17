@@ -1,0 +1,17 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "description": "Archeon project configuration for OpenCode AI",
+  "instructions": [
+    "AGENTS.md",
+    ".github/copilot-instructions.md"
+  ],
+  "excludePaths": [
+    "node_modules",
+    "__pycache__",
+    ".git",
+    "*.pyc",
+    ".pytest_cache",
+    "dist",
+    "build"
+  ]
+}

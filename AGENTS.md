@@ -4,15 +4,15 @@
 
 # Archeon AI Rules
 
-## � How These Rules Are Used
+## 📋 How These Rules Are Used
 
-- **Cursor**: Reads from `.cursorrules` (this file)
-- **OpenCode**: Reads from `AGENTS.md` (primary) + `opencode.json` (config). Fallback: `CLAUDE.md`, `CONTEXT.md`
+- **Cursor**: Reads from `.cursorrules` 
+- **OpenCode**: Reads from `AGENTS.md` (this file, primary) + `opencode.json` (config). Fallback: `CLAUDE.md`, `CONTEXT.md`
 - **Claude Code**: Reads from `CLAUDE.md` or context provided to Claude
 
-This file serves as the source of truth. For OpenCode, create an `AGENTS.md` symlink or copy, and configure `opencode.json` to include additional instruction files if needed.
-
 ---
+
+## 🚨 BEFORE ANY CODING: READ THESE FILES
 
 **ALWAYS read these files FIRST before generating any code:**
 
@@ -172,4 +172,3 @@ API:PUT/profile -> ERR:validation.invalid -> ERR:server.conflict
 ```
 
 NOT warnings like `WARN:api.noErrorPath`
-
