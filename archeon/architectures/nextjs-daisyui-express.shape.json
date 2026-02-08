@@ -1,0 +1,386 @@
+{
+  "meta": {
+    "id": "nextjs-daisyui-express",
+    "name": "Next.js 15 + DaisyUI + Express",
+    "description": "Full-stack TypeScript monorepo. Next.js App Router with Server & Client Components, DaisyUI/Tailwind styling, Zustand state, and Express REST API. Single npm run dev starts everything.",
+    "version": "1.0.0",
+    "tags": ["fullstack", "typescript", "nextjs", "react", "express", "daisyui", "tailwind", "monorepo", "app-router"]
+  },
+
+  "architecture": {
+    "summary": "Monorepo with Next.js 15 App Router frontend and Express backend. DaisyUI provides pre-built Tailwind components with built-in theme switching. A single 'npm run dev' from root uses concurrently to start both Next.js (port 3000) and Express (port 3001). Server Components handle SSR/SEO, Client Components handle interactivity via Zustand stores that fetch from Express API.",
+    "layers": [
+      {"name": "Server Components (RSC)", "description": "Next.js async components that run on the server. Direct data fetching, no client JS shipped. Default for app/ pages and layouts."},
+      {"name": "Client Components (CMP)", "description": "React 'use client' components for interactivity, event handlers, hooks, and browser APIs. Use DaisyUI component classes."},
+      {"name": "Zustand Stores (STO)", "description": "Client-side state management. Stores fetch from Express API and provide reactive state to Client Components."},
+      {"name": "Express Backend (API)", "description": "Separate Node.js/Express server on port 3001. REST API endpoints with Zod validation, business logic, DB queries."},
+      {"name": "MongoDB + Mongoose (MDL)", "description": "Document database with Mongoose schemas, TypeScript interfaces, indexes, and methods."}
+    ],
+    "dataFlow": "RSC (direct fetch) | CMP -> STO -> fetch(/api) -> Express:3001 -> MongoDB",
+    "keyPrinciples": [
+      "Server Components by default, 'use client' only when needed",
+      "DaisyUI component classes for rapid UI (btn, card, modal, etc.)",
+      "DaisyUI theme switching via data-theme attribute",
+      "Single npm run dev starts both servers",
+      "Zustand for client state, Express for business logic",
+      "End-to-end TypeScript with Zod validation",
+      "Monorepo with root package.json orchestrating client/ and server/"
+    ]
+  },
+
+  "defaultChain": "@v1 NED:system.ready => ARC:nextjs-daisyui-express => OUT:installed",
+
+  "stack": {
+    "frontend": {
+      "framework": "nextjs",
+      "version": "15.x",
+      "language": "typescript",
+      "stateManager": "zustand",
+      "styling": "tailwindcss + daisyui",
+      "router": "app-router",
+      "components": "server + client"
+    },
+    "backend": {
+      "framework": "express",
+      "language": "typescript",
+      "database": "mongodb",
+      "orm": "mongoose",
+      "port": 3001
+    },
+    "shared": {
+      "packageManager": "npm",
+      "monorepo": true,
+      "devCommand": "npm run dev",
+      "orchestrator": "concurrently"
+    }
+  },
+
+  "directories": {
+    "client": {
+      "src": {
+        "app": {
+          "(routes)": {},
+          "api": {}
+        },
+        "components": {
+          "ui": {},
+          "layout": {}
+        },
+        "stores": {},
+        "lib": {},
+        "types": {}
+      },
+      "public": {}
+    },
+    "server": {
+      "src": {
+        "api": {
+          "routes": {},
+          "middleware": {}
+        },
+        "models": {},
+        "events": {},
+        "lib": {},
+        "types": {}
+      }
+    }
+  },
+
+  "glyphs": {
+    "CMP": {
+      "description": "React Client Component with DaisyUI + TypeScript. Uses 'use client' directive for interactivity.",
+      "layer": "frontend",
+      "output": {
+        "directory": "client/src/components",
+        "extension": ".tsx",
+        "naming": "PascalCase"
+      },
+      "sections": ["imports", "types", "component", "exports"],
+      "snippet": "// @archeon:file\n// @glyph {GLYPH_NAME}\n// @intent {INTENT}\n// @chain {CHAIN}\n\n// @archeon:section imports\n'use client';\n\nimport { cn } from '@/lib/utils';\n{IMPORTS}\n// @archeon:endsection\n\n// @archeon:section types\ninterface {NAME}Props {\n  className?: string;\n  {PROPS}\n}\n// @archeon:endsection\n\n// @archeon:section component\nexport function {NAME}({ className, {PROP_NAMES} }: {NAME}Props) {\n  return (\n    <div className={cn('', className)}>\n      {CONTENT}\n    </div>\n  );\n}\n// @archeon:endsection",
+      "placeholders": {
+        "GLYPH_NAME": { "description": "Full glyph identifier (e.g., CMP:LoginForm)", "required": true },
+        "INTENT": { "description": "Component purpose", "default": "Client component" },
+        "CHAIN": { "description": "Chain reference", "default": "@v1" },
+        "NAME": { "description": "Component name in PascalCase", "required": true },
+        "IMPORTS": { "description": "Additional imports", "default": "" },
+        "PROPS": { "description": "Additional prop definitions", "default": "" },
+        "PROP_NAMES": { "description": "Destructured prop names", "default": "" },
+        "CONTENT": { "description": "Component JSX content using DaisyUI classes", "default": "" }
+      }
+    },
+    "RSC": {
+      "description": "React Server Component (default in App Router). No 'use client' — runs on server, zero client JS.",
+      "layer": "frontend",
+      "output": {
+        "directory": "client/src/components",
+        "extension": ".tsx",
+        "naming": "PascalCase"
+      },
+      "sections": ["imports", "types", "component", "exports"],
+      "snippet": "// @archeon:file\n// @glyph {GLYPH_NAME}\n// @intent {INTENT}\n// @chain {CHAIN}\n\n// @archeon:section imports\n{IMPORTS}\n// @archeon:endsection\n\n// @archeon:section types\ninterface {NAME}Props {\n  {PROPS}\n}\n// @archeon:endsection\n\n// @archeon:section component\nexport async function {NAME}({ {PROP_NAMES} }: {NAME}Props) {\n  {DATA_FETCHING}\n\n  return (\n    <div>\n      {CONTENT}\n    </div>\n  );\n}\n// @archeon:endsection",
+      "placeholders": {
+        "GLYPH_NAME": { "description": "Full glyph identifier (e.g., RSC:UserList)", "required": true },
+        "INTENT": { "description": "Server component purpose", "default": "Server component" },
+        "CHAIN": { "description": "Chain reference", "default": "@v1" },
+        "NAME": { "description": "Component name in PascalCase", "required": true },
+        "IMPORTS": { "description": "Server-side imports (db, models, etc.)", "default": "" },
+        "PROPS": { "description": "Prop definitions", "default": "" },
+        "PROP_NAMES": { "description": "Destructured prop names", "default": "" },
+        "DATA_FETCHING": { "description": "Server-side data fetching logic (async/await)", "default": "" },
+        "CONTENT": { "description": "JSX content with DaisyUI classes", "default": "" }
+      }
+    },
+    "STO": {
+      "description": "Zustand store with TypeScript. Client-side state that fetches from Express API.",
+      "layer": "frontend",
+      "output": {
+        "directory": "client/src/stores",
+        "extension": ".ts",
+        "naming": "camelCase"
+      },
+      "sections": ["imports", "types", "store", "exports"],
+      "snippet": "// @archeon:file\n// @glyph {GLYPH_NAME}\n// @intent {INTENT}\n// @chain {CHAIN}\n\n// @archeon:section imports\nimport { create } from 'zustand';\nimport { devtools, persist } from 'zustand/middleware';\n{IMPORTS}\n// @archeon:endsection\n\n// @archeon:section types\ninterface {NAME}State {\n  {STATE_FIELDS}\n}\n\ninterface {NAME}Actions {\n  {ACTION_FIELDS}\n}\n\ntype {NAME}Store = {NAME}State & {NAME}Actions;\n// @archeon:endsection\n\n// @archeon:section store\nconst API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';\n\nexport const use{NAME} = create<{NAME}Store>()(\n  devtools(\n    persist(\n      (set, get) => ({\n        // State\n        {INITIAL_STATE}\n\n        // Actions\n        {ACTIONS}\n      }),\n      { name: '{STORE_NAME}-storage' }\n    )\n  )\n);\n// @archeon:endsection",
+      "placeholders": {
+        "GLYPH_NAME": { "description": "Full glyph identifier", "required": true },
+        "INTENT": { "description": "Store purpose", "default": "State store" },
+        "CHAIN": { "description": "Chain reference", "default": "@v1" },
+        "NAME": { "description": "Store name in PascalCase (e.g., Auth)", "required": true },
+        "STORE_NAME": { "description": "Storage key name", "required": true },
+        "IMPORTS": { "description": "Additional imports", "default": "" },
+        "STATE_FIELDS": { "description": "State field definitions", "default": "// Add state fields" },
+        "ACTION_FIELDS": { "description": "Action function signatures", "default": "// Add actions" },
+        "INITIAL_STATE": { "description": "Initial state values", "default": "// Initial state" },
+        "ACTIONS": { "description": "Action implementations fetching from API_BASE", "default": "// Actions" }
+      }
+    },
+    "API": {
+      "description": "Express TypeScript route handler with Zod validation",
+      "layer": "backend",
+      "output": {
+        "directory": "server/src/api/routes",
+        "extension": ".ts",
+        "naming": "camelCase"
+      },
+      "sections": ["imports", "types", "route", "exports"],
+      "snippet": "// @archeon:file\n// @glyph {GLYPH_NAME}\n// @intent {INTENT}\n// @chain {CHAIN}\n\n// @archeon:section imports\nimport { Router, Request, Response, NextFunction } from 'express';\nimport { z } from 'zod';\n{IMPORTS}\n// @archeon:endsection\n\n// @archeon:section types\nconst {NAME}Schema = z.object({\n  {SCHEMA_FIELDS}\n});\n\ntype {NAME}Body = z.infer<typeof {NAME}Schema>;\n// @archeon:endsection\n\n// @archeon:section route\nconst router = Router();\n\nrouter.{METHOD}('{PATH}', async (\n  req: Request<{}, {}, {NAME}Body>,\n  res: Response,\n  next: NextFunction\n) => {\n  try {\n    const data = {NAME}Schema.parse(req.body);\n\n    {IMPLEMENTATION}\n\n    res.status({SUCCESS_CODE}).json({\n      success: true,\n      data: {RESPONSE_DATA}\n    });\n  } catch (error) {\n    if (error instanceof z.ZodError) {\n      return res.status(400).json({\n        success: false,\n        error: 'Validation failed',\n        details: error.errors\n      });\n    }\n    next(error);\n  }\n});\n// @archeon:endsection\n\n// @archeon:section exports\nexport default router;\n// @archeon:endsection",
+      "placeholders": {
+        "GLYPH_NAME": { "description": "Full glyph identifier (e.g., API:POST/auth/login)", "required": true },
+        "INTENT": { "description": "Route purpose", "default": "API endpoint" },
+        "CHAIN": { "description": "Chain reference", "default": "@v1" },
+        "NAME": { "description": "Route name in PascalCase", "required": true },
+        "METHOD": { "description": "HTTP method (get, post, put, delete, patch)", "default": "post" },
+        "PATH": { "description": "Route path", "required": true },
+        "IMPORTS": { "description": "Additional imports", "default": "" },
+        "SCHEMA_FIELDS": { "description": "Zod schema field definitions", "default": "// Add validation schema" },
+        "IMPLEMENTATION": { "description": "Route implementation logic", "default": "// Implementation" },
+        "SUCCESS_CODE": { "description": "Success HTTP status code", "default": "200" },
+        "RESPONSE_DATA": { "description": "Response data object", "default": "{}" }
+      }
+    },
+    "MDL": {
+      "description": "Mongoose TypeScript model with schema and indexes",
+      "layer": "backend",
+      "output": {
+        "directory": "server/src/models",
+        "extension": ".ts",
+        "naming": "PascalCase"
+      },
+      "sections": ["imports", "interface", "schema", "model", "exports"],
+      "snippet": "// @archeon:file\n// @glyph {GLYPH_NAME}\n// @intent {INTENT}\n// @chain {CHAIN}\n\n// @archeon:section imports\nimport mongoose, { Document, Schema, Model } from 'mongoose';\n{IMPORTS}\n// @archeon:endsection\n\n// @archeon:section interface\nexport interface I{NAME} extends Document {\n  {FIELDS}\n  createdAt: Date;\n  updatedAt: Date;\n}\n// @archeon:endsection\n\n// @archeon:section schema\nconst {NAME}Schema = new Schema<I{NAME}>(\n  {\n    {SCHEMA_DEFINITION}\n  },\n  { timestamps: true }\n);\n\n{INDEXES}\n{METHODS}\n{STATICS}\n// @archeon:endsection\n\n// @archeon:section model\nconst {NAME}: Model<I{NAME}> = mongoose.models.{NAME} || mongoose.model<I{NAME}>('{NAME}', {NAME}Schema);\n// @archeon:endsection\n\n// @archeon:section exports\nexport default {NAME};\n// @archeon:endsection",
+      "placeholders": {
+        "GLYPH_NAME": { "description": "Full glyph identifier", "required": true },
+        "INTENT": { "description": "Model purpose", "default": "Database model" },
+        "CHAIN": { "description": "Chain reference", "default": "@v1" },
+        "NAME": { "description": "Model name in PascalCase", "required": true },
+        "IMPORTS": { "description": "Additional imports", "default": "" },
+        "FIELDS": { "description": "TypeScript interface fields", "default": "// Add fields" },
+        "SCHEMA_DEFINITION": { "description": "Mongoose schema definition", "default": "// Schema fields" },
+        "INDEXES": { "description": "Schema indexes", "default": "// Add indexes if needed" },
+        "METHODS": { "description": "Instance methods", "default": "" },
+        "STATICS": { "description": "Static methods", "default": "" }
+      }
+    },
+    "EVT": {
+      "description": "Event emitter/handler with TypeScript",
+      "layer": "backend",
+      "output": {
+        "directory": "server/src/events",
+        "extension": ".ts",
+        "naming": "camelCase"
+      },
+      "sections": ["imports", "types", "emitter", "handlers", "exports"],
+      "snippet": "// @archeon:file\n// @glyph {GLYPH_NAME}\n// @intent {INTENT}\n// @chain {CHAIN}\n\n// @archeon:section imports\nimport { EventEmitter } from 'events';\n{IMPORTS}\n// @archeon:endsection\n\n// @archeon:section types\ninterface {NAME}Payload {\n  {PAYLOAD_FIELDS}\n}\n// @archeon:endsection\n\n// @archeon:section emitter\nclass {NAME}Emitter extends EventEmitter {\n  emit(event: '{EVENT_NAME}', data: {NAME}Payload): boolean {\n    return super.emit(event, data);\n  }\n\n  on(event: '{EVENT_NAME}', listener: (data: {NAME}Payload) => void): this {\n    return super.on(event, listener);\n  }\n}\n\nexport const {INSTANCE_NAME} = new {NAME}Emitter();\n// @archeon:endsection\n\n// @archeon:section handlers\n{INSTANCE_NAME}.on('{EVENT_NAME}', async (data) => {\n  try {\n    {HANDLER_IMPLEMENTATION}\n  } catch (error) {\n    console.error('[{EVENT_NAME}] Error:', error);\n  }\n});\n// @archeon:endsection",
+      "placeholders": {
+        "GLYPH_NAME": { "description": "Full glyph identifier", "required": true },
+        "INTENT": { "description": "Event purpose", "default": "Event handler" },
+        "CHAIN": { "description": "Chain reference", "default": "@v1" },
+        "NAME": { "description": "Event class name in PascalCase", "required": true },
+        "EVENT_NAME": { "description": "Event name string", "required": true },
+        "INSTANCE_NAME": { "description": "Exported instance name", "required": true },
+        "IMPORTS": { "description": "Additional imports", "default": "" },
+        "PAYLOAD_FIELDS": { "description": "Event payload field definitions", "default": "// Payload fields" },
+        "HANDLER_IMPLEMENTATION": { "description": "Event handler implementation", "default": "// Handle event" }
+      }
+    },
+    "FNC": {
+      "description": "Utility function (shared between client and server)",
+      "layer": "shared",
+      "output": {
+        "directory": "lib",
+        "extension": ".ts",
+        "naming": "camelCase"
+      },
+      "sections": ["imports", "types", "function", "exports"],
+      "snippet": "// @archeon:file\n// @glyph {GLYPH_NAME}\n// @intent {INTENT}\n// @chain {CHAIN}\n\n// @archeon:section imports\n{IMPORTS}\n// @archeon:endsection\n\n// @archeon:section types\ntype {NAME}Params = {\n  {PARAMS}\n};\n\ntype {NAME}Return = {RETURN_TYPE};\n// @archeon:endsection\n\n// @archeon:section function\nexport function {FUNCTION_NAME}({\n  {PARAM_NAMES}\n}: {NAME}Params): {NAME}Return {\n  {IMPLEMENTATION}\n}\n// @archeon:endsection",
+      "placeholders": {
+        "GLYPH_NAME": { "description": "Full glyph identifier", "required": true },
+        "INTENT": { "description": "Function purpose", "default": "Utility function" },
+        "CHAIN": { "description": "Chain reference", "default": "@v1" },
+        "NAME": { "description": "Type name in PascalCase", "required": true },
+        "FUNCTION_NAME": { "description": "Function name in camelCase", "required": true },
+        "IMPORTS": { "description": "Additional imports", "default": "" },
+        "PARAMS": { "description": "Parameter type definitions", "default": "// Parameters" },
+        "PARAM_NAMES": { "description": "Destructured parameter names", "default": "" },
+        "RETURN_TYPE": { "description": "Return type", "default": "void" },
+        "IMPLEMENTATION": { "description": "Function implementation", "default": "// Implementation" }
+      }
+    },
+    "V": {
+      "description": "Next.js App Router page (Server Component by default). For pages needing interactivity, import Client Components.",
+      "layer": "frontend",
+      "output": {
+        "directory": "client/src/app",
+        "extension": ".tsx",
+        "naming": "kebab-case"
+      },
+      "sections": ["imports", "types", "page", "exports"],
+      "snippet": "// @archeon:file\n// @glyph {GLYPH_NAME}\n// @intent {INTENT}\n// @chain {CHAIN}\n\n// @archeon:section imports\nimport type { Metadata } from 'next';\n{IMPORTS}\n// @archeon:endsection\n\n// @archeon:section types\nexport const metadata: Metadata = {\n  title: '{TITLE}',\n  description: '{DESCRIPTION}',\n};\n\ninterface {NAME}PageProps {\n  params: Promise<{ {PARAMS} }>;\n  searchParams: Promise<{ {SEARCH_PARAMS} }>;\n}\n// @archeon:endsection\n\n// @archeon:section page\nexport default async function {NAME}Page({\n  params,\n  searchParams,\n}: {NAME}PageProps) {\n  {IMPLEMENTATION}\n\n  return (\n    <main className=\"container mx-auto p-4\">\n      {CONTENT}\n    </main>\n  );\n}\n// @archeon:endsection",
+      "placeholders": {
+        "GLYPH_NAME": { "description": "Full glyph identifier", "required": true },
+        "INTENT": { "description": "Page purpose", "default": "Page" },
+        "CHAIN": { "description": "Chain reference", "default": "@v1" },
+        "NAME": { "description": "Page name in PascalCase", "required": true },
+        "TITLE": { "description": "Page title", "required": true },
+        "DESCRIPTION": { "description": "Page meta description", "default": "" },
+        "IMPORTS": { "description": "Additional imports (client components, etc.)", "default": "" },
+        "PARAMS": { "description": "Route params type definition", "default": "" },
+        "SEARCH_PARAMS": { "description": "Search params type definition", "default": "" },
+        "IMPLEMENTATION": { "description": "Server-side data fetching", "default": "" },
+        "CONTENT": { "description": "Page JSX with DaisyUI classes", "default": "<h1 className=\"text-3xl font-bold\">Page</h1>" }
+      }
+    }
+  },
+
+  "config": {
+    "rootPackageJson": {
+      "path": "package.json",
+      "content": "{\n  \"name\": \"my-app\",\n  \"version\": \"1.0.0\",\n  \"private\": true,\n  \"scripts\": {\n    \"dev\": \"concurrently -n client,server -c cyan,magenta \\\"npm run dev:client\\\" \\\"npm run dev:server\\\"\",\n    \"dev:client\": \"cd client && npm run dev\",\n    \"dev:server\": \"cd server && npm run dev\",\n    \"build\": \"concurrently \\\"npm run build:client\\\" \\\"npm run build:server\\\"\",\n    \"build:client\": \"cd client && npm run build\",\n    \"build:server\": \"cd server && npm run build\",\n    \"install:all\": \"npm install && cd client && npm install && cd ../server && npm install\"\n  },\n  \"devDependencies\": {\n    \"concurrently\": \"^9.1.0\"\n  }\n}"
+    },
+    "tailwind": {
+      "path": "client/tailwind.config.ts",
+      "content": "import type { Config } from 'tailwindcss';\nimport daisyui from 'daisyui';\n\nconst config: Config = {\n  content: [\n    './src/pages/**/*.{js,ts,jsx,tsx,mdx}',\n    './src/components/**/*.{js,ts,jsx,tsx,mdx}',\n    './src/app/**/*.{js,ts,jsx,tsx,mdx}',\n  ],\n  theme: {\n    extend: {},\n  },\n  plugins: [daisyui],\n  daisyui: {\n    themes: [\n      'light',\n      'dark',\n      'cupcake',\n      'emerald',\n      'corporate',\n      'synthwave',\n      'retro',\n      'cyberpunk',\n      'valentine',\n      'halloween',\n      'garden',\n      'forest',\n      'aqua',\n      'lofi',\n      'pastel',\n      'fantasy',\n      'wireframe',\n      'black',\n      'luxury',\n      'dracula',\n      'cmyk',\n      'autumn',\n      'business',\n      'acid',\n      'lemonade',\n      'night',\n      'coffee',\n      'winter',\n      'dim',\n      'nord',\n      'sunset'\n    ],\n    darkTheme: 'dark',\n    base: true,\n    styled: true,\n    utils: true,\n    logs: false,\n  },\n};\n\nexport default config;"
+    },
+    "utils": {
+      "path": "client/src/lib/utils.ts",
+      "content": "import { type ClassValue, clsx } from 'clsx';\nimport { twMerge } from 'tailwind-merge';\n\nexport function cn(...inputs: ClassValue[]) {\n  return twMerge(clsx(inputs));\n}"
+    },
+    "tsconfigClient": {
+      "path": "client/tsconfig.json",
+      "content": "{\n  \"compilerOptions\": {\n    \"target\": \"ES2020\",\n    \"lib\": [\"ES2020\", \"DOM\", \"DOM.Iterable\"],\n    \"jsx\": \"preserve\",\n    \"module\": \"ESNext\",\n    \"moduleResolution\": \"bundler\",\n    \"resolveJsonModule\": true,\n    \"allowJs\": true,\n    \"strict\": true,\n    \"noEmit\": true,\n    \"esModuleInterop\": true,\n    \"skipLibCheck\": true,\n    \"forceConsistentCasingInFileNames\": true,\n    \"incremental\": true,\n    \"plugins\": [{ \"name\": \"next\" }],\n    \"paths\": {\n      \"@/*\": [\"./src/*\"]\n    }\n  },\n  \"include\": [\"next-env.d.ts\", \"**/*.ts\", \"**/*.tsx\", \".next/types/**/*.ts\"],\n  \"exclude\": [\"node_modules\"]\n}"
+    },
+    "tsconfigServer": {
+      "path": "server/tsconfig.json",
+      "content": "{\n  \"compilerOptions\": {\n    \"target\": \"ES2020\",\n    \"lib\": [\"ES2020\"],\n    \"module\": \"commonjs\",\n    \"moduleResolution\": \"node\",\n    \"resolveJsonModule\": true,\n    \"strict\": true,\n    \"esModuleInterop\": true,\n    \"skipLibCheck\": true,\n    \"forceConsistentCasingInFileNames\": true,\n    \"outDir\": \"./dist\",\n    \"rootDir\": \"./src\",\n    \"declaration\": true,\n    \"declarationMap\": true,\n    \"sourceMap\": true\n  },\n  \"include\": [\"src/**/*\"],\n  \"exclude\": [\"node_modules\", \"dist\"]\n}"
+    },
+    "nextConfig": {
+      "path": "client/next.config.ts",
+      "content": "import type { NextConfig } from 'next';\n\nconst nextConfig: NextConfig = {\n  reactStrictMode: true,\n};\n\nexport default nextConfig;"
+    },
+    "serverIndex": {
+      "path": "server/src/index.ts",
+      "content": "import express from 'express';\nimport cors from 'cors';\nimport dotenv from 'dotenv';\n\ndotenv.config();\n\nconst app = express();\nconst PORT = process.env.PORT || 3001;\n\n// Middleware\napp.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:3000' }));\napp.use(express.json());\napp.use(express.urlencoded({ extended: true }));\n\n// Health check\napp.get('/health', (_req, res) => {\n  res.json({ status: 'ok', timestamp: new Date().toISOString() });\n});\n\n// Routes\n// import myRoute from './api/routes/myRoute';\n// app.use('/api/myRoute', myRoute);\n\n// Error handler\napp.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {\n  console.error('[Server Error]', err.message);\n  res.status(500).json({ success: false, error: 'Internal server error' });\n});\n\napp.listen(PORT, () => {\n  console.log(`[server] Express running on http://localhost:${PORT}`);\n});"
+    },
+    "serverPackageJson": {
+      "path": "server/package.json",
+      "content": "{\n  \"name\": \"server\",\n  \"version\": \"1.0.0\",\n  \"private\": true,\n  \"scripts\": {\n    \"dev\": \"tsx watch src/index.ts\",\n    \"build\": \"tsc\",\n    \"start\": \"node dist/index.js\"\n  },\n  \"dependencies\": {\n    \"express\": \"^4.21.0\",\n    \"mongoose\": \"^8.9.0\",\n    \"zod\": \"^3.24.0\",\n    \"cors\": \"^2.8.5\",\n    \"dotenv\": \"^16.4.0\"\n  },\n  \"devDependencies\": {\n    \"typescript\": \"^5.7.0\",\n    \"tsx\": \"^4.19.0\",\n    \"@types/express\": \"^5.0.0\",\n    \"@types/node\": \"^22.0.0\",\n    \"@types/cors\": \"^2.8.17\"\n  }\n}"
+    },
+    "envExample": {
+      "path": ".env.example",
+      "content": "# Client\nNEXT_PUBLIC_API_URL=http://localhost:3001\n\n# Server\nPORT=3001\nCLIENT_URL=http://localhost:3000\nMONGODB_URI=mongodb://localhost:27017/myapp\nNODE_ENV=development"
+    },
+    "rootLayout": {
+      "path": "client/src/app/layout.tsx",
+      "content": "import type { Metadata } from 'next';\nimport './globals.css';\n\nexport const metadata: Metadata = {\n  title: 'My App',\n  description: 'Built with Next.js + DaisyUI + Express',\n};\n\nexport default function RootLayout({\n  children,\n}: {\n  children: React.ReactNode;\n}) {\n  return (\n    <html lang=\"en\" data-theme=\"light\">\n      <body className=\"min-h-screen bg-base-100 text-base-content\">\n        {children}\n      </body>\n    </html>\n  );\n}"
+    },
+    "globalsCss": {
+      "path": "client/src/app/globals.css",
+      "content": "@tailwind base;\n@tailwind components;\n@tailwind utilities;"
+    }
+  },
+
+  "prebuilt": {
+    "ThemeSelector": {
+      "path": "client/src/components/ThemeSelector.tsx",
+      "glyph": "CMP:ThemeSelector",
+      "description": "DaisyUI theme switcher dropdown. Uses data-theme attribute on <html> for instant theme switching across all 30 built-in DaisyUI themes.",
+      "content": "// @archeon:file\n// @glyph CMP:ThemeSelector\n// @intent DaisyUI theme switcher dropdown with persistence\n// @chain @v1 NED:theming => CMP:ThemeSelector => STO:Theme => OUT:themeApplied\n\n// @archeon:section imports\n'use client';\n\nimport { useEffect, useState } from 'react';\n// @archeon:endsection\n\n// @archeon:section component\nconst THEMES = [\n  'light', 'dark', 'cupcake', 'emerald', 'corporate',\n  'synthwave', 'retro', 'cyberpunk', 'valentine', 'halloween',\n  'garden', 'forest', 'aqua', 'lofi', 'pastel',\n  'fantasy', 'wireframe', 'black', 'luxury', 'dracula',\n  'cmyk', 'autumn', 'business', 'acid', 'lemonade',\n  'night', 'coffee', 'winter', 'dim', 'nord', 'sunset'\n] as const;\n\nexport function ThemeSelector() {\n  const [theme, setTheme] = useState('light');\n\n  useEffect(() => {\n    const saved = localStorage.getItem('daisyui-theme') || 'light';\n    setTheme(saved);\n    document.documentElement.setAttribute('data-theme', saved);\n  }, []);\n\n  const handleChange = (newTheme: string) => {\n    setTheme(newTheme);\n    document.documentElement.setAttribute('data-theme', newTheme);\n    localStorage.setItem('daisyui-theme', newTheme);\n  };\n\n  return (\n    <div className=\"dropdown dropdown-end\">\n      <div tabIndex={0} role=\"button\" className=\"btn btn-ghost gap-1\">\n        <svg className=\"w-5 h-5\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\">\n          <path strokeLinecap=\"round\" strokeLinejoin=\"round\" strokeWidth={2}\n            d=\"M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01\" />\n        </svg>\n        Theme\n        <svg className=\"w-3 h-3\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\">\n          <path strokeLinecap=\"round\" strokeLinejoin=\"round\" strokeWidth={2} d=\"M19 9l-7 7-7-7\" />\n        </svg>\n      </div>\n      <ul tabIndex={0}\n        className=\"dropdown-content z-50 menu p-2 shadow-lg bg-base-200 rounded-box w-56 max-h-80 overflow-y-auto flex-nowrap\">\n        {THEMES.map((t) => (\n          <li key={t}>\n            <button\n              className={`capitalize ${theme === t ? 'active' : ''}`}\n              onClick={() => handleChange(t)}\n            >\n              <div className=\"flex gap-2 items-center\">\n                <div className=\"flex gap-0.5\" data-theme={t}>\n                  <span className=\"w-2 h-4 rounded bg-primary\" />\n                  <span className=\"w-2 h-4 rounded bg-secondary\" />\n                  <span className=\"w-2 h-4 rounded bg-accent\" />\n                  <span className=\"w-2 h-4 rounded bg-neutral\" />\n                </div>\n                {t}\n              </div>\n            </button>\n          </li>\n        ))}\n      </ul>\n    </div>\n  );\n}\n// @archeon:endsection"
+    },
+    "Navbar": {
+      "path": "client/src/components/layout/Navbar.tsx",
+      "glyph": "CMP:Navbar",
+      "description": "DaisyUI responsive navbar with theme selector, mobile drawer, and navigation links",
+      "content": "// @archeon:file\n// @glyph CMP:Navbar\n// @intent Responsive navigation bar with DaisyUI theme selector\n// @chain @v1 NED:navigation => CMP:Navbar => CMP:ThemeSelector => OUT:navRendered\n\n// @archeon:section imports\n'use client';\n\nimport Link from 'next/link';\nimport { ThemeSelector } from '@/components/ThemeSelector';\n// @archeon:endsection\n\n// @archeon:section component\nexport function Navbar() {\n  return (\n    <div className=\"navbar bg-base-100 shadow-sm\">\n      <div className=\"navbar-start\">\n        <div className=\"dropdown\">\n          <div tabIndex={0} role=\"button\" className=\"btn btn-ghost lg:hidden\">\n            <svg className=\"h-5 w-5\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\">\n              <path strokeLinecap=\"round\" strokeLinejoin=\"round\" strokeWidth={2} d=\"M4 6h16M4 12h8m-8 6h16\" />\n            </svg>\n          </div>\n          <ul tabIndex={0} className=\"menu menu-sm dropdown-content mt-3 z-50 p-2 shadow bg-base-200 rounded-box w-52\">\n            <li><Link href=\"/\">Home</Link></li>\n            <li><Link href=\"/about\">About</Link></li>\n          </ul>\n        </div>\n        <Link href=\"/\" className=\"btn btn-ghost text-xl\">My App</Link>\n      </div>\n      <div className=\"navbar-center hidden lg:flex\">\n        <ul className=\"menu menu-horizontal px-1\">\n          <li><Link href=\"/\">Home</Link></li>\n          <li><Link href=\"/about\">About</Link></li>\n        </ul>\n      </div>\n      <div className=\"navbar-end\">\n        <ThemeSelector />\n      </div>\n    </div>\n  );\n}\n// @archeon:endsection"
+    }
+  },
+
+  "files": {
+    "homePage": {
+      "path": "client/src/app/page.tsx",
+      "content": "// @archeon:file\n// @glyph V:Home\n// @intent Landing page with DaisyUI hero section\n// @chain @v1 NED:landing => V:Home => OUT:rendered\n\nimport { Navbar } from '@/components/layout/Navbar';\n\nexport default function HomePage() {\n  return (\n    <>\n      <Navbar />\n      <main>\n        <div className=\"hero min-h-[calc(100vh-4rem)] bg-base-200\">\n          <div className=\"hero-content text-center\">\n            <div className=\"max-w-md\">\n              <h1 className=\"text-5xl font-bold\">Hello there</h1>\n              <p className=\"py-6\">\n                Built with Next.js 15, DaisyUI, and Express.\n                Use the theme selector in the navbar to try different themes.\n              </p>\n              <button className=\"btn btn-primary\">Get Started</button>\n            </div>\n          </div>\n        </div>\n      </main>\n    </>\n  );\n}"
+    }
+  },
+
+  "dependencies": {
+    "root": {
+      "devDependencies": {
+        "concurrently": "^9.1.0"
+      }
+    },
+    "client": {
+      "dependencies": {
+        "next": "^15.1.0",
+        "react": "^19.0.0",
+        "react-dom": "^19.0.0",
+        "zustand": "^5.0.0",
+        "clsx": "^2.1.0",
+        "tailwind-merge": "^2.6.0"
+      },
+      "devDependencies": {
+        "typescript": "^5.7.0",
+        "tailwindcss": "^3.4.0",
+        "daisyui": "^4.12.0",
+        "postcss": "^8.4.0",
+        "autoprefixer": "^10.4.0",
+        "@types/react": "^19.0.0",
+        "@types/react-dom": "^19.0.0",
+        "@types/node": "^22.0.0"
+      }
+    },
+    "server": {
+      "dependencies": {
+        "express": "^4.21.0",
+        "mongoose": "^8.9.0",
+        "zod": "^3.24.0",
+        "cors": "^2.8.5",
+        "dotenv": "^16.4.0"
+      },
+      "devDependencies": {
+        "typescript": "^5.7.0",
+        "tsx": "^4.19.0",
+        "@types/express": "^5.0.0",
+        "@types/node": "^22.0.0",
+        "@types/cors": "^2.8.17"
+      }
+    }
+  }
+}
