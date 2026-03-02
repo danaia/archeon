@@ -114,8 +114,8 @@ def init(
         arc init                           # Vue 3 + FastAPI (default)
         arc init --arch vue3-fastapi       # Explicit shape selection
         arc init -f react -b fastapi       # React + FastAPI
-        arc init --arch react-fastapi --copilot  # With GitHub Copilot rules
-        arc init --arch react-fastapi --copilot --cline  # Multiple IDE rules
+        arc init --arch nextjs-fastapi --copilot  # With GitHub Copilot rules
+        arc init --arch nextjs-fastapi --copilot --cline  # Multiple IDE rules
         
     Run 'arc shapes' to list available architecture shapes.
     """

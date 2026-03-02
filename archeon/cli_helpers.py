@@ -35,11 +35,13 @@ def get_shape_id(frontend: str, backend: str) -> str:
     # Normalize frontend
     if frontend.lower() in ("vue", "vue3"):
         frontend = "vue3"
+    if frontend.lower() in ("next", "nextjs", "react"):
+        frontend = "nextjs"
     
     shape_map = {
         ("vue3", "fastapi"): "vue3-fastapi",
-        ("react", "fastapi"): "react-fastapi",
-        ("react", "express"): "react-express",
+        ("nextjs", "fastapi"): "nextjs-fastapi",
+        ("nextjs", "express"): "nextjs-express",
         ("vue3", "express"): "vue3-express",
     }
     

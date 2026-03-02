@@ -67,7 +67,7 @@ mkdir my-app && cd my-app
 # Initialize with a complete architecture
 arc init --arch nextjs-express     # Next.js 14 + Express + TypeScript (RECOMMENDED)
 arc init --arch vue3-fastapi       # Vue 3 + FastAPI + MongoDB
-arc init --arch react-fastapi      # React + FastAPI + MongoDB
+arc init --arch nextjs-fastapi      # Next.js + FastAPI + MongoDB
 
 # Optional: Add IDE rules too
 arc ai-setup

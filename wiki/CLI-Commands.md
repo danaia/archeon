@@ -46,13 +46,13 @@ arc init [PATH] [OPTIONS]
 arc init --frontend vue3 --backend fastapi
 
 # Initialize with architecture shape
-arc init --arch react-fastapi
+arc init --arch nextjs-fastapi
 
 # Initialize with GitHub Copilot rules included
-arc init --arch react-fastapi --copilot
+arc init --arch nextjs-fastapi --copilot
 
 # Initialize with multiple IDE rules
-arc init --arch react-fastapi --copilot --cline
+arc init --arch nextjs-fastapi --copilot --cline
 
 # Initialize React + FastAPI in specific directory
 arc init my-app --frontend react

@@ -27,7 +27,7 @@ arc init --arch vue3-fastapi
 | --------------------- | -------------------------------- | -------------------------------------------------------------------- |
 | **Next.js + Express** | `arc init --arch nextjs-express` | **Next.js 14, Zustand, Express, TypeScript, Mongoose (RECOMMENDED)** |
 | Vue 3 + FastAPI       | `arc init --arch vue3-fastapi`   | Vue 3, Pinia, TailwindCSS, FastAPI, MongoDB                          |
-| React + FastAPI       | `arc init --arch react-fastapi`  | React, Zustand, TailwindCSS, FastAPI, MongoDB                        |
+| Next.js + FastAPI     | `arc init --arch nextjs-fastapi` | Next.js 15, Zustand, TailwindCSS, FastAPI, MongoDB                   |
 
 ---
 
@@ -383,7 +383,7 @@ archeon/
 └── architectures/
     ├── _schema.json           # JSON Schema for validation
     ├── vue3-fastapi.shape.json
-    ├── react-fastapi.shape.json
+    ├── nextjs-fastapi.shape.json
     └── [future].shape.json
 ```
 
@@ -396,7 +396,7 @@ arc shapes
 # Initialize project with specific shape
 arc init --arch nextjs-express     # Next.js 14 + Express + TypeScript (RECOMMENDED)
 arc init --arch vue3-fastapi       # Vue 3 + FastAPI + MongoDB
-arc init --arch react-fastapi      # React + FastAPI + MongoDB
+arc init --arch nextjs-fastapi      # Next.js + FastAPI + MongoDB
 
 # Default behavior (uses vue3-fastapi)
 arc init
@@ -434,12 +434,12 @@ arc init
 
 Defines the technology choices. Can be simple strings or detailed objects:
 
-**Simple format (react-fastapi):**
+**Simple format (nextjs-fastapi):**
 
 ```json
 {
   "stack": {
-    "frontend": "react",
+    "frontend": "nextjs",
     "backend": "fastapi",
     "database": "mongodb",
     "state": "zustand"
@@ -744,10 +744,10 @@ interface PrebuiltComponent {
 │ │                                    [View] [Edit] [Clone]    │ │
 │ └─────────────────────────────────────────────────────────────┘ │
 │ ┌─────────────────────────────────────────────────────────────┐ │
-│ │ 🔵 react-fastapi                                   v1.0.0   │ │
-│ │ React + FastAPI                                             │ │
-│ │ Tags: fullstack, typescript, react                          │ │
-│ │ Glyphs: 7 │ Prebuilt: 2 │ Stack: React/FastAPI/MongoDB      │ │
+│ │ 🔵 nextjs-fastapi                                  v1.0.0   │ │
+│ │ Next.js 15 + FastAPI                                        │ │
+│ │ Tags: fullstack, typescript, nextjs, python                 │ │
+│ │ Glyphs: 8 │ Prebuilt: 4 │ Stack: Next.js/FastAPI/MongoDB    │ │
 │ │                                    [View] [Edit] [Clone]    │ │
 │ └─────────────────────────────────────────────────────────────┘ │
 └─────────────────────────────────────────────────────────────────┘
@@ -1088,7 +1088,7 @@ Your GUI should integrate with:
 | Shape ID         | Frontend | Backend  | Database   | Status     |
 | ---------------- | -------- | -------- | ---------- | ---------- |
 | `vue3-fastapi`   | Vue 3    | FastAPI  | MongoDB    | ✅ Done    |
-| `react-fastapi`  | React    | FastAPI  | MongoDB    | ✅ Done    |
+| `nextjs-fastapi`  | Next.js  | FastAPI  | MongoDB    | ✅ Done    |
 | `angular-nestjs` | Angular  | NestJS   | PostgreSQL | 📋 Planned |
 | `svelte-fastapi` | Svelte   | FastAPI  | MongoDB    | 📋 Planned |
 | `react-express`  | React    | Express  | MongoDB    | 📋 Planned |

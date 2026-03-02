@@ -103,7 +103,8 @@ class BaseAgent(ABC):
         # Try common shape IDs based on framework
         shape_map = {
             "vue3": "vue3-fastapi",
-            "react": "react-fastapi",
+            "react": "nextjs-fastapi",
+            "nextjs": "nextjs-fastapi",
             "fastapi": "vue3-fastapi",
         }
         

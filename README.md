@@ -143,7 +143,7 @@ cd ..
 mkdir my-app && cd my-app
 arc init --arch nextjs-express     # Next.js 14 + Express + TypeScript (RECOMMENDED)
 arc init --arch vue3-fastapi       # Vue 3 + FastAPI + MongoDB
-arc init --arch react-fastapi      # React + FastAPI + MongoDB
+arc init --arch nextjs-fastapi      # Next.js + FastAPI + MongoDB
 
 # 4. Optional: Add IDE rules too
 arc ai-setup
@@ -155,7 +155,7 @@ arc ai-setup
 | ---------------- | ------------------------------------------------------ | ------------------------------------------------------ |
 | `nextjs-express` | **Next.js 14, Zustand, Express, TypeScript, Mongoose** | **Modern full-stack, App Router, RSC, Zod validation** |
 | `vue3-fastapi`   | Vue 3, Pinia, Tailwind, FastAPI, MongoDB               | Complete monorepo, theme system, pre-built components  |
-| `react-fastapi`  | React, Zustand, Tailwind, FastAPI, MongoDB             | Complete monorepo, theme system, pre-built components  |
+| `nextjs-fastapi`  | Next.js 15, Zustand, Tailwind, FastAPI, MongoDB        | App Router, RSC, theme system, pre-built components    |
 
 **Project structure after shape initialization (nextjs-express):**
 
@@ -390,7 +390,7 @@ arc ai-setup
 arc shapes                              # List available shapes
 arc init --arch nextjs-express          # Next.js 14 + Express + TypeScript
 arc init --arch vue3-fastapi            # Vue 3 + FastAPI + MongoDB
-arc init --arch react-fastapi           # React + FastAPI + MongoDB
+arc init --arch nextjs-fastapi           # Next.js + FastAPI + MongoDB
 arc init --arch nextjs-express --copilot  # With IDE rules included
 
 # Manual framework selection (uses shapes behind the scenes)
