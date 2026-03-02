@@ -177,6 +177,50 @@ GLYPH_LEGEND = {
         'qualifiers': ['transformer', 'semantic', 'primitive'],
         'doc': 'Transforms W3C DTCG design tokens to CSS/Tailwind/JS outputs'
     },
+
+    # === Architecture/Index/Build System Glyphs (Internal) ===
+    'SHP': {
+        'name': 'Shape',
+        'description': 'Architecture shape loader and renderer',
+        'agent': None,
+        'color': '#8E44AD',
+        'layer': 'internal'
+    },
+    'SCN': {
+        'name': 'Scanner',
+        'description': 'Semantic section scanner for @archeon markers',
+        'agent': None,
+        'color': '#16A085',
+        'layer': 'internal'
+    },
+    'IDX': {
+        'name': 'Index',
+        'description': 'Semantic index builder and orchestrator',
+        'agent': None,
+        'color': '#27AE60',
+        'layer': 'internal'
+    },
+    'CSS': {
+        'name': 'CSS',
+        'description': 'Generated CSS outputs (e.g., design token variables)',
+        'agent': None,
+        'color': '#2980B9',
+        'layer': 'internal'
+    },
+    'TW': {
+        'name': 'Tailwind',
+        'description': 'Generated Tailwind configuration outputs',
+        'agent': None,
+        'color': '#0EA5E9',
+        'layer': 'internal'
+    },
+    'JS': {
+        'name': 'JavaScript',
+        'description': 'Generated JavaScript/TypeScript constants outputs',
+        'agent': None,
+        'color': '#F59E0B',
+        'layer': 'internal'
+    },
 }
 
 EDGE_TYPES = {

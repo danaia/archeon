@@ -1,0 +1,154 @@
+{
+  "$schema": "./_schema.json",
+  "meta": {
+    "id": "solidjs-kiss",
+    "name": "SolidJS (KISS, Client-Only)",
+    "version": "1.0.0",
+    "description": "Minimal SolidJS SPA using Vite. No server layer. Simple components + local state via solid-js/store.",
+    "tags": ["frontend", "spa", "solidjs", "vite", "client-only", "no-server", "kiss"]
+  },
+
+  "architecture": {
+    "summary": "A small, client-only SolidJS application. Components (CMP) use signals/stores for UI state. Stores (STO) keep shared state. No backend/API glyphs in this shape.",
+    "layers": [
+      {
+        "name": "UI Layer (CMP)",
+        "description": "SolidJS components. No IO assumptions. UI logic only; any side effects should be isolated behind functions."
+      },
+      {
+        "name": "State Layer (STO)",
+        "description": "Shared state via solid-js/store. Stores expose state + actions."
+      },
+      {
+        "name": "Shared Logic (FNC)",
+        "description": "Small pure helpers and boundary wrappers that CMP/STO can call."
+      }
+    ],
+    "dataFlow": "CMP -> STO -> (optional) FNC",
+    "keyPrinciples": ["Client-only", "KISS", "Vite dev/build", "Small composable stores", "Keep IO at boundaries"]
+  },
+
+  "defaultChain": "@v1 NED:system.ready => SHP:solidjs-kiss => OUT:installed",
+
+  "stack": {
+    "frontend": {
+      "framework": "solidjs",
+      "language": "typescript",
+      "buildTool": "vite",
+      "stateManagement": "solid-js/store",
+      "styling": "css"
+    },
+    "backend": {
+      "framework": "none",
+      "language": "n/a"
+    }
+  },
+
+  "directories": {
+    "root": ["client", "archeon"],
+    "frontend": {
+      "components": "client/src/components",
+      "stores": "client/src/stores",
+      "lib": "client/src/lib"
+    },
+    "backend": {}
+  },
+
+  "files": {
+    "client/package.json": "{\n  \"name\": \"solidjs-kiss-app\",\n  \"private\": true,\n  \"version\": \"0.1.0\",\n  \"type\": \"module\",\n  \"scripts\": {\n    \"dev\": \"vite\",\n    \"build\": \"vite build\",\n    \"preview\": \"vite preview\"\n  },\n  \"dependencies\": {\n    \"solid-js\": \"^1.8.0\"\n  },\n  \"devDependencies\": {\n    \"typescript\": \"^5.3.0\",\n    \"vite\": \"^5.0.0\",\n    \"vite-plugin-solid\": \"^2.10.0\"\n  }\n}\n",
+    "client/vite.config.ts": "import { defineConfig } from 'vite';\nimport solid from 'vite-plugin-solid';\n\nexport default defineConfig({\n  plugins: [solid()],\n  server: {\n    port: 3000\n  }\n});\n",
+    "client/index.html": "<!doctype html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"UTF-8\" />\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n    <title>SolidJS KISS</title>\n  </head>\n  <body>\n    <div id=\"root\"></div>\n    <script type=\"module\" src=\"/src/main.tsx\"></script>\n  </body>\n</html>\n",
+    "client/src/main.tsx": "// @archeon:file\n// @glyph CMP:AppRoot\n// @intent SolidJS app entry mounting the root component\n// @chain @v1 NED:system.ready => CMP:AppRoot => OUT:ui.ready\n\n// @archeon:section imports\nimport { render } from 'solid-js/web';\nimport App from './App';\nimport './style.css';\n// @archeon:endsection\n\n// @archeon:section render\nconst root = document.getElementById('root');\nif (!root) throw new Error('Missing #root');\nrender(() => <App />, root);\n// @archeon:endsection\n",
+    "client/src/App.tsx": "// @archeon:file\n// @glyph CMP:App\n// @intent Minimal SolidJS shell component\n// @chain @v1 NED:system.ready => CMP:App => OUT:ui.ready\n\n// @archeon:section imports\nimport { createSignal } from 'solid-js';\n// @archeon:endsection\n\n// @archeon:section render\nexport default function App() {\n  const [count, setCount] = createSignal(0);\n\n  return (\n    <main style={{ padding: '24px', 'font-family': 'system-ui, sans-serif' }}>\n      <h1>SolidJS KISS</h1>\n      <p>Client-only starter. Edit <code>src/App.tsx</code> to begin.</p>\n      <button onClick={() => setCount((c) => c + 1)}>Count: {count()}</button>\n    </main>\n  );\n}\n// @archeon:endsection\n",
+    "client/src/style.css": ":root {\n  color-scheme: light dark;\n}\n\nbody {\n  margin: 0;\n}\n\nbutton {\n  padding: 8px 12px;\n}\n"
+  },
+
+  "glyphs": {
+    "CMP": {
+      "layer": "frontend",
+      "output": {
+        "directory": "client/src/components",
+        "extension": ".tsx",
+        "naming": "PascalCase"
+      },
+      "sections": ["imports", "props_and_state", "handlers", "render"],
+      "snippet": "// @archeon:file\n// @glyph {GLYPH_QUALIFIED_NAME}\n// @intent {COMPONENT_INTENT}\n// @chain {CHAIN_REFERENCE}\n\n// @archeon:section imports\nimport type { JSX } from 'solid-js';\nimport { createSignal, createMemo, onCleanup, onMount } from 'solid-js';\n{IMPORTS}\n// @archeon:endsection\n\n// @archeon:section props_and_state\nexport type {NAME}Props = {\n{PROPS}\n};\n\n{STATE}\n{COMPUTED}\n// @archeon:endsection\n\n// @archeon:section handlers\n{HANDLERS}\nonMount(() => {\n  {ON_MOUNT}\n});\n\nonCleanup(() => {\n  {ON_CLEANUP}\n});\n// @archeon:endsection\n\n// @archeon:section render\nexport default function {NAME}(props: {NAME}Props): JSX.Element {\n  return (\n    <div data-testid=\"{NAME_KEBAB}\">\n      {CONTENT}\n    </div>\n  );\n}\n// @archeon:endsection\n",
+      "placeholders": {
+        "GLYPH_QUALIFIED_NAME": { "required": true },
+        "COMPONENT_INTENT": { "required": true },
+        "CHAIN_REFERENCE": { "required": true },
+        "NAME": { "required": true },
+        "NAME_KEBAB": { "required": true },
+        "IMPORTS": { "default": "" },
+        "PROPS": { "default": "" },
+        "STATE": { "default": "" },
+        "COMPUTED": { "default": "" },
+        "HANDLERS": { "default": "" },
+        "ON_MOUNT": { "default": "" },
+        "ON_CLEANUP": { "default": "" },
+        "CONTENT": { "default": "" }
+      }
+    },
+
+    "STO": {
+      "layer": "frontend",
+      "output": {
+        "directory": "client/src/stores",
+        "extension": ".ts",
+        "naming": "camelCase"
+      },
+      "sections": ["imports", "state", "selectors", "actions"],
+      "snippet": "// @archeon:file\n// @glyph {GLYPH_QUALIFIED_NAME}\n// @intent {STORE_INTENT}\n// @chain {CHAIN_REFERENCE}\n\n// @archeon:section imports\nimport { createStore } from 'solid-js/store';\n{IMPORTS}\n// @archeon:endsection\n\n// @archeon:section state\nexport type {NAME}State = {\n{STATE_FIELDS}\n};\n\nconst initialState: {NAME}State = {\n{INITIAL_STATE}\n};\n\nexport const [{STORE_NAME}, set{NAME}] = createStore(initialState);\n// @archeon:endsection\n\n// @archeon:section selectors\n{SELECTORS}\n// @archeon:endsection\n\n// @archeon:section actions\nexport const {STORE_NAME}Actions = {\n  {ACTIONS}\n};\n// @archeon:endsection\n",
+      "placeholders": {
+        "GLYPH_QUALIFIED_NAME": { "required": true },
+        "STORE_INTENT": { "required": true },
+        "CHAIN_REFERENCE": { "required": true },
+        "NAME": { "required": true },
+        "STORE_NAME": { "required": true },
+        "IMPORTS": { "default": "" },
+        "STATE_FIELDS": { "default": "  // add fields\n" },
+        "INITIAL_STATE": { "default": "  // add initial values\n" },
+        "SELECTORS": { "default": "" },
+        "ACTIONS": { "default": "// add actions" }
+      }
+    },
+
+    "FNC": {
+      "layer": "shared",
+      "output": {
+        "directory": "client/src/lib",
+        "extension": ".ts",
+        "naming": "camelCase"
+      },
+      "sections": ["imports", "implementation", "helpers"],
+      "snippet": "// @archeon:file\n// @glyph {GLYPH_QUALIFIED_NAME}\n// @intent {FUNCTION_INTENT}\n// @chain {CHAIN_REFERENCE}\n\n// @archeon:section imports\n{IMPORTS}\n// @archeon:endsection\n\n// @archeon:section implementation\nexport function {FUNCTION_NAME}({PARAMETERS}): {RETURN_TYPE} {\n  {BODY}\n}\n// @archeon:endsection\n",
+      "placeholders": {
+        "GLYPH_QUALIFIED_NAME": { "required": true },
+        "FUNCTION_INTENT": { "required": true },
+        "CHAIN_REFERENCE": { "required": true },
+        "IMPORTS": { "default": "" },
+        "FUNCTION_NAME": { "required": true },
+        "PARAMETERS": { "default": "" },
+        "RETURN_TYPE": { "default": "void" },
+        "BODY": { "default": "" }
+      }
+    }
+  },
+
+  "dependencies": {
+    "frontend": {
+      "dependencies": {
+        "solid-js": "^1.8.0"
+      },
+      "devDependencies": {
+        "vite": "^5.0.0",
+        "vite-plugin-solid": "^2.10.0",
+        "typescript": "^5.3.0"
+      }
+    },
+    "backend": {
+      "dependencies": {},
+      "devDependencies": {}
+    }
+  }
+}

@@ -136,8 +136,7 @@ GRF:domain :: ORC:main
 # === SHAPE LOADER LAYER ===
 # SHP loads architecture shapes from JSON files
 # Provides glyph snippets, directory mappings, and configurations
-SHP:loader :: ORC:main
-SHP:loader :: SPW:agent
+SHP:loader :: ORC:main :: SPW:agent
 
 # === CONTEXT MANAGEMENT (Small Model Optimization) ===
 # CTX manages context budgets to keep payloads within 60K tokens for 30B models
@@ -149,8 +148,7 @@ MIC:executor :: CTX:projection :: SPW:agent
 # === SECTION SCANNER (Index Builder) ===
 # SCN scans files for @archeon:section markers and rebuilds index
 # IDX stores the semantic affordance map (glyph -> file -> sections)
-SCN:scanner :: IDX:index :: GRF:domain
-SCN:scanner :: PRS:glyph
+SCN:scanner :: PRS:glyph :: IDX:index :: GRF:domain
 IDX:index :: CTX:projection
 
 # === DESIGN TOKEN LAYER ===
@@ -174,7 +172,7 @@ TKN:semantic :: TKN:transformer
 #
 # Flow: design-tokens.json -> theme-presets.css -> STO:Theme -> CSS variables -> components
 STO:Theme ~> CMP:*
-TKN:transformer :: STO:Theme
+STO:Theme :: TKN:transformer
 
 # === AGENT CHAINS (Versioned) ===
 # Add chains below using: archeon parse "<chain>"
@@ -183,3 +181,6 @@ TKN:transformer :: STO:Theme
 @v1 NED:ide.rules => FNC:cli.init => FNC:cli.aiSetup => OUT:rules.generated
     -> ERR:rules.templateMissing
 # Supported IDEs: copilot, cursor, windsurf, cline, aider, vscode, antigravity
+
+# Architecture Shapes - SolidJS (client-only)
+@v1 NED:architecture.solidjs => SHP:solidjs-kiss => OUT:architecture.available

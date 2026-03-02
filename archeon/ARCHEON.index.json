@@ -2,6 +2,12 @@
   "version": "1.0",
   "project": "Archeon",
   "glyphs": {
+    "SHP:solidjs-kiss": {
+      "file": "archeon/architectures/solidjs-kiss.shape.json",
+      "intent": "SolidJS (KISS, client-only) architecture shape",
+      "chain": "@v1",
+      "sections": []
+    },
     "FNC:helper\"": {
       "file": "archeon/tests/test_scanner.py",
       "intent": "Test component\" in header",
