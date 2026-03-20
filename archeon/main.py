@@ -159,8 +159,9 @@ def init(
     if shape:
         # Check if shape has no backend defined or backend is None/empty
         backend_config = shape.stack.get("backend")
+        backend_framework = backend_config.get("framework") if isinstance(backend_config, dict) else None
         is_frontend_only = backend_config is None or backend_config == {} or (
-            isinstance(backend_config, dict) and not backend_config.get("framework")
+            backend_framework is None or backend_framework in ("", "none", "n/a")
         )
     
     if monorepo and not is_frontend_only:
