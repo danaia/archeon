@@ -65,13 +65,17 @@
       "router": "react-router"
     },
     "backend": {
-      "framework": "electron-main",
-      "language": "typescript",
-      "runtime": "node"
+      "framework": "none",
+      "language": "n/a"
     },
     "platform": {
       "wrapper": "electron",
       "version": "35.x",
+      "mainProcess": {
+        "language": "typescript",
+        "runtime": "node",
+        "entry": "src/main/index.ts"
+      },
       "targets": ["mac", "linux", "windows"],
       "capabilities": ["filesystem", "github-api", "ssh-keys", "safe-storage", "shell", "notifications"]
     }
