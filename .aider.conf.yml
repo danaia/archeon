@@ -1,4 +1,5 @@
 # Archeon configuration for Aider
+# NOTE: Archeon rules only apply if 'arc --version' succeeds or archeon/ARCHEON.arcon exists
 read:
   - archeon/ARCHEON.arcon
   - archeon/ARCHEON.index.json

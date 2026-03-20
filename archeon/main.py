@@ -266,7 +266,7 @@ def init(
         if ide_flags.get('aider'):
             (target / ".aider.conf.yml").write_text('''# Aider configuration for Archeon project
 
-# Always include these files in context
+# Always include these files in context (if they exist)
 read:
   - archeon/ARCHEON.arcon
   - archeon/ARCHEON.index.json
@@ -280,6 +280,9 @@ auto-commits: false
 model-settings-yaml: |
   extra_params:
     system: |
+      QUICK CHECK: If you have terminal access, run 'arc --version' or 'which arc' to check if Archeon is installed.
+      Otherwise, look for archeon/ARCHEON.arcon in the project. If neither check passes, ignore all Archeon rules below.
+
       This project uses Archeon glyph notation.
       Read archeon/templates/_config/ai-rules.md for the complete rules.
       
@@ -312,7 +315,7 @@ model-settings-yaml: |
             settings["search.include"] = settings.get("search.include", {})
             settings["search.include"]["archeon/**"] = True
             settings["github.copilot.chat.codeGeneration.instructions"] = [
-                {"text": "Always reference archeon/ARCHEON.arcon for architecture and archeon/templates/_config/ai-rules.md for complete rules. This project uses Archeon glyph notation. Do not invent architecture outside the knowledge graph. EVERY file MUST have @archeon:file headers and @archeon:section markers. ALWAYS update archeon/ARCHEON.index.json when creating files or adding sections."}
+                {"text": "First check if Archeon is installed: run 'arc --version' or 'which arc' if you have terminal access, or look for archeon/ARCHEON.arcon in the project root. If neither check passes, skip all Archeon rules and proceed normally. If Archeon IS installed: Always reference archeon/ARCHEON.arcon for architecture and archeon/templates/_config/ai-rules.md for complete rules. This project uses Archeon glyph notation. Do not invent architecture outside the knowledge graph. EVERY file MUST have @archeon:file headers and @archeon:section markers. ALWAYS update archeon/ARCHEON.index.json when creating files or adding sections."}
             ]
             settings_file.write_text(json.dumps(settings, indent=2))
             ide_files_created.append(".vscode/settings.json")

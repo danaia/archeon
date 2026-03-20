@@ -1,5 +1,16 @@
 # Archeon Project Rules for Windsurf
 
+## ⚡ QUICK CHECK: Is Archeon installed?
+
+**Before applying ANY rules below, check if this project uses Archeon:**
+
+1. If you have terminal access: run `arc --version` or `which arc` — if the command succeeds, Archeon is installed
+2. Otherwise: look for `archeon/ARCHEON.arcon` in the project root
+3. If **either check passes** → this is an Archeon project, follow ALL rules below
+4. If **both fail** → **STOP HERE**. Ignore the rest of this document and proceed normally without Archeon rules
+
+---
+
 # Archeon AI Rules
 
 ## 🚨 BEFORE ANY CODING: READ THESE FILES
