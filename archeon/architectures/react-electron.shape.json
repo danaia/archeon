@@ -1,0 +1,322 @@
+{
+  "$schema": "./_schema.json",
+  "meta": {
+    "id": "react-electron",
+    "name": "React + Vite + Electron (Desktop App)",
+    "description": "Production-ready Electron desktop application with React 19, Vite, Zustand state management. Manages filesystem operations, GitHub API integration, and SSH key management via secure IPC bridge.",
+    "version": "1.0.0",
+    "tags": ["desktop", "electron", "react", "vite", "typescript", "filesystem", "github", "ssh"]
+  },
+
+  "architecture": {
+    "summary": "A secure desktop application architecture using Electron with a React+Vite renderer. The main process handles privileged operations (filesystem, GitHub API, SSH key management) and exposes them to the renderer via a typed IPC bridge. Context isolation and preload scripts enforce a strict security boundary between the UI and system access.",
+    "layers": [
+      {
+        "name": "UI Layer (CMP)",
+        "description": "React components rendered in the Electron BrowserWindow. Purely presentational — no Node.js APIs, no direct IPC calls. Receives data from stores via hooks.",
+        "rules": ["No Node.js imports", "No direct IPC calls", "No fs/path/child_process", "State comes from STO via hooks"]
+      },
+      {
+        "name": "State Layer (STO)",
+        "description": "Zustand stores managing UI and domain state. Stores call the IPC bridge (exposed via window.api) for privileged operations. Single source of truth for renderer state.",
+        "rules": ["Single source of truth", "Calls window.api for system operations", "Never imports electron or Node.js modules"]
+      },
+      {
+        "name": "IPC Bridge (BRG)",
+        "description": "Preload script that selectively exposes main-process capabilities to the renderer via contextBridge. Defines a typed, minimal API surface. All calls are async and validated.",
+        "rules": ["Whitelist-only exposure", "All methods async", "Input validation before forwarding", "Typed API contract"]
+      },
+      {
+        "name": "Main Process Services (SVC)",
+        "description": "Node.js services running in the Electron main process. Handle filesystem operations, GitHub API calls, SSH key management, and other privileged system access.",
+        "rules": ["Runs in main process only", "Handles IPC message routing", "Validates all inputs from renderer", "Manages native resources"]
+      },
+      {
+        "name": "Adapters (ADP)",
+        "description": "Low-level adapters wrapping Node.js APIs and external services. fs adapter for filesystem, Octokit for GitHub, ssh2/keygen for SSH.",
+        "rules": ["One adapter per external boundary", "Wraps a single API", "Returns typed results", "Handles errors at boundary"]
+      }
+    ],
+    "dataFlow": "CMP -> STO -> window.api (BRG) -> IPC -> SVC (main) -> ADP -> System/Network",
+    "keyPrinciples": [
+      "Context isolation enabled — renderer cannot access Node.js APIs directly",
+      "Preload script is the ONLY bridge between renderer and main process",
+      "All IPC channels are explicitly whitelisted and typed",
+      "Filesystem access scoped to user-approved directories",
+      "GitHub tokens stored in OS keychain via safeStorage, never in plaintext",
+      "SSH private keys never leave main process — only public keys and metadata sent to renderer",
+      "Vite HMR in dev; Electron Forge/Builder for production packaging"
+    ],
+    "securityModel": "Context isolation + sandbox enabled. Preload exposes a minimal typed API via contextBridge. No nodeIntegration in renderer. All filesystem paths validated and sandboxed. Secrets stored via Electron safeStorage. SSH operations never expose private key material to the renderer.",
+    "buildProcess": "Vite builds the React app to dist/renderer. Electron main process code is compiled separately. electron-builder or electron-forge packages everything into platform-specific installers (dmg, AppImage, nsis)."
+  },
+
+  "defaultChain": "@v1 NED:system.ready => SHP:react-electron => OUT:installed",
+
+  "stack": {
+    "frontend": {
+      "framework": "react",
+      "version": "19.x",
+      "language": "typescript",
+      "runtime": "electron-renderer",
+      "stateManager": "zustand",
+      "styling": "tailwindcss",
+      "buildTool": "vite",
+      "router": "react-router"
+    },
+    "backend": {
+      "framework": "electron-main",
+      "language": "typescript",
+      "runtime": "node"
+    },
+    "platform": {
+      "wrapper": "electron",
+      "version": "35.x",
+      "targets": ["mac", "linux", "windows"],
+      "capabilities": ["filesystem", "github-api", "ssh-keys", "safe-storage", "shell", "notifications"]
+    }
+  },
+
+  "directories": {
+    "client": {
+      "src": {
+        "main": {
+          "_note": "Electron main process",
+          "services": {
+            "_note": "SVC: filesystem, github, ssh-keys"
+          },
+          "adapters": {
+            "_note": "ADP: fs, octokit, ssh wrappers"
+          },
+          "ipc": {
+            "_note": "IPC handler registration"
+          }
+        },
+        "preload": {
+          "_note": "BRG: contextBridge preload scripts"
+        },
+        "renderer": {
+          "components": {},
+          "stores": {},
+          "pages": {},
+          "hooks": {},
+          "lib": {},
+          "types": {}
+        },
+        "shared": {
+          "_note": "Types and constants shared between main and renderer"
+        }
+      },
+      "resources": {
+        "_note": "App icons, native assets"
+      }
+    }
+  },
+
+  "files": {
+    "client/package.json": "{\n  \"name\": \"electron-react-app\",\n  \"version\": \"0.1.0\",\n  \"private\": true,\n  \"main\": \"dist/main/index.js\",\n  \"type\": \"module\",\n  \"scripts\": {\n    \"dev\": \"concurrently -k \\\"vite\\\" \\\"electron .\\\"\",\n    \"dev:vite\": \"vite\",\n    \"dev:electron\": \"tsc -p tsconfig.main.json && electron .\",\n    \"build\": \"tsc -p tsconfig.main.json && vite build\",\n    \"build:main\": \"tsc -p tsconfig.main.json\",\n    \"build:renderer\": \"vite build\",\n    \"preview\": \"vite preview\",\n    \"lint\": \"eslint src/\",\n    \"typecheck\": \"tsc --noEmit\",\n    \"package\": \"npm run build && electron-builder\",\n    \"package:mac\": \"npm run build && electron-builder --mac\",\n    \"package:linux\": \"npm run build && electron-builder --linux\",\n    \"package:win\": \"npm run build && electron-builder --win\"\n  },\n  \"dependencies\": {\n    \"react\": \"^19.0.0\",\n    \"react-dom\": \"^19.0.0\",\n    \"react-router\": \"^7.0.0\",\n    \"zustand\": \"^5.0.0\",\n    \"@octokit/rest\": \"^21.0.0\",\n    \"electron-store\": \"^10.0.0\",\n    \"clsx\": \"^2.1.0\",\n    \"tailwind-merge\": \"^3.0.0\"\n  },\n  \"devDependencies\": {\n    \"electron\": \"^35.0.0\",\n    \"electron-builder\": \"^25.0.0\",\n    \"@vitejs/plugin-react\": \"^4.4.0\",\n    \"vite\": \"^6.0.0\",\n    \"vite-plugin-electron\": \"^0.28.0\",\n    \"vite-plugin-electron-renderer\": \"^0.14.0\",\n    \"concurrently\": \"^9.0.0\",\n    \"typescript\": \"^5.7.0\",\n    \"@types/react\": \"^19.0.0\",\n    \"@types/react-dom\": \"^19.0.0\",\n    \"@types/node\": \"^22.0.0\",\n    \"tailwindcss\": \"^4.0.0\",\n    \"@tailwindcss/vite\": \"^4.0.0\",\n    \"autoprefixer\": \"^10.4.0\",\n    \"postcss\": \"^8.5.0\"\n  }\n}",
+    "client/tsconfig.json": "{\n  \"compilerOptions\": {\n    \"target\": \"ES2022\",\n    \"lib\": [\"ES2022\", \"DOM\", \"DOM.Iterable\"],\n    \"module\": \"ESNext\",\n    \"moduleResolution\": \"bundler\",\n    \"strict\": true,\n    \"noEmit\": true,\n    \"esModuleInterop\": true,\n    \"skipLibCheck\": true,\n    \"resolveJsonModule\": true,\n    \"isolatedModules\": true,\n    \"jsx\": \"react-jsx\",\n    \"paths\": {\n      \"@/*\": [\"./src/renderer/*\"],\n      \"@shared/*\": [\"./src/shared/*\"]\n    }\n  },\n  \"include\": [\"src/renderer/**/*\", \"src/shared/**/*\", \"src/preload/**/*\"],\n  \"exclude\": [\"node_modules\", \"dist\"]\n}",
+    "client/tsconfig.main.json": "{\n  \"compilerOptions\": {\n    \"target\": \"ES2022\",\n    \"module\": \"ESNext\",\n    \"moduleResolution\": \"bundler\",\n    \"strict\": true,\n    \"outDir\": \"dist/main\",\n    \"rootDir\": \"src/main\",\n    \"esModuleInterop\": true,\n    \"skipLibCheck\": true,\n    \"resolveJsonModule\": true,\n    \"declaration\": true,\n    \"paths\": {\n      \"@shared/*\": [\"./src/shared/*\"]\n    }\n  },\n  \"include\": [\"src/main/**/*\", \"src/shared/**/*\", \"src/preload/**/*\"],\n  \"exclude\": [\"node_modules\", \"dist\"]\n}",
+    "client/vite.config.ts": "import { defineConfig } from 'vite';\nimport react from '@vitejs/plugin-react';\nimport electron from 'vite-plugin-electron';\nimport renderer from 'vite-plugin-electron-renderer';\nimport path from 'node:path';\n\nexport default defineConfig({\n  plugins: [\n    react(),\n    electron([\n      {\n        entry: 'src/main/index.ts',\n        vite: {\n          build: {\n            outDir: 'dist/main',\n            rollupOptions: {\n              external: ['electron']\n            }\n          }\n        }\n      },\n      {\n        entry: 'src/preload/index.ts',\n        onstart(args) {\n          args.reload();\n        },\n        vite: {\n          build: {\n            outDir: 'dist/preload',\n            rollupOptions: {\n              external: ['electron']\n            }\n          }\n        }\n      }\n    ]),\n    renderer()\n  ],\n  resolve: {\n    alias: {\n      '@': path.resolve(__dirname, 'src/renderer'),\n      '@shared': path.resolve(__dirname, 'src/shared')\n    }\n  },\n  root: '.',\n  build: {\n    outDir: 'dist/renderer'\n  }\n});",
+    "client/electron-builder.yml": "appId: com.app.electron-react\nproductName: Electron React App\ndirectories:\n  output: release\n  buildResources: resources\nfiles:\n  - dist/**/*\n  - \"!node_modules/**/*\"\nmac:\n  target:\n    - dmg\n    - zip\n  category: public.app-category.developer-tools\nlinux:\n  target:\n    - AppImage\n    - deb\n  category: Development\nwin:\n  target:\n    - nsis\n    - zip\nnsis:\n  oneClick: false\n  allowToChangeInstallationDirectory: true",
+    "client/src/shared/ipc-channels.ts": "// @archeon:file\n// @glyph FNC:IpcChannels\n// @intent Shared IPC channel constants — single source of truth for main<->renderer communication\n// @chain @v1 NED:system.ready => SHP:react-electron => OUT:installed\n\n// @archeon:section implementation\nexport const IPC = {\n  // Filesystem\n  FS_READ_DIR: 'fs:read-dir',\n  FS_READ_FILE: 'fs:read-file',\n  FS_WRITE_FILE: 'fs:write-file',\n  FS_DELETE: 'fs:delete',\n  FS_STAT: 'fs:stat',\n  FS_MKDIR: 'fs:mkdir',\n  FS_SELECT_DIRECTORY: 'fs:select-directory',\n  FS_SELECT_FILE: 'fs:select-file',\n\n  // GitHub\n  GH_AUTH_STATUS: 'gh:auth-status',\n  GH_SET_TOKEN: 'gh:set-token',\n  GH_CLEAR_TOKEN: 'gh:clear-token',\n  GH_LIST_REPOS: 'gh:list-repos',\n  GH_GET_REPO: 'gh:get-repo',\n  GH_CLONE_REPO: 'gh:clone-repo',\n  GH_CREATE_REPO: 'gh:create-repo',\n\n  // SSH Keys\n  SSH_LIST_KEYS: 'ssh:list-keys',\n  SSH_GENERATE_KEY: 'ssh:generate-key',\n  SSH_DELETE_KEY: 'ssh:delete-key',\n  SSH_GET_PUBLIC_KEY: 'ssh:get-public-key',\n  SSH_ADD_TO_AGENT: 'ssh:add-to-agent',\n  SSH_TEST_CONNECTION: 'ssh:test-connection',\n\n  // App\n  APP_GET_VERSION: 'app:get-version',\n  APP_GET_PLATFORM: 'app:get-platform',\n} as const;\n\nexport type IpcChannel = (typeof IPC)[keyof typeof IPC];\n// @archeon:endsection",
+    "client/src/shared/types.ts": "// @archeon:file\n// @glyph FNC:SharedTypes\n// @intent Shared type definitions for IPC communication between main and renderer\n// @chain @v1 NED:system.ready => SHP:react-electron => OUT:installed\n\n// @archeon:section implementation\n\n// --- Filesystem types ---\nexport interface FsEntry {\n  name: string;\n  path: string;\n  isDirectory: boolean;\n  isFile: boolean;\n  size: number;\n  modifiedAt: number;\n}\n\nexport interface FsStatResult {\n  exists: boolean;\n  isDirectory: boolean;\n  isFile: boolean;\n  size: number;\n  createdAt: number;\n  modifiedAt: number;\n}\n\n// --- GitHub types ---\nexport interface GhAuthStatus {\n  authenticated: boolean;\n  username?: string;\n  scopes?: string[];\n}\n\nexport interface GhRepo {\n  id: number;\n  name: string;\n  fullName: string;\n  description: string | null;\n  private: boolean;\n  htmlUrl: string;\n  cloneUrl: string;\n  sshUrl: string;\n  defaultBranch: string;\n  updatedAt: string;\n}\n\nexport interface GhCreateRepoOptions {\n  name: string;\n  description?: string;\n  isPrivate?: boolean;\n  autoInit?: boolean;\n}\n\n// --- SSH types ---\nexport interface SshKeyInfo {\n  name: string;\n  path: string;\n  publicKeyPath: string;\n  type: 'rsa' | 'ed25519' | 'ecdsa' | 'dsa' | string;\n  fingerprint: string;\n  createdAt: number;\n}\n\nexport interface SshGenerateOptions {\n  name: string;\n  type: 'ed25519' | 'rsa';\n  comment?: string;\n  passphrase?: string;\n}\n\nexport interface SshTestResult {\n  success: boolean;\n  host: string;\n  message: string;\n}\n\n// --- IPC Result wrapper ---\nexport type IpcResult<T> =\n  | { ok: true; data: T }\n  | { ok: false; error: string };\n// @archeon:endsection",
+    "client/src/main/index.ts": "// @archeon:file\n// @glyph SVC:ElectronMain\n// @intent Electron main process entry — creates window, registers IPC handlers\n// @chain @v1 NED:system.ready => SHP:react-electron => OUT:installed\n\n// @archeon:section imports\nimport { app, BrowserWindow, ipcMain } from 'electron';\nimport path from 'node:path';\nimport { registerFsHandlers } from './ipc/fs-handlers.js';\nimport { registerGithubHandlers } from './ipc/github-handlers.js';\nimport { registerSshHandlers } from './ipc/ssh-handlers.js';\nimport { registerAppHandlers } from './ipc/app-handlers.js';\n// @archeon:endsection\n\n// @archeon:section implementation\nconst isDev = !app.isPackaged;\n\nlet mainWindow: BrowserWindow | null = null;\n\nasync function createWindow() {\n  mainWindow = new BrowserWindow({\n    width: 1200,\n    height: 800,\n    minWidth: 800,\n    minHeight: 600,\n    webPreferences: {\n      preload: path.join(__dirname, '../preload/index.js'),\n      contextIsolation: true,\n      nodeIntegration: false,\n      sandbox: true,\n    },\n    titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default',\n    show: false,\n  });\n\n  // Register all IPC handlers\n  registerFsHandlers(ipcMain);\n  registerGithubHandlers(ipcMain);\n  registerSshHandlers(ipcMain);\n  registerAppHandlers(ipcMain);\n\n  // Graceful show\n  mainWindow.on('ready-to-show', () => {\n    mainWindow?.show();\n  });\n\n  mainWindow.on('closed', () => {\n    mainWindow = null;\n  });\n\n  if (isDev) {\n    mainWindow.loadURL('http://localhost:5173');\n    mainWindow.webContents.openDevTools({ mode: 'detach' });\n  } else {\n    mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'));\n  }\n}\n\napp.whenReady().then(createWindow);\n\napp.on('window-all-closed', () => {\n  if (process.platform !== 'darwin') app.quit();\n});\n\napp.on('activate', () => {\n  if (BrowserWindow.getAllWindows().length === 0) createWindow();\n});\n// @archeon:endsection",
+    "client/src/preload/index.ts": "// @archeon:file\n// @glyph BRG:Preload\n// @intent Secure IPC bridge — exposes whitelisted async methods to renderer via contextBridge\n// @chain @v1 NED:system.ready => SHP:react-electron => OUT:installed\n\n// @archeon:section imports\nimport { contextBridge, ipcRenderer } from 'electron';\nimport { IPC } from '../shared/ipc-channels.js';\nimport type {\n  FsEntry, FsStatResult,\n  GhAuthStatus, GhRepo, GhCreateRepoOptions,\n  SshKeyInfo, SshGenerateOptions, SshTestResult,\n  IpcResult\n} from '../shared/types.js';\n// @archeon:endsection\n\n// @archeon:section implementation\nconst api = {\n  // --- Filesystem ---\n  fs: {\n    readDir: (dirPath: string): Promise<IpcResult<FsEntry[]>> =>\n      ipcRenderer.invoke(IPC.FS_READ_DIR, dirPath),\n    readFile: (filePath: string, encoding?: string): Promise<IpcResult<string>> =>\n      ipcRenderer.invoke(IPC.FS_READ_FILE, filePath, encoding),\n    writeFile: (filePath: string, content: string): Promise<IpcResult<void>> =>\n      ipcRenderer.invoke(IPC.FS_WRITE_FILE, filePath, content),\n    delete: (targetPath: string): Promise<IpcResult<void>> =>\n      ipcRenderer.invoke(IPC.FS_DELETE, targetPath),\n    stat: (targetPath: string): Promise<IpcResult<FsStatResult>> =>\n      ipcRenderer.invoke(IPC.FS_STAT, targetPath),\n    mkdir: (dirPath: string): Promise<IpcResult<void>> =>\n      ipcRenderer.invoke(IPC.FS_MKDIR, dirPath),\n    selectDirectory: (): Promise<IpcResult<string | null>> =>\n      ipcRenderer.invoke(IPC.FS_SELECT_DIRECTORY),\n    selectFile: (filters?: { name: string; extensions: string[] }[]): Promise<IpcResult<string | null>> =>\n      ipcRenderer.invoke(IPC.FS_SELECT_FILE, filters),\n  },\n\n  // --- GitHub ---\n  github: {\n    getAuthStatus: (): Promise<IpcResult<GhAuthStatus>> =>\n      ipcRenderer.invoke(IPC.GH_AUTH_STATUS),\n    setToken: (token: string): Promise<IpcResult<GhAuthStatus>> =>\n      ipcRenderer.invoke(IPC.GH_SET_TOKEN, token),\n    clearToken: (): Promise<IpcResult<void>> =>\n      ipcRenderer.invoke(IPC.GH_CLEAR_TOKEN),\n    listRepos: (page?: number, perPage?: number): Promise<IpcResult<GhRepo[]>> =>\n      ipcRenderer.invoke(IPC.GH_LIST_REPOS, page, perPage),\n    getRepo: (owner: string, repo: string): Promise<IpcResult<GhRepo>> =>\n      ipcRenderer.invoke(IPC.GH_GET_REPO, owner, repo),\n    cloneRepo: (url: string, destPath: string): Promise<IpcResult<string>> =>\n      ipcRenderer.invoke(IPC.GH_CLONE_REPO, url, destPath),\n    createRepo: (options: GhCreateRepoOptions): Promise<IpcResult<GhRepo>> =>\n      ipcRenderer.invoke(IPC.GH_CREATE_REPO, options),\n  },\n\n  // --- SSH Keys ---\n  ssh: {\n    listKeys: (): Promise<IpcResult<SshKeyInfo[]>> =>\n      ipcRenderer.invoke(IPC.SSH_LIST_KEYS),\n    generateKey: (options: SshGenerateOptions): Promise<IpcResult<SshKeyInfo>> =>\n      ipcRenderer.invoke(IPC.SSH_GENERATE_KEY, options),\n    deleteKey: (keyPath: string): Promise<IpcResult<void>> =>\n      ipcRenderer.invoke(IPC.SSH_DELETE_KEY, keyPath),\n    getPublicKey: (keyPath: string): Promise<IpcResult<string>> =>\n      ipcRenderer.invoke(IPC.SSH_GET_PUBLIC_KEY, keyPath),\n    addToAgent: (keyPath: string): Promise<IpcResult<void>> =>\n      ipcRenderer.invoke(IPC.SSH_ADD_TO_AGENT, keyPath),\n    testConnection: (host: string): Promise<IpcResult<SshTestResult>> =>\n      ipcRenderer.invoke(IPC.SSH_TEST_CONNECTION, host),\n  },\n\n  // --- App ---\n  app: {\n    getVersion: (): Promise<string> =>\n      ipcRenderer.invoke(IPC.APP_GET_VERSION),\n    getPlatform: (): Promise<string> =>\n      ipcRenderer.invoke(IPC.APP_GET_PLATFORM),\n  },\n};\n\ncontextBridge.exposeInMainWorld('api', api);\n// @archeon:endsection",
+    "client/src/renderer/global.d.ts": "// @archeon:file\n// @glyph FNC:GlobalTypes\n// @intent Augments Window interface with the typed IPC bridge exposed by the preload script\n\nimport type {\n  FsEntry, FsStatResult,\n  GhAuthStatus, GhRepo, GhCreateRepoOptions,\n  SshKeyInfo, SshGenerateOptions, SshTestResult,\n  IpcResult\n} from '../shared/types';\n\ndeclare global {\n  interface Window {\n    api: {\n      fs: {\n        readDir(dirPath: string): Promise<IpcResult<FsEntry[]>>;\n        readFile(filePath: string, encoding?: string): Promise<IpcResult<string>>;\n        writeFile(filePath: string, content: string): Promise<IpcResult<void>>;\n        delete(targetPath: string): Promise<IpcResult<void>>;\n        stat(targetPath: string): Promise<IpcResult<FsStatResult>>;\n        mkdir(dirPath: string): Promise<IpcResult<void>>;\n        selectDirectory(): Promise<IpcResult<string | null>>;\n        selectFile(filters?: { name: string; extensions: string[] }[]): Promise<IpcResult<string | null>>;\n      };\n      github: {\n        getAuthStatus(): Promise<IpcResult<GhAuthStatus>>;\n        setToken(token: string): Promise<IpcResult<GhAuthStatus>>;\n        clearToken(): Promise<IpcResult<void>>;\n        listRepos(page?: number, perPage?: number): Promise<IpcResult<GhRepo[]>>;\n        getRepo(owner: string, repo: string): Promise<IpcResult<GhRepo>>;\n        cloneRepo(url: string, destPath: string): Promise<IpcResult<string>>;\n        createRepo(options: GhCreateRepoOptions): Promise<IpcResult<GhRepo>>;\n      };\n      ssh: {\n        listKeys(): Promise<IpcResult<SshKeyInfo[]>>;\n        generateKey(options: SshGenerateOptions): Promise<IpcResult<SshKeyInfo>>;\n        deleteKey(keyPath: string): Promise<IpcResult<void>>;\n        getPublicKey(keyPath: string): Promise<IpcResult<string>>;\n        addToAgent(keyPath: string): Promise<IpcResult<void>>;\n        testConnection(host: string): Promise<IpcResult<SshTestResult>>;\n      };\n      app: {\n        getVersion(): Promise<string>;\n        getPlatform(): Promise<string>;\n      };\n    };\n  }\n}",
+    "client/src/main/ipc/fs-handlers.ts": "// @archeon:file\n// @glyph SVC:FsHandlers\n// @intent IPC handlers for filesystem operations — read, write, delete, stat, directory listing\n// @chain @v1 NED:filesystem => SVC:FsHandlers => ADP:NodeFs => OUT:fs.result\n\n// @archeon:section imports\nimport { type IpcMain, dialog } from 'electron';\nimport fs from 'node:fs/promises';\nimport path from 'node:path';\nimport { IPC } from '../../shared/ipc-channels.js';\nimport type { FsEntry, FsStatResult, IpcResult } from '../../shared/types.js';\n// @archeon:endsection\n\n// @archeon:section helpers\nfunction ok<T>(data: T): IpcResult<T> {\n  return { ok: true, data };\n}\n\nfunction err<T>(error: string): IpcResult<T> {\n  return { ok: false, error };\n}\n\nfunction isPathSafe(targetPath: string): boolean {\n  const resolved = path.resolve(targetPath);\n  // Block traversal above home directory\n  const home = process.env.HOME || process.env.USERPROFILE || '/';\n  return resolved.startsWith(home);\n}\n// @archeon:endsection\n\n// @archeon:section implementation\nexport function registerFsHandlers(ipcMain: IpcMain) {\n  ipcMain.handle(IPC.FS_READ_DIR, async (_event, dirPath: string): Promise<IpcResult<FsEntry[]>> => {\n    if (!isPathSafe(dirPath)) return err('Path not allowed');\n    try {\n      const entries = await fs.readdir(dirPath, { withFileTypes: true });\n      const result: FsEntry[] = await Promise.all(\n        entries.map(async (entry) => {\n          const fullPath = path.join(dirPath, entry.name);\n          const stat = await fs.stat(fullPath).catch(() => null);\n          return {\n            name: entry.name,\n            path: fullPath,\n            isDirectory: entry.isDirectory(),\n            isFile: entry.isFile(),\n            size: stat?.size ?? 0,\n            modifiedAt: stat?.mtimeMs ?? 0,\n          };\n        })\n      );\n      return ok(result);\n    } catch (e) {\n      return err(`Failed to read directory: ${(e as Error).message}`);\n    }\n  });\n\n  ipcMain.handle(IPC.FS_READ_FILE, async (_event, filePath: string, encoding = 'utf-8'): Promise<IpcResult<string>> => {\n    if (!isPathSafe(filePath)) return err('Path not allowed');\n    try {\n      const content = await fs.readFile(filePath, { encoding: encoding as BufferEncoding });\n      return ok(content);\n    } catch (e) {\n      return err(`Failed to read file: ${(e as Error).message}`);\n    }\n  });\n\n  ipcMain.handle(IPC.FS_WRITE_FILE, async (_event, filePath: string, content: string): Promise<IpcResult<void>> => {\n    if (!isPathSafe(filePath)) return err('Path not allowed');\n    try {\n      await fs.mkdir(path.dirname(filePath), { recursive: true });\n      await fs.writeFile(filePath, content, 'utf-8');\n      return ok(undefined);\n    } catch (e) {\n      return err(`Failed to write file: ${(e as Error).message}`);\n    }\n  });\n\n  ipcMain.handle(IPC.FS_DELETE, async (_event, targetPath: string): Promise<IpcResult<void>> => {\n    if (!isPathSafe(targetPath)) return err('Path not allowed');\n    try {\n      await fs.rm(targetPath, { recursive: true });\n      return ok(undefined);\n    } catch (e) {\n      return err(`Failed to delete: ${(e as Error).message}`);\n    }\n  });\n\n  ipcMain.handle(IPC.FS_STAT, async (_event, targetPath: string): Promise<IpcResult<FsStatResult>> => {\n    if (!isPathSafe(targetPath)) return err('Path not allowed');\n    try {\n      const stat = await fs.stat(targetPath);\n      return ok({\n        exists: true,\n        isDirectory: stat.isDirectory(),\n        isFile: stat.isFile(),\n        size: stat.size,\n        createdAt: stat.birthtimeMs,\n        modifiedAt: stat.mtimeMs,\n      });\n    } catch {\n      return ok({ exists: false, isDirectory: false, isFile: false, size: 0, createdAt: 0, modifiedAt: 0 });\n    }\n  });\n\n  ipcMain.handle(IPC.FS_MKDIR, async (_event, dirPath: string): Promise<IpcResult<void>> => {\n    if (!isPathSafe(dirPath)) return err('Path not allowed');\n    try {\n      await fs.mkdir(dirPath, { recursive: true });\n      return ok(undefined);\n    } catch (e) {\n      return err(`Failed to create directory: ${(e as Error).message}`);\n    }\n  });\n\n  ipcMain.handle(IPC.FS_SELECT_DIRECTORY, async (): Promise<IpcResult<string | null>> => {\n    const result = await dialog.showOpenDialog({ properties: ['openDirectory', 'createDirectory'] });\n    return ok(result.canceled ? null : result.filePaths[0]);\n  });\n\n  ipcMain.handle(IPC.FS_SELECT_FILE, async (_event, filters?: { name: string; extensions: string[] }[]): Promise<IpcResult<string | null>> => {\n    const result = await dialog.showOpenDialog({\n      properties: ['openFile'],\n      filters: filters ?? [{ name: 'All Files', extensions: ['*'] }],\n    });\n    return ok(result.canceled ? null : result.filePaths[0]);\n  });\n}\n// @archeon:endsection",
+    "client/src/main/ipc/github-handlers.ts": "// @archeon:file\n// @glyph SVC:GithubHandlers\n// @intent IPC handlers for GitHub API — auth, repos, clone via Octokit\n// @chain @v1 NED:github => SVC:GithubHandlers => ADP:Octokit => OUT:gh.result\n\n// @archeon:section imports\nimport { type IpcMain } from 'electron';\nimport { safeStorage } from 'electron';\nimport { Octokit } from '@octokit/rest';\nimport { execFile } from 'node:child_process';\nimport { promisify } from 'node:util';\nimport { IPC } from '../../shared/ipc-channels.js';\nimport type { GhAuthStatus, GhRepo, GhCreateRepoOptions, IpcResult } from '../../shared/types.js';\n// @archeon:endsection\n\n// @archeon:section helpers\nconst execFileAsync = promisify(execFile);\nconst TOKEN_KEY = 'github-token';\n\nlet octokit: Octokit | null = null;\nlet encryptedToken: Buffer | null = null;\n\nfunction ok<T>(data: T): IpcResult<T> {\n  return { ok: true, data };\n}\n\nfunction err<T>(error: string): IpcResult<T> {\n  return { ok: false, error };\n}\n\nfunction getToken(): string | null {\n  if (!encryptedToken) return null;\n  return safeStorage.decryptString(encryptedToken);\n}\n\nfunction mapRepo(repo: any): GhRepo {\n  return {\n    id: repo.id,\n    name: repo.name,\n    fullName: repo.full_name,\n    description: repo.description,\n    private: repo.private,\n    htmlUrl: repo.html_url,\n    cloneUrl: repo.clone_url,\n    sshUrl: repo.ssh_url,\n    defaultBranch: repo.default_branch,\n    updatedAt: repo.updated_at,\n  };\n}\n// @archeon:endsection\n\n// @archeon:section implementation\nexport function registerGithubHandlers(ipcMain: IpcMain) {\n  ipcMain.handle(IPC.GH_AUTH_STATUS, async (): Promise<IpcResult<GhAuthStatus>> => {\n    try {\n      const token = getToken();\n      if (!token) return ok({ authenticated: false });\n      const client = new Octokit({ auth: token });\n      const { data: user } = await client.users.getAuthenticated();\n      return ok({ authenticated: true, username: user.login });\n    } catch {\n      return ok({ authenticated: false });\n    }\n  });\n\n  ipcMain.handle(IPC.GH_SET_TOKEN, async (_event, token: string): Promise<IpcResult<GhAuthStatus>> => {\n    try {\n      if (!safeStorage.isEncryptionAvailable()) return err('Encryption not available on this system');\n      // Validate token first\n      const client = new Octokit({ auth: token });\n      const { data: user } = await client.users.getAuthenticated();\n      // Store encrypted\n      encryptedToken = safeStorage.encryptString(token);\n      octokit = client;\n      return ok({ authenticated: true, username: user.login });\n    } catch {\n      return err('Invalid GitHub token');\n    }\n  });\n\n  ipcMain.handle(IPC.GH_CLEAR_TOKEN, async (): Promise<IpcResult<void>> => {\n    encryptedToken = null;\n    octokit = null;\n    return ok(undefined);\n  });\n\n  ipcMain.handle(IPC.GH_LIST_REPOS, async (_event, page = 1, perPage = 30): Promise<IpcResult<GhRepo[]>> => {\n    try {\n      const token = getToken();\n      if (!token) return err('Not authenticated');\n      const client = new Octokit({ auth: token });\n      const { data } = await client.repos.listForAuthenticatedUser({\n        page,\n        per_page: perPage,\n        sort: 'updated',\n      });\n      return ok(data.map(mapRepo));\n    } catch (e) {\n      return err(`Failed to list repos: ${(e as Error).message}`);\n    }\n  });\n\n  ipcMain.handle(IPC.GH_GET_REPO, async (_event, owner: string, repo: string): Promise<IpcResult<GhRepo>> => {\n    try {\n      const token = getToken();\n      if (!token) return err('Not authenticated');\n      const client = new Octokit({ auth: token });\n      const { data } = await client.repos.get({ owner, repo });\n      return ok(mapRepo(data));\n    } catch (e) {\n      return err(`Failed to get repo: ${(e as Error).message}`);\n    }\n  });\n\n  ipcMain.handle(IPC.GH_CLONE_REPO, async (_event, url: string, destPath: string): Promise<IpcResult<string>> => {\n    try {\n      await execFileAsync('git', ['clone', url, destPath]);\n      return ok(destPath);\n    } catch (e) {\n      return err(`Failed to clone: ${(e as Error).message}`);\n    }\n  });\n\n  ipcMain.handle(IPC.GH_CREATE_REPO, async (_event, options: GhCreateRepoOptions): Promise<IpcResult<GhRepo>> => {\n    try {\n      const token = getToken();\n      if (!token) return err('Not authenticated');\n      const client = new Octokit({ auth: token });\n      const { data } = await client.repos.createForAuthenticatedUser({\n        name: options.name,\n        description: options.description,\n        private: options.isPrivate ?? true,\n        auto_init: options.autoInit ?? false,\n      });\n      return ok(mapRepo(data));\n    } catch (e) {\n      return err(`Failed to create repo: ${(e as Error).message}`);\n    }\n  });\n}\n// @archeon:endsection",
+    "client/src/main/ipc/ssh-handlers.ts": "// @archeon:file\n// @glyph SVC:SshHandlers\n// @intent IPC handlers for SSH key management — list, generate, delete, test connection\n// @chain @v1 NED:ssh => SVC:SshHandlers => ADP:SshAdapter => OUT:ssh.result\n\n// @archeon:section imports\nimport { type IpcMain } from 'electron';\nimport fs from 'node:fs/promises';\nimport path from 'node:path';\nimport os from 'node:os';\nimport { execFile } from 'node:child_process';\nimport { promisify } from 'node:util';\nimport { IPC } from '../../shared/ipc-channels.js';\nimport type { SshKeyInfo, SshGenerateOptions, SshTestResult, IpcResult } from '../../shared/types.js';\n// @archeon:endsection\n\n// @archeon:section helpers\nconst execFileAsync = promisify(execFile);\n\nfunction ok<T>(data: T): IpcResult<T> {\n  return { ok: true, data };\n}\n\nfunction err<T>(error: string): IpcResult<T> {\n  return { ok: false, error };\n}\n\nfunction getSshDir(): string {\n  return path.join(os.homedir(), '.ssh');\n}\n\nasync function getKeyFingerprint(pubKeyPath: string): Promise<string> {\n  try {\n    const { stdout } = await execFileAsync('ssh-keygen', ['-lf', pubKeyPath]);\n    return stdout.trim().split(' ')[1] || 'unknown';\n  } catch {\n    return 'unknown';\n  }\n}\n\nasync function detectKeyType(pubKeyPath: string): Promise<string> {\n  try {\n    const content = await fs.readFile(pubKeyPath, 'utf-8');\n    if (content.includes('ssh-ed25519')) return 'ed25519';\n    if (content.includes('ssh-rsa')) return 'rsa';\n    if (content.includes('ecdsa')) return 'ecdsa';\n    if (content.includes('ssh-dss')) return 'dsa';\n    return 'unknown';\n  } catch {\n    return 'unknown';\n  }\n}\n// @archeon:endsection\n\n// @archeon:section implementation\nexport function registerSshHandlers(ipcMain: IpcMain) {\n  ipcMain.handle(IPC.SSH_LIST_KEYS, async (): Promise<IpcResult<SshKeyInfo[]>> => {\n    try {\n      const sshDir = getSshDir();\n      await fs.mkdir(sshDir, { recursive: true, mode: 0o700 });\n      const entries = await fs.readdir(sshDir);\n      const pubFiles = entries.filter((f) => f.endsWith('.pub'));\n\n      const keys: SshKeyInfo[] = await Promise.all(\n        pubFiles.map(async (pubFile) => {\n          const pubPath = path.join(sshDir, pubFile);\n          const privPath = pubPath.replace(/\\.pub$/, '');\n          const stat = await fs.stat(pubPath).catch(() => null);\n          return {\n            name: pubFile.replace(/\\.pub$/, ''),\n            path: privPath,\n            publicKeyPath: pubPath,\n            type: await detectKeyType(pubPath),\n            fingerprint: await getKeyFingerprint(pubPath),\n            createdAt: stat?.birthtimeMs ?? 0,\n          };\n        })\n      );\n      return ok(keys);\n    } catch (e) {\n      return err(`Failed to list SSH keys: ${(e as Error).message}`);\n    }\n  });\n\n  ipcMain.handle(IPC.SSH_GENERATE_KEY, async (_event, options: SshGenerateOptions): Promise<IpcResult<SshKeyInfo>> => {\n    try {\n      const sshDir = getSshDir();\n      await fs.mkdir(sshDir, { recursive: true, mode: 0o700 });\n      const keyPath = path.join(sshDir, options.name);\n\n      // Prevent overwriting\n      try {\n        await fs.access(keyPath);\n        return err(`Key '${options.name}' already exists`);\n      } catch {\n        // File doesn't exist — good\n      }\n\n      const args = [\n        '-t', options.type,\n        '-f', keyPath,\n        '-C', options.comment || `${options.name}@electron-app`,\n        '-N', options.passphrase || '',\n      ];\n\n      await execFileAsync('ssh-keygen', args);\n\n      const pubPath = `${keyPath}.pub`;\n      const stat = await fs.stat(pubPath);\n      return ok({\n        name: options.name,\n        path: keyPath,\n        publicKeyPath: pubPath,\n        type: options.type,\n        fingerprint: await getKeyFingerprint(pubPath),\n        createdAt: stat.birthtimeMs,\n      });\n    } catch (e) {\n      return err(`Failed to generate key: ${(e as Error).message}`);\n    }\n  });\n\n  ipcMain.handle(IPC.SSH_DELETE_KEY, async (_event, keyPath: string): Promise<IpcResult<void>> => {\n    try {\n      const sshDir = getSshDir();\n      const resolved = path.resolve(keyPath);\n      if (!resolved.startsWith(sshDir)) return err('Can only delete keys in ~/.ssh');\n      await fs.rm(resolved);\n      await fs.rm(`${resolved}.pub`).catch(() => {});\n      return ok(undefined);\n    } catch (e) {\n      return err(`Failed to delete key: ${(e as Error).message}`);\n    }\n  });\n\n  ipcMain.handle(IPC.SSH_GET_PUBLIC_KEY, async (_event, keyPath: string): Promise<IpcResult<string>> => {\n    try {\n      const pubPath = keyPath.endsWith('.pub') ? keyPath : `${keyPath}.pub`;\n      const sshDir = getSshDir();\n      const resolved = path.resolve(pubPath);\n      if (!resolved.startsWith(sshDir)) return err('Can only read keys in ~/.ssh');\n      const content = await fs.readFile(resolved, 'utf-8');\n      return ok(content.trim());\n    } catch (e) {\n      return err(`Failed to read public key: ${(e as Error).message}`);\n    }\n  });\n\n  ipcMain.handle(IPC.SSH_ADD_TO_AGENT, async (_event, keyPath: string): Promise<IpcResult<void>> => {\n    try {\n      await execFileAsync('ssh-add', [keyPath]);\n      return ok(undefined);\n    } catch (e) {\n      return err(`Failed to add key to agent: ${(e as Error).message}`);\n    }\n  });\n\n  ipcMain.handle(IPC.SSH_TEST_CONNECTION, async (_event, host: string): Promise<IpcResult<SshTestResult>> => {\n    try {\n      const { stdout, stderr } = await execFileAsync('ssh', ['-T', '-o', 'StrictHostKeyChecking=accept-new', `git@${host}`], {\n        timeout: 10000,\n      }).catch((e) => ({ stdout: e.stdout || '', stderr: e.stderr || '' }));\n      const output = stdout + stderr;\n      const success = output.toLowerCase().includes('successfully authenticated');\n      return ok({ success, host, message: output.trim() });\n    } catch (e) {\n      return ok({ success: false, host, message: (e as Error).message });\n    }\n  });\n}\n// @archeon:endsection",
+    "client/src/main/ipc/app-handlers.ts": "// @archeon:file\n// @glyph SVC:AppHandlers\n// @intent IPC handlers for general app information\n// @chain @v1 NED:system.ready => SHP:react-electron => OUT:installed\n\n// @archeon:section imports\nimport { type IpcMain, app } from 'electron';\nimport { IPC } from '../../shared/ipc-channels.js';\n// @archeon:endsection\n\n// @archeon:section implementation\nexport function registerAppHandlers(ipcMain: IpcMain) {\n  ipcMain.handle(IPC.APP_GET_VERSION, () => app.getVersion());\n  ipcMain.handle(IPC.APP_GET_PLATFORM, () => process.platform);\n}\n// @archeon:endsection",
+    "client/src/renderer/main.tsx": "// @archeon:file\n// @glyph CMP:AppRoot\n// @intent React renderer entry point — mounts App into Electron BrowserWindow\n// @chain @v1 NED:system.ready => CMP:AppRoot => OUT:ui.ready\n\n// @archeon:section imports\nimport React from 'react';\nimport ReactDOM from 'react-dom/client';\nimport App from './App';\nimport './styles/globals.css';\n// @archeon:endsection\n\n// @archeon:section render\nconst root = document.getElementById('root');\nif (!root) throw new Error('Missing #root element');\nReactDOM.createRoot(root).render(\n  <React.StrictMode>\n    <App />\n  </React.StrictMode>\n);\n// @archeon:endsection",
+    "client/src/renderer/App.tsx": "// @archeon:file\n// @glyph CMP:App\n// @intent Root shell component — layout, routing placeholder\n// @chain @v1 NED:system.ready => CMP:App => OUT:ui.ready\n\n// @archeon:section imports\nimport { useState, useEffect } from 'react';\n// @archeon:endsection\n\n// @archeon:section component\nexport default function App() {\n  const [platform, setPlatform] = useState<string>('');\n  const [version, setVersion] = useState<string>('');\n\n  useEffect(() => {\n    window.api.app.getPlatform().then(setPlatform);\n    window.api.app.getVersion().then(setVersion);\n  }, []);\n\n  return (\n    <div className=\"flex flex-col items-center justify-center min-h-screen p-6 bg-zinc-950 text-zinc-100\">\n      <h1 className=\"text-3xl font-bold mb-2\">Electron + React + Vite</h1>\n      <p className=\"text-zinc-400 mb-6\">Edit <code className=\"text-emerald-400\">src/renderer/App.tsx</code> to get started</p>\n      <div className=\"flex gap-4 text-sm text-zinc-500\">\n        <span>Platform: {platform}</span>\n        <span>v{version}</span>\n      </div>\n    </div>\n  );\n}\n// @archeon:endsection",
+    "client/src/renderer/styles/globals.css": "@tailwind base;\n@tailwind components;\n@tailwind utilities;\n\n:root {\n  --foreground: 250 250 250;\n  --background: 9 9 11;\n}\n\nbody {\n  margin: 0;\n  font-family: system-ui, -apple-system, sans-serif;\n  color: rgb(var(--foreground));\n  background: rgb(var(--background));\n  user-select: none;\n  -webkit-app-region: no-drag;\n}",
+    "client/index.html": "<!DOCTYPE html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"UTF-8\" />\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n    <meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self' ws://localhost:*\" />\n    <title>Electron React App</title>\n  </head>\n  <body>\n    <div id=\"root\"></div>\n    <script type=\"module\" src=\"/src/renderer/main.tsx\"></script>\n  </body>\n</html>"
+  },
+
+  "glyphs": {
+    "CMP": {
+      "description": "React component (UI only, no Node.js or IPC)",
+      "layer": "frontend",
+      "output": {
+        "directory": "client/src/renderer/components",
+        "extension": ".tsx",
+        "naming": "PascalCase"
+      },
+      "sections": ["imports", "types", "component", "exports"],
+      "snippet": "// @archeon:file\n// @glyph {GLYPH_NAME}\n// @intent {INTENT}\n// @chain {CHAIN}\n\n// @archeon:section imports\nimport { useState } from 'react';\n{IMPORTS}\n// @archeon:endsection\n\n// @archeon:section types\ninterface {NAME}Props {\n  className?: string;\n  {PROPS}\n}\n// @archeon:endsection\n\n// @archeon:section component\nexport function {NAME}({ className, {PROP_NAMES} }: {NAME}Props) {\n  return (\n    <div className={className}>\n      {CONTENT}\n    </div>\n  );\n}\n// @archeon:endsection",
+      "placeholders": {
+        "GLYPH_NAME": { "required": true },
+        "INTENT": { "default": "UI Component" },
+        "CHAIN": { "default": "@v1" },
+        "NAME": { "required": true },
+        "IMPORTS": { "default": "" },
+        "PROPS": { "default": "" },
+        "PROP_NAMES": { "default": "" },
+        "CONTENT": { "default": "" }
+      }
+    },
+
+    "STO": {
+      "description": "Zustand store (state + window.api calls for system access)",
+      "layer": "frontend",
+      "output": {
+        "directory": "client/src/renderer/stores",
+        "extension": ".ts",
+        "naming": "camelCase"
+      },
+      "sections": ["imports", "types", "store"],
+      "snippet": "// @archeon:file\n// @glyph {GLYPH_NAME}\n// @intent {INTENT}\n// @chain {CHAIN}\n\n// @archeon:section imports\nimport { create } from 'zustand';\n{IMPORTS}\n// @archeon:endsection\n\n// @archeon:section types\ninterface {NAME}State {\n  {STATE}\n}\n\ninterface {NAME}Actions {\n  {ACTIONS}\n}\n// @archeon:endsection\n\n// @archeon:section store\nexport const use{NAME}Store = create<{NAME}State & {NAME}Actions>((set, get) => ({\n  {INITIAL_STATE}\n  {IMPLEMENTATIONS}\n}));\n// @archeon:endsection",
+      "placeholders": {
+        "GLYPH_NAME": { "required": true },
+        "NAME": { "required": true },
+        "STATE": { "default": "" },
+        "ACTIONS": { "default": "" },
+        "INITIAL_STATE": { "default": "" },
+        "IMPLEMENTATIONS": { "default": "" }
+      }
+    },
+
+    "SVC": {
+      "description": "Main-process service (Node.js, handles IPC)",
+      "layer": "backend",
+      "output": {
+        "directory": "client/src/main/services",
+        "extension": ".ts",
+        "naming": "camelCase"
+      },
+      "sections": ["imports", "helpers", "implementation"],
+      "snippet": "// @archeon:file\n// @glyph {GLYPH_NAME}\n// @intent {INTENT}\n// @chain {CHAIN}\n\n// @archeon:section imports\nimport { type IpcMain } from 'electron';\n{IMPORTS}\n// @archeon:endsection\n\n// @archeon:section implementation\nexport function {FUNCTION_NAME}(ipcMain: IpcMain) {\n  {IMPLEMENTATION}\n}\n// @archeon:endsection",
+      "placeholders": {
+        "GLYPH_NAME": { "required": true },
+        "FUNCTION_NAME": { "required": true },
+        "IMPLEMENTATION": { "default": "" }
+      }
+    },
+
+    "BRG": {
+      "description": "IPC bridge — preload contextBridge exposure",
+      "layer": "shared",
+      "output": {
+        "directory": "client/src/preload",
+        "extension": ".ts",
+        "naming": "camelCase"
+      },
+      "sections": ["imports", "implementation"],
+      "snippet": "// @archeon:file\n// @glyph {GLYPH_NAME}\n// @intent {INTENT}\n\n// @archeon:section imports\nimport { contextBridge, ipcRenderer } from 'electron';\n// @archeon:endsection\n\n// @archeon:section implementation\ncontextBridge.exposeInMainWorld('{NAMESPACE}', {\n  {METHODS}\n});\n// @archeon:endsection",
+      "placeholders": {
+        "GLYPH_NAME": { "required": true },
+        "NAMESPACE": { "required": true },
+        "METHODS": { "default": "" }
+      }
+    },
+
+    "ADP": {
+      "description": "Adapter wrapping a Node.js or external API (fs, Octokit, ssh)",
+      "layer": "backend",
+      "output": {
+        "directory": "client/src/main/adapters",
+        "extension": ".ts",
+        "naming": "camelCase"
+      },
+      "sections": ["imports", "adapter"],
+      "snippet": "// @archeon:file\n// @glyph {GLYPH_NAME}\n// @intent {INTENT}\n\n// @archeon:section imports\n{IMPORTS}\n// @archeon:endsection\n\n// @archeon:section adapter\nexport const {NAME}Adapter = {\n  {METHODS}\n};\n// @archeon:endsection",
+      "placeholders": {
+        "GLYPH_NAME": { "required": true },
+        "NAME": { "required": true },
+        "METHODS": { "default": "" }
+      }
+    },
+
+    "FNC": {
+      "description": "Shared utility function (pure, no side effects)",
+      "layer": "shared",
+      "output": {
+        "directory": "client/src/shared",
+        "extension": ".ts",
+        "naming": "camelCase"
+      },
+      "sections": ["imports", "implementation"],
+      "snippet": "// @archeon:file\n// @glyph {GLYPH_NAME}\n// @intent {INTENT}\n// @chain {CHAIN}\n\n// @archeon:section imports\n{IMPORTS}\n// @archeon:endsection\n\n// @archeon:section implementation\nexport function {FUNCTION_NAME}({PARAMETERS}): {RETURN_TYPE} {\n  {BODY}\n}\n// @archeon:endsection",
+      "placeholders": {
+        "GLYPH_NAME": { "required": true },
+        "FUNCTION_NAME": { "required": true },
+        "PARAMETERS": { "default": "" },
+        "RETURN_TYPE": { "default": "void" },
+        "BODY": { "default": "" }
+      }
+    }
+  },
+
+  "constraints": {
+    "forbidden": [
+      "CMP -> IPC",
+      "CMP -> Node.js",
+      "CMP -> fs",
+      "CMP -> child_process",
+      "CMP -> electron.main",
+      "STO -> IPC (direct)",
+      "STO -> Node.js",
+      "renderer -> require('electron')"
+    ],
+    "allowed": [
+      "CMP -> STO",
+      "STO -> window.api",
+      "BRG -> IPC",
+      "SVC -> ADP",
+      "SVC -> Node.js"
+    ]
+  },
+
+  "dependencies": {
+    "frontend": {
+      "dependencies": {
+        "react": "^19.0.0",
+        "react-dom": "^19.0.0",
+        "react-router": "^7.0.0",
+        "zustand": "^5.0.0",
+        "clsx": "^2.1.0",
+        "tailwind-merge": "^3.0.0"
+      },
+      "devDependencies": {
+        "vite": "^6.0.0",
+        "@vitejs/plugin-react": "^4.4.0",
+        "tailwindcss": "^4.0.0",
+        "@tailwindcss/vite": "^4.0.0",
+        "typescript": "^5.7.0",
+        "@types/react": "^19.0.0",
+        "@types/react-dom": "^19.0.0"
+      }
+    },
+    "backend": {
+      "dependencies": {
+        "electron-store": "^10.0.0",
+        "@octokit/rest": "^21.0.0"
+      },
+      "devDependencies": {
+        "electron": "^35.0.0",
+        "electron-builder": "^25.0.0",
+        "vite-plugin-electron": "^0.28.0",
+        "vite-plugin-electron-renderer": "^0.14.0",
+        "concurrently": "^9.0.0",
+        "@types/node": "^22.0.0"
+      }
+    }
+  },
+
+  "setup": {
+    "commands": [
+      "cd client && npm install",
+      "npm run dev"
+    ],
+    "notes": [
+      "Dev mode runs Vite + Electron concurrently with HMR",
+      "Production: 'npm run package' builds platform-specific installer",
+      "GitHub token stored via Electron safeStorage (OS keychain)",
+      "SSH operations use system ssh-keygen and ssh-add — no extra deps",
+      "Context isolation is ON — renderer cannot access Node.js APIs",
+      "All IPC channels defined in src/shared/ipc-channels.ts",
+      "Filesystem operations sandboxed to user's home directory"
+    ]
+  }
+}

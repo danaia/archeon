@@ -185,5 +185,8 @@ STO:Theme :: TKN:transformer
 # Architecture Shapes - SolidJS (client-only)
 @v1 NED:architecture.solidjs => SHP:solidjs-kiss => OUT:architecture.available
 
+# Architecture Shapes - React + Electron (Desktop App)
+@v1 NED:architecture.react-electron => SHP:react-electron => OUT:architecture.available
+
 # Architecture Shapes - Next.js + FastAPI
 @v1 NED:architecture.nextjs-fastapi => SHP:nextjs-fastapi => OUT:architecture.available

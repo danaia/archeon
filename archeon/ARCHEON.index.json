@@ -14,6 +14,12 @@
       "chain": "@v1",
       "sections": []
     },
+    "SHP:react-electron": {
+      "file": "archeon/architectures/react-electron.shape.json",
+      "intent": "React + Vite + Electron desktop app shape with filesystem, GitHub API, and SSH key management",
+      "chain": "@v1",
+      "sections": []
+    },
     "FNC:helper\"": {
       "file": "archeon/tests/test_scanner.py",
       "intent": "Test component\" in header",
