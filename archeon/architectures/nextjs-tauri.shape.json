@@ -1,0 +1,255 @@
+{
+  "$schema": "./_schema.json",
+  "meta": {
+    "id": "nextjs-tauri",
+    "name": "Next.js 15 + Tauri 2 (Desktop App)",
+    "description": "Production-ready desktop application using Tauri 2 with Next.js 15 App Router, React 19, Zustand state management. Builds lightweight native binaries for Linux and macOS with Rust backend for system access, filesystem operations, and shell commands via Tauri's command system.",
+    "version": "1.0.0",
+    "tags": ["desktop", "tauri", "nextjs", "react", "typescript", "rust", "linux", "macos"]
+  },
+
+  "architecture": {
+    "summary": "A desktop application architecture using Tauri 2 with a Next.js frontend rendered in a native webview. The Rust backend handles privileged system operations (filesystem, shell, OS info) exposed to the frontend via Tauri's invoke command system. No Electron overhead — produces small, fast native binaries for Linux (.deb, .AppImage, .rpm) and macOS (.dmg, .app).",
+    "layers": [
+      {
+        "name": "Pages & Server Components (RSC)",
+        "description": "Next.js App Router pages using React Server Components for static rendering. In Tauri, RSC pages are pre-rendered at build time via static export. No Node.js server at runtime.",
+        "rules": ["No dynamic server-side rendering in Tauri", "Use generateStaticParams for dynamic routes", "Layouts and pages can be server components", "Data fetching at build time only for RSC"]
+      },
+      {
+        "name": "Client Components (CMP)",
+        "description": "React 'use client' components that run in the Tauri webview. Handle user interaction, call Zustand stores for state, and invoke Tauri commands for system access.",
+        "rules": ["Must have 'use client' directive", "No direct Tauri invoke calls — go through stores", "State comes from STO via hooks", "Use @tauri-apps/api only in stores/lib"]
+      },
+      {
+        "name": "State Layer (STO)",
+        "description": "Zustand stores managing application state. Stores call Tauri invoke() for system operations. Single source of truth for all frontend state.",
+        "rules": ["Single source of truth", "Calls invoke() for Tauri commands", "Never imports Rust modules", "Handles loading/error states for async commands"]
+      },
+      {
+        "name": "Tauri Command Layer (CMD)",
+        "description": "Rust #[tauri::command] functions in the Tauri backend. Handle filesystem operations, shell commands, OS information, and other privileged system access. Invoked from the frontend via Tauri's IPC.",
+        "rules": ["All commands are async", "Input validation in Rust before execution", "Return Result<T, String> for error handling", "Register commands in tauri::Builder"]
+      },
+      {
+        "name": "Rust Services (SVC)",
+        "description": "Rust modules containing business logic called by Tauri commands. Separate concerns from the command handler layer.",
+        "rules": ["Pure Rust logic", "No direct tauri:: imports", "Returns Result types", "Handles errors at boundary"]
+      }
+    ],
+    "dataFlow": "RSC (static) | CMP -> STO -> invoke() -> CMD (Rust) -> SVC (Rust) -> System/FS/Shell",
+    "keyPrinciples": [
+      "Next.js runs as a static export — no Node.js server at runtime",
+      "Tauri webview loads the static Next.js build",
+      "All system access goes through Tauri invoke() command bridge",
+      "Rust commands are the ONLY bridge between frontend and system",
+      "Tauri's allowlist controls which APIs are exposed to the webview",
+      "Filesystem access scoped via Tauri's fs scope permissions",
+      "Small binary size — Tauri uses system webview, not bundled Chromium",
+      "Cross-platform builds for Linux and macOS via cargo and Tauri CLI",
+      "GitHub Actions CI/CD for automated release builds on both platforms"
+    ],
+    "securityModel": "Tauri's capability-based permission system controls which commands, APIs, and filesystem paths are accessible from the webview. Commands are explicitly registered. No arbitrary code execution from the frontend. CSP headers restrict script sources.",
+    "buildProcess": "Next.js builds static export to out/. Tauri bundles the static output into a native app shell. cargo build compiles the Rust backend. tauri build produces platform installers: .deb/.AppImage/.rpm for Linux, .dmg/.app for macOS."
+  },
+
+  "defaultChain": "@v1 NED:system.ready => SHP:nextjs-tauri => OUT:installed",
+
+  "stack": {
+    "frontend": {
+      "framework": "nextjs",
+      "version": "15.x",
+      "language": "typescript",
+      "runtime": "tauri-webview",
+      "stateManager": "zustand",
+      "styling": "tailwindcss",
+      "router": "app-router",
+      "buildTool": "next",
+      "outputMode": "export"
+    },
+    "backend": {
+      "framework": "tauri",
+      "version": "2.x",
+      "language": "rust",
+      "runtime": "native"
+    },
+    "platform": {
+      "wrapper": "tauri",
+      "version": "2.x",
+      "targets": ["linux", "mac"],
+      "formats": {
+        "linux": ["deb", "appimage", "rpm"],
+        "mac": ["dmg", "app"]
+      },
+      "capabilities": ["filesystem", "shell", "os-info", "dialog", "clipboard", "notification", "updater"]
+    }
+  },
+
+  "directories": {
+    "client": {
+      "src": {
+        "app": {
+          "_note": "Next.js App Router pages and layouts",
+          "(dashboard)": {},
+          "(settings)": {}
+        },
+        "components": {
+          "ui": {
+            "_note": "Reusable UI primitives"
+          },
+          "layout": {
+            "_note": "Shell, sidebar, titlebar components"
+          }
+        },
+        "stores": {
+          "_note": "STO: Zustand stores calling Tauri invoke"
+        },
+        "lib": {
+          "tauri": {
+            "_note": "Typed wrappers around Tauri invoke commands"
+          },
+          "utils": {}
+        },
+        "hooks": {},
+        "types": {}
+      },
+      "public": {}
+    },
+    "server": {
+      "_note": "Tauri Rust backend",
+      "src": {
+        "_note": "Rust source — main.rs, commands/, services/",
+        "commands": {
+          "_note": "CMD: Tauri #[tauri::command] handlers"
+        },
+        "services": {
+          "_note": "SVC: Rust business logic modules"
+        }
+      },
+      "capabilities": {
+        "_note": "Tauri v2 capability permission files"
+      },
+      "icons": {}
+    }
+  },
+
+  "files": {
+    "client/package.json": "{\n  \"name\": \"nextjs-tauri-app\",\n  \"version\": \"0.1.0\",\n  \"private\": true,\n  \"scripts\": {\n    \"dev\": \"next dev\",\n    \"build\": \"next build\",\n    \"lint\": \"next lint\",\n    \"tauri\": \"tauri\",\n    \"tauri:dev\": \"tauri dev\",\n    \"tauri:build\": \"tauri build\",\n    \"tauri:build-linux\": \"tauri build --target x86_64-unknown-linux-gnu\",\n    \"tauri:build-mac\": \"tauri build --target universal-apple-darwin\"\n  },\n  \"dependencies\": {\n    \"react\": \"^19.0.0\",\n    \"react-dom\": \"^19.0.0\",\n    \"next\": \"^15.0.0\",\n    \"zustand\": \"^5.0.0\",\n    \"@tauri-apps/api\": \"^2.0.0\",\n    \"@tauri-apps/plugin-dialog\": \"^2.0.0\",\n    \"@tauri-apps/plugin-fs\": \"^2.0.0\",\n    \"@tauri-apps/plugin-shell\": \"^2.0.0\",\n    \"@tauri-apps/plugin-os\": \"^2.0.0\",\n    \"@tauri-apps/plugin-clipboard-manager\": \"^2.0.0\",\n    \"@tauri-apps/plugin-notification\": \"^2.0.0\",\n    \"@tauri-apps/plugin-updater\": \"^2.0.0\",\n    \"clsx\": \"^2.1.0\",\n    \"tailwind-merge\": \"^3.0.0\"\n  },\n  \"devDependencies\": {\n    \"@tauri-apps/cli\": \"^2.0.0\",\n    \"typescript\": \"^5.7.0\",\n    \"@types/react\": \"^19.0.0\",\n    \"@types/react-dom\": \"^19.0.0\",\n    \"@types/node\": \"^22.0.0\",\n    \"tailwindcss\": \"^4.0.0\",\n    \"@tailwindcss/postcss\": \"^4.0.0\",\n    \"postcss\": \"^8.5.0\",\n    \"eslint\": \"^9.0.0\",\n    \"eslint-config-next\": \"^15.0.0\"\n  }\n}",
+    "client/next.config.ts": "import type { NextConfig } from 'next';\n\nconst nextConfig: NextConfig = {\n  output: 'export',\n  images: {\n    unoptimized: true,\n  },\n  // Tauri expects static files served from the root\n  trailingSlash: true,\n};\n\nexport default nextConfig;",
+    "client/tsconfig.json": "{\n  \"compilerOptions\": {\n    \"target\": \"ES2022\",\n    \"lib\": [\"ES2022\", \"DOM\", \"DOM.Iterable\"],\n    \"module\": \"ESNext\",\n    \"moduleResolution\": \"bundler\",\n    \"strict\": true,\n    \"noEmit\": true,\n    \"esModuleInterop\": true,\n    \"skipLibCheck\": true,\n    \"resolveJsonModule\": true,\n    \"isolatedModules\": true,\n    \"jsx\": \"preserve\",\n    \"incremental\": true,\n    \"paths\": {\n      \"@/*\": [\"./src/*\"]\n    },\n    \"plugins\": [\n      { \"name\": \"next\" }\n    ]\n  },\n  \"include\": [\"next-env.d.ts\", \"**/*.ts\", \"**/*.tsx\", \".next/types/**/*.ts\"],\n  \"exclude\": [\"node_modules\"]\n}",
+    "client/postcss.config.mjs": "/** @type {import('postcss-load-config').Config} */\nconst config = {\n  plugins: {\n    '@tailwindcss/postcss': {},\n  },\n};\n\nexport default config;",
+    "client/src/app/globals.css": "@import 'tailwindcss';",
+    "client/src/app/layout.tsx": "// @archeon:file\n// @glyph CMP:RootLayout\n// @intent Root layout with metadata and global styles\n// @chain @v1 NED:system.ready => SHP:nextjs-tauri => OUT:installed\n\n// @archeon:section imports\nimport type { Metadata } from 'next';\nimport { Inter } from 'next/font/google';\nimport './globals.css';\n// @archeon:endsection\n\n// @archeon:section implementation\nconst inter = Inter({ subsets: ['latin'] });\n\nexport const metadata: Metadata = {\n  title: 'Tauri Desktop App',\n  description: 'Next.js + Tauri Desktop Application',\n};\n\nexport default function RootLayout({\n  children,\n}: {\n  children: React.ReactNode;\n}) {\n  return (\n    <html lang=\"en\">\n      <body className={`${inter.className} bg-zinc-950 text-zinc-100 antialiased`}>\n        {children}\n      </body>\n    </html>\n  );\n}\n// @archeon:endsection",
+    "client/src/app/page.tsx": "// @archeon:file\n// @glyph CMP:HomePage\n// @intent Landing page — shows app info and platform details\n// @chain @v1 NED:system.ready => CMP:HomePage => OUT:ui.ready\n\n// @archeon:section imports\n'use client';\n\nimport { useState, useEffect } from 'react';\nimport { platform, arch } from '@tauri-apps/plugin-os';\nimport { getVersion } from '@tauri-apps/api/app';\n// @archeon:endsection\n\n// @archeon:section component\nexport default function HomePage() {\n  const [info, setInfo] = useState({ platform: '', arch: '', version: '' });\n\n  useEffect(() => {\n    async function load() {\n      const [p, a, v] = await Promise.all([platform(), arch(), getVersion()]);\n      setInfo({ platform: p, arch: a, version: v });\n    }\n    load();\n  }, []);\n\n  return (\n    <div className=\"flex flex-col items-center justify-center min-h-screen p-6\">\n      <h1 className=\"text-3xl font-bold mb-2\">Next.js + Tauri</h1>\n      <p className=\"text-zinc-400 mb-6\">\n        Edit <code className=\"text-emerald-400\">src/app/page.tsx</code> to get started\n      </p>\n      <div className=\"flex gap-4 text-sm text-zinc-500\">\n        <span>Platform: {info.platform}</span>\n        <span>Arch: {info.arch}</span>\n        <span>v{info.version}</span>\n      </div>\n    </div>\n  );\n}\n// @archeon:endsection",
+    "client/src/lib/tauri/commands.ts": "// @archeon:file\n// @glyph FNC:TauriCommands\n// @intent Typed wrappers around Tauri invoke — single point of contact for all Rust commands\n// @chain @v1 NED:system.ready => SHP:nextjs-tauri => OUT:installed\n\n// @archeon:section imports\nimport { invoke } from '@tauri-apps/api/core';\n// @archeon:endsection\n\n// @archeon:section implementation\n\n// --- Filesystem commands ---\nexport async function readDir(path: string): Promise<string[]> {\n  return invoke('read_dir', { path });\n}\n\nexport async function readTextFile(path: string): Promise<string> {\n  return invoke('read_text_file', { path });\n}\n\nexport async function writeTextFile(path: string, contents: string): Promise<void> {\n  return invoke('write_text_file', { path, contents });\n}\n\nexport async function fileExists(path: string): Promise<boolean> {\n  return invoke('file_exists', { path });\n}\n\nexport async function createDir(path: string): Promise<void> {\n  return invoke('create_dir', { path });\n}\n\nexport async function removeFile(path: string): Promise<void> {\n  return invoke('remove_file', { path });\n}\n\nexport async function removeDir(path: string): Promise<void> {\n  return invoke('remove_dir', { path });\n}\n\n// --- Shell commands ---\nexport async function runCommand(program: string, args: string[]): Promise<{ stdout: string; stderr: string; code: number }> {\n  return invoke('run_command', { program, args });\n}\n\n// --- App info ---\nexport async function getAppDataDir(): Promise<string> {\n  return invoke('get_app_data_dir');\n}\n\nexport async function getHomeDir(): Promise<string> {\n  return invoke('get_home_dir');\n}\n// @archeon:endsection",
+    "client/src/lib/utils.ts": "// @archeon:file\n// @glyph FNC:Utils\n// @intent Shared utility functions — cn() for Tailwind class merging\n// @chain @v1 NED:system.ready => SHP:nextjs-tauri => OUT:installed\n\n// @archeon:section implementation\nimport { clsx, type ClassValue } from 'clsx';\nimport { twMerge } from 'tailwind-merge';\n\nexport function cn(...inputs: ClassValue[]) {\n  return twMerge(clsx(inputs));\n}\n// @archeon:endsection",
+    "server/Cargo.toml": "[package]\nname = \"nextjs-tauri-app\"\nversion = \"0.1.0\"\nedition = \"2021\"\nrust-version = \"1.77\"\n\n[build-dependencies]\ntauri-build = { version = \"2\", features = [] }\n\n[dependencies]\ntauri = { version = \"2\", features = [] }\ntauri-plugin-dialog = \"2\"\ntauri-plugin-fs = \"2\"\ntauri-plugin-shell = \"2\"\ntauri-plugin-os = \"2\"\ntauri-plugin-clipboard-manager = \"2\"\ntauri-plugin-notification = \"2\"\ntauri-plugin-updater = \"2\"\nserde = { version = \"1\", features = [\"derive\"] }\nserde_json = \"1\"\ntokio = { version = \"1\", features = [\"full\"] }",
+    "server/build.rs": "fn main() {\n    tauri_build::build()\n}",
+    "server/tauri.conf.json": "{\n  \"$schema\": \"https://raw.githubusercontent.com/tauri-apps/tauri/dev/crates/tauri-config-schema/schema.json\",\n  \"productName\": \"NextJS Tauri App\",\n  \"version\": \"0.1.0\",\n  \"identifier\": \"com.app.nextjs-tauri\",\n  \"build\": {\n    \"frontendDist\": \"../client/out\",\n    \"devUrl\": \"http://localhost:3000\",\n    \"beforeDevCommand\": \"cd ../client && npm run dev\",\n    \"beforeBuildCommand\": \"cd ../client && npm run build\"\n  },\n  \"app\": {\n    \"withGlobalTauri\": true,\n    \"windows\": [\n      {\n        \"title\": \"NextJS Tauri App\",\n        \"width\": 1200,\n        \"height\": 800,\n        \"minWidth\": 800,\n        \"minHeight\": 600,\n        \"resizable\": true,\n        \"fullscreen\": false,\n        \"decorations\": true\n      }\n    ],\n    \"security\": {\n      \"csp\": \"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' asset: https://asset.localhost; connect-src ipc: http://ipc.localhost\"\n    }\n  },\n  \"bundle\": {\n    \"active\": true,\n    \"targets\": \"all\",\n    \"icon\": [\n      \"icons/32x32.png\",\n      \"icons/128x128.png\",\n      \"icons/128x128@2x.png\",\n      \"icons/icon.icns\",\n      \"icons/icon.ico\"\n    ],\n    \"linux\": {\n      \"deb\": {\n        \"depends\": [\"libwebkit2gtk-4.1-0\", \"libgtk-3-0\"]\n      },\n      \"appimage\": {\n        \"bundleMediaFramework\": false\n      },\n      \"rpm\": {\n        \"depends\": [\"webkit2gtk4.1\", \"gtk3\"]\n      }\n    },\n    \"macOS\": {\n      \"minimumSystemVersion\": \"10.15\",\n      \"frameworks\": []\n    }\n  }\n}",
+    "server/capabilities/default.json": "{\n  \"$schema\": \"https://raw.githubusercontent.com/tauri-apps/tauri/dev/crates/tauri-utils/schema.json\",\n  \"identifier\": \"default\",\n  \"description\": \"Default capability granting core permissions\",\n  \"windows\": [\"main\"],\n  \"permissions\": [\n    \"core:default\",\n    \"dialog:default\",\n    \"fs:default\",\n    \"shell:default\",\n    \"os:default\",\n    \"clipboard-manager:default\",\n    \"notification:default\"\n  ]\n}",
+    "server/src/main.rs": "// @archeon:file\n// @glyph CMD:TauriMain\n// @intent Tauri application entry — registers plugins and commands\n// @chain @v1 NED:system.ready => SHP:nextjs-tauri => OUT:installed\n\n// @archeon:section imports\n#![cfg_attr(not(debug_assertions), windows_subsystem = \"windows\")]\n\nmod commands;\n// @archeon:endsection\n\n// @archeon:section implementation\nfn main() {\n    tauri::Builder::default()\n        .plugin(tauri_plugin_dialog::init())\n        .plugin(tauri_plugin_fs::init())\n        .plugin(tauri_plugin_shell::init())\n        .plugin(tauri_plugin_os::init())\n        .plugin(tauri_plugin_clipboard_manager::init())\n        .plugin(tauri_plugin_notification::init())\n        .invoke_handler(tauri::generate_handler![\n            commands::fs::read_dir,\n            commands::fs::read_text_file,\n            commands::fs::write_text_file,\n            commands::fs::file_exists,\n            commands::fs::create_dir,\n            commands::fs::remove_file,\n            commands::fs::remove_dir,\n            commands::shell::run_command,\n            commands::app::get_app_data_dir,\n            commands::app::get_home_dir,\n        ])\n        .run(tauri::generate_context!())\n        .expect(\"error while running tauri application\");\n}\n// @archeon:endsection",
+    "server/src/commands/mod.rs": "pub mod app;\npub mod fs;\npub mod shell;",
+    "server/src/commands/fs.rs": "// @archeon:file\n// @glyph CMD:FsCommands\n// @intent Tauri commands for filesystem operations — read, write, delete, stat\n// @chain @v1 NED:filesystem => CMD:FsCommands => OUT:fs.result\n\n// @archeon:section imports\nuse std::fs;\nuse std::path::Path;\n// @archeon:endsection\n\n// @archeon:section implementation\n#[tauri::command]\npub async fn read_dir(path: String) -> Result<Vec<String>, String> {\n    let entries = fs::read_dir(&path).map_err(|e| e.to_string())?;\n    let names: Vec<String> = entries\n        .filter_map(|entry| entry.ok())\n        .map(|entry| entry.file_name().to_string_lossy().to_string())\n        .collect();\n    Ok(names)\n}\n\n#[tauri::command]\npub async fn read_text_file(path: String) -> Result<String, String> {\n    fs::read_to_string(&path).map_err(|e| e.to_string())\n}\n\n#[tauri::command]\npub async fn write_text_file(path: String, contents: String) -> Result<(), String> {\n    if let Some(parent) = Path::new(&path).parent() {\n        fs::create_dir_all(parent).map_err(|e| e.to_string())?;\n    }\n    fs::write(&path, contents).map_err(|e| e.to_string())\n}\n\n#[tauri::command]\npub async fn file_exists(path: String) -> Result<bool, String> {\n    Ok(Path::new(&path).exists())\n}\n\n#[tauri::command]\npub async fn create_dir(path: String) -> Result<(), String> {\n    fs::create_dir_all(&path).map_err(|e| e.to_string())\n}\n\n#[tauri::command]\npub async fn remove_file(path: String) -> Result<(), String> {\n    fs::remove_file(&path).map_err(|e| e.to_string())\n}\n\n#[tauri::command]\npub async fn remove_dir(path: String) -> Result<(), String> {\n    fs::remove_dir_all(&path).map_err(|e| e.to_string())\n}\n// @archeon:endsection",
+    "server/src/commands/shell.rs": "// @archeon:file\n// @glyph CMD:ShellCommands\n// @intent Tauri commands for running shell commands\n// @chain @v1 NED:shell => CMD:ShellCommands => OUT:shell.result\n\n// @archeon:section imports\nuse std::process::Command;\nuse serde::Serialize;\n// @archeon:endsection\n\n// @archeon:section implementation\n#[derive(Serialize)]\npub struct CommandOutput {\n    pub stdout: String,\n    pub stderr: String,\n    pub code: i32,\n}\n\n#[tauri::command]\npub async fn run_command(program: String, args: Vec<String>) -> Result<CommandOutput, String> {\n    let output = Command::new(&program)\n        .args(&args)\n        .output()\n        .map_err(|e| format!(\"Failed to execute '{}': {}\", program, e))?;\n\n    Ok(CommandOutput {\n        stdout: String::from_utf8_lossy(&output.stdout).to_string(),\n        stderr: String::from_utf8_lossy(&output.stderr).to_string(),\n        code: output.status.code().unwrap_or(-1),\n    })\n}\n// @archeon:endsection",
+    "server/src/commands/app.rs": "// @archeon:file\n// @glyph CMD:AppCommands\n// @intent Tauri commands for app information — data dir, home dir\n// @chain @v1 NED:system.ready => CMD:AppCommands => OUT:app.info\n\n// @archeon:section imports\nuse tauri::Manager;\n// @archeon:endsection\n\n// @archeon:section implementation\n#[tauri::command]\npub async fn get_app_data_dir(app: tauri::AppHandle) -> Result<String, String> {\n    app.path()\n        .app_data_dir()\n        .map(|p| p.to_string_lossy().to_string())\n        .map_err(|e| e.to_string())\n}\n\n#[tauri::command]\npub async fn get_home_dir(app: tauri::AppHandle) -> Result<String, String> {\n    app.path()\n        .home_dir()\n        .map(|p| p.to_string_lossy().to_string())\n        .map_err(|e| e.to_string())\n}\n// @archeon:endsection",
+    ".github/workflows/release.yml": "name: Release\n\non:\n  push:\n    tags:\n      - 'v*'\n  workflow_dispatch:\n\njobs:\n  build-linux:\n    runs-on: ubuntu-22.04\n    steps:\n      - uses: actions/checkout@v4\n\n      - name: Install system dependencies\n        run: |\n          sudo apt-get update\n          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf\n\n      - name: Setup Node.js\n        uses: actions/setup-node@v4\n        with:\n          node-version: 22\n          cache: npm\n          cache-dependency-path: client/package-lock.json\n\n      - name: Setup Rust\n        uses: dtolnay/rust-toolchain@stable\n\n      - name: Rust cache\n        uses: swatinem/rust-cache@v2\n        with:\n          workspaces: server\n\n      - name: Install frontend dependencies\n        run: cd client && npm ci\n\n      - name: Build Tauri app\n        uses: tauri-apps/tauri-action@v0\n        env:\n          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}\n        with:\n          projectPath: server\n          tagName: ${{ github.ref_name }}\n          releaseName: \"Release ${{ github.ref_name }}\"\n          releaseBody: \"See the assets for download links.\"\n          releaseDraft: true\n          prerelease: false\n\n  build-macos:\n    runs-on: macos-latest\n    steps:\n      - uses: actions/checkout@v4\n\n      - name: Setup Node.js\n        uses: actions/setup-node@v4\n        with:\n          node-version: 22\n          cache: npm\n          cache-dependency-path: client/package-lock.json\n\n      - name: Setup Rust\n        uses: dtolnay/rust-toolchain@stable\n        with:\n          targets: aarch64-apple-darwin,x86_64-apple-darwin\n\n      - name: Rust cache\n        uses: swatinem/rust-cache@v2\n        with:\n          workspaces: server\n\n      - name: Install frontend dependencies\n        run: cd client && npm ci\n\n      - name: Build Tauri app (universal)\n        uses: tauri-apps/tauri-action@v0\n        env:\n          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}\n        with:\n          projectPath: server\n          args: --target universal-apple-darwin\n          tagName: ${{ github.ref_name }}\n          releaseName: \"Release ${{ github.ref_name }}\"\n          releaseBody: \"See the assets for download links.\"\n          releaseDraft: true\n          prerelease: false"
+  },
+
+  "glyphs": {
+    "CMP": {
+      "description": "React Client Component (runs in Tauri webview)",
+      "layer": "frontend",
+      "output": {
+        "directory": "client/src/components",
+        "extension": ".tsx",
+        "naming": "PascalCase"
+      },
+      "sections": ["imports", "types", "component"],
+      "snippet": "// @archeon:file\n// @glyph {GLYPH_NAME}\n// @intent {INTENT}\n// @chain {CHAIN}\n\n// @archeon:section imports\n'use client';\n\nimport { cn } from '@/lib/utils';\n{IMPORTS}\n// @archeon:endsection\n\n// @archeon:section types\ninterface {NAME}Props {\n  className?: string;\n  {PROPS}\n}\n// @archeon:endsection\n\n// @archeon:section component\nexport function {NAME}({ className, {PROP_NAMES} }: {NAME}Props) {\n  return (\n    <div className={cn('', className)}>\n      {CONTENT}\n    </div>\n  );\n}\n// @archeon:endsection",
+      "placeholders": {
+        "GLYPH_NAME": { "required": true },
+        "INTENT": { "default": "UI Component" },
+        "CHAIN": { "default": "@v1" },
+        "NAME": { "required": true },
+        "IMPORTS": { "default": "" },
+        "PROPS": { "default": "" },
+        "PROP_NAMES": { "default": "" },
+        "CONTENT": { "default": "" }
+      }
+    },
+
+    "STO": {
+      "description": "Zustand store (calls Tauri invoke for system access)",
+      "layer": "frontend",
+      "output": {
+        "directory": "client/src/stores",
+        "extension": ".ts",
+        "naming": "camelCase"
+      },
+      "sections": ["imports", "types", "store"],
+      "snippet": "// @archeon:file\n// @glyph {GLYPH_NAME}\n// @intent {INTENT}\n// @chain {CHAIN}\n\n// @archeon:section imports\nimport { create } from 'zustand';\nimport { invoke } from '@tauri-apps/api/core';\n{IMPORTS}\n// @archeon:endsection\n\n// @archeon:section types\ninterface {NAME}State {\n  {STATE}\n}\n\ninterface {NAME}Actions {\n  {ACTIONS}\n}\n// @archeon:endsection\n\n// @archeon:section store\nexport const use{NAME}Store = create<{NAME}State & {NAME}Actions>((set, get) => ({\n  {INITIAL_STATE}\n  {IMPLEMENTATIONS}\n}));\n// @archeon:endsection",
+      "placeholders": {
+        "GLYPH_NAME": { "required": true },
+        "NAME": { "required": true },
+        "STATE": { "default": "" },
+        "ACTIONS": { "default": "" },
+        "INITIAL_STATE": { "default": "" },
+        "IMPLEMENTATIONS": { "default": "" }
+      }
+    },
+
+    "CMD": {
+      "description": "Tauri #[tauri::command] handler in Rust",
+      "layer": "backend",
+      "output": {
+        "directory": "server/src/commands",
+        "extension": ".rs",
+        "naming": "snake_case"
+      },
+      "sections": ["imports", "implementation"],
+      "snippet": "// @archeon:file\n// @glyph {GLYPH_NAME}\n// @intent {INTENT}\n// @chain {CHAIN}\n\n// @archeon:section imports\n{IMPORTS}\n// @archeon:endsection\n\n// @archeon:section implementation\n#[tauri::command]\npub async fn {FUNCTION_NAME}({PARAMETERS}) -> Result<{RETURN_TYPE}, String> {\n    {BODY}\n}\n// @archeon:endsection",
+      "placeholders": {
+        "GLYPH_NAME": { "required": true },
+        "FUNCTION_NAME": { "required": true },
+        "PARAMETERS": { "default": "" },
+        "RETURN_TYPE": { "default": "()" },
+        "BODY": { "default": "Ok(())" }
+      }
+    },
+
+    "SVC": {
+      "description": "Rust service module with business logic",
+      "layer": "backend",
+      "output": {
+        "directory": "server/src/services",
+        "extension": ".rs",
+        "naming": "snake_case"
+      },
+      "sections": ["imports", "implementation"],
+      "snippet": "// @archeon:file\n// @glyph {GLYPH_NAME}\n// @intent {INTENT}\n// @chain {CHAIN}\n\n// @archeon:section imports\n{IMPORTS}\n// @archeon:endsection\n\n// @archeon:section implementation\n{BODY}\n// @archeon:endsection",
+      "placeholders": {
+        "GLYPH_NAME": { "required": true },
+        "BODY": { "default": "" }
+      }
+    },
+
+    "FNC": {
+      "description": "Shared TypeScript utility function",
+      "layer": "shared",
+      "output": {
+        "directory": "client/src/lib",
+        "extension": ".ts",
+        "naming": "camelCase"
+      },
+      "sections": ["imports", "implementation"],
+      "snippet": "// @archeon:file\n// @glyph {GLYPH_NAME}\n// @intent {INTENT}\n// @chain {CHAIN}\n\n// @archeon:section imports\n{IMPORTS}\n// @archeon:endsection\n\n// @archeon:section implementation\nexport function {FUNCTION_NAME}({PARAMETERS}): {RETURN_TYPE} {\n  {BODY}\n}\n// @archeon:endsection",
+      "placeholders": {
+        "GLYPH_NAME": { "required": true },
+        "FUNCTION_NAME": { "required": true },
+        "PARAMETERS": { "default": "" },
+        "RETURN_TYPE": { "default": "void" },
+        "BODY": { "default": "" }
+      }
+    }
+  }
+}

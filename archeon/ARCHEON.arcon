@@ -190,3 +190,6 @@ STO:Theme :: TKN:transformer
 
 # Architecture Shapes - Next.js + FastAPI
 @v1 NED:architecture.nextjs-fastapi => SHP:nextjs-fastapi => OUT:architecture.available
+
+# Architecture Shapes - Next.js + Tauri (Desktop App, Linux & macOS)
+@v1 NED:architecture.nextjs-tauri => SHP:nextjs-tauri => OUT:architecture.available
